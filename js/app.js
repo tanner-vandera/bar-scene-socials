@@ -34,6 +34,12 @@ const DROP_OUT = [{ transform: 'translateY(0)', opacity: 1 },
 const DROP_IN  = [{ transform: 'translateY(-72px)', opacity: 0 },
                   { transform: 'translateY(0)', opacity: 1 }];
 
+/* Warm the image cache for all three lockups up front, so the drop-in
+   animation never has to wait on a first-time network fetch mid-flight
+   (that wait is what makes a transition look glitchy/janky on a real
+   network — localhost never shows it, which is why it hid during dev). */
+Object.values(EVENTS).forEach(cfg => { new Image().src = cfg.logo; });
+
 /* Every animation is tracked so a new one always supersedes the old, and so
    cancel() can hand an element back to its plain CSS state. */
 const tracked = new WeakMap();
@@ -58,13 +64,18 @@ const routeOf = () => {
 const cardFor = k => document.querySelector(`.card[data-event="${k}"]`);
 const siblings = k => ORDER.filter(x => x !== k).map(cardFor);
 
-/* The card's exact on-screen rect, as a clip-path the panel can grow out of. */
-function cardInset(card) {
+/* The card's exact on-screen rect. Kept as a plain rectangular clip-path with
+   the rounding animated separately via border-radius — Safari interpolates
+   a bare `inset()` and a `border-radius` far more reliably than the combined
+   `inset(... round Xpx)` shorthand, which can stutter mid-animation. */
+function cardRect(card) {
   const r = card.getBoundingClientRect();
-  const radius = getComputedStyle(card).borderTopLeftRadius || '0px';
-  return `inset(${r.top}px ${innerWidth - r.right}px ${innerHeight - r.bottom}px ${r.left}px round ${radius})`;
+  return {
+    clip: `inset(${r.top}px ${innerWidth - r.right}px ${innerHeight - r.bottom}px ${r.left}px)`,
+    radius: getComputedStyle(card).borderTopLeftRadius || '0px',
+  };
 }
-const FULL_BLEED = 'inset(0px 0px 0px 0px round 0px)';
+const FULL_BLEED = { clip: 'inset(0px 0px 0px 0px)', radius: '0px' };
 
 /* =========================================================================
    HOME → EVENT   (three beats: logo drops out, color consumes, logo drops in)
@@ -73,6 +84,11 @@ async function toEvent(key) {
   const cfg = EVENTS[key];
   const card = cardFor(key);
   const cardLogo = card.querySelector('.card__logo');
+
+  // Every card + its logo starts from a known-clean baseline, no matter what
+  // earlier navigation did. Safe to snap instantly — nothing is visible yet.
+  ORDER.forEach(k => { reset(cardFor(k)); reset(cardFor(k).querySelector('.card__logo')); });
+  const from = cardRect(card);              // measured only once truly at rest
 
   body.dataset.route = key;                 // wordmark starts its color shift
 
@@ -92,7 +108,7 @@ async function toEvent(key) {
   body.classList.add('is-event');
 
   await settle([
-    anim(panel, [{ clipPath: cardInset(card) }, { clipPath: FULL_BLEED }],
+    anim(panel, [{ clipPath: from.clip, borderRadius: from.radius }, { clipPath: FULL_BLEED.clip, borderRadius: FULL_BLEED.radius }],
       { duration: t(360), easing: EASE }),
     anim(logo, DROP_IN, { duration: t(300), delay: t(190), easing: EASE_BACK }),
   ]);
@@ -108,6 +124,15 @@ async function toHome(from) {
   const card = cardFor(from);
   const cardLogo = card.querySelector('.card__logo');
 
+  // Same defensive baseline as toEvent(). This is the fix for cards coming
+  // back with a missing logo: previously only the two cards adjacent to
+  // `from` got cleaned up here, so a card you'd clicked earlier and then
+  // arrowed away from — its logo animation was never reset by anyone and
+  // stayed invisible forever. Resetting all three, every time, closes that
+  // gap regardless of how many arrow-hops happened in between.
+  ORDER.forEach(k => { reset(cardFor(k)); reset(cardFor(k).querySelector('.card__logo')); });
+  const to = cardRect(card);
+
   body.dataset.route = 'home';
   homeView.inert = false;
   eventView.inert = true;
@@ -115,7 +140,7 @@ async function toHome(from) {
   await settle([anim(logo, DROP_OUT, { duration: t(160), easing: EASE_IN })]);
 
   await settle([
-    anim(panel, [{ clipPath: FULL_BLEED }, { clipPath: cardInset(card) }],
+    anim(panel, [{ clipPath: FULL_BLEED.clip, borderRadius: FULL_BLEED.radius }, { clipPath: to.clip, borderRadius: to.radius }],
       { duration: t(330), easing: EASE }),
     ...siblings(from).map(c => anim(c,
       [{ opacity: 0, transform: 'scale(.96)' }, { opacity: 1, transform: 'scale(1)' }],

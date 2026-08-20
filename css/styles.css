@@ -111,8 +111,13 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
   transition: transform .35s cubic-bezier(.2,.8,.2,1),
               box-shadow .35s cubic-bezier(.2,.8,.2,1);
 }
-.card:hover { transform: translateY(-6px); box-shadow: 0 24px 50px -20px rgba(0,0,0,.45); }
 .card:active { transform: translateY(-2px) scale(.995); }
+/* Hover lift only for real pointers. Touch has no "leave" event, so iOS can
+   leave a tapped card stuck mid-hover — right as the transition measures the
+   card's exact position to animate from, which is what made taps feel glitchy. */
+@media (hover: hover) and (pointer: fine) {
+  .card:hover { transform: translateY(-6px); box-shadow: 0 24px 50px -20px rgba(0,0,0,.45); }
+}
 
 .card--green  { background: var(--green); }
 .card--orange { background: var(--orange); }
@@ -143,7 +148,8 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
   position: fixed;
   inset: 0;
   z-index: 1;
-  will-change: clip-path;
+  border-radius: 0;
+  will-change: clip-path, border-radius;
 }
 
 /* Incoming color for arrow navigation — sweeps across, then commits. */
@@ -184,7 +190,9 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
   border-radius: 999px;
   transition: background-color .25s ease, color .25s ease;
 }
-.back:hover { background: var(--cream); color: var(--ink); }
+@media (hover: hover) and (pointer: fine) {
+  .back:hover { background: var(--cream); color: var(--ink); }
+}
 
 .arrow {
   position: fixed;
@@ -212,10 +220,12 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
   stroke-linejoin: round;
   transition: stroke .22s ease;
 }
-.arrow:hover { background: var(--cream); border-color: var(--cream); }
-.arrow:hover svg { stroke: var(--ink); }
-.arrow--prev:hover { transform: translateY(-50%) translateX(-4px); }
-.arrow--next:hover { transform: translateY(-50%) translateX(4px); }
+@media (hover: hover) and (pointer: fine) {
+  .arrow:hover { background: var(--cream); border-color: var(--cream); }
+  .arrow:hover svg { stroke: var(--ink); }
+  .arrow--prev:hover { transform: translateY(-50%) translateX(-4px); }
+  .arrow--next:hover { transform: translateY(-50%) translateX(4px); }
+}
 
 /* =========================================================================
    Responsive + reduced motion
