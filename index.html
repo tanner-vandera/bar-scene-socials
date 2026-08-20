@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bar Scene Socials</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Meow+Script&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-route="home">
+
+  <!-- Persistent brand mark. Never re-rendered — only its color animates. -->
+  <a class="wordmark" href="#/" aria-label="Bar Scene Socials — home"></a>
+
+  <!-- ============================ HOME ============================ -->
+  <main class="home" data-view="home">
+    <h1 class="home__title">Our Events</h1>
+
+    <nav class="grid" aria-label="Events">
+      <a class="card card--orange" data-event="halloween" href="#/halloween" aria-label="Halloween Bar Crawl">
+        <img class="card__logo" src="assets/halloween-lockup.png" alt="Halloween Bar Crawl" />
+      </a>
+      <a class="card card--red" data-event="christmas" href="#/christmas" aria-label="12 Bars of Christmas">
+        <img class="card__logo" src="assets/christmas-lockup.png" alt="12 Bars of Christmas" />
+      </a>
+      <a class="card card--green" data-event="shamrock" href="#/shamrock" aria-label="Shamrock Shuffle">
+        <img class="card__logo" src="assets/shamrock-lockup.png" alt="Shamrock Shuffle" />
+      </a>
+    </nav>
+  </main>
+
+  <!-- ============================ EVENT =========================== -->
+  <section class="event" data-view="event" aria-label="Event">
+    <div class="event__panel"></div>
+    <div class="event__wipe"></div>
+    <img class="event__logo" src="" alt="" />
+
+    <a class="arrow arrow--prev" href="#/shamrock" aria-label="Previous event">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8" /></svg>
+    </a>
+    <a class="arrow arrow--next" href="#/christmas" aria-label="Next event">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8" /></svg>
+    </a>
+
+    <a class="back" href="#/">← All events</a>
+  </section>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

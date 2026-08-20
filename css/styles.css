@@ -1,0 +1,233 @@
+/* =========================================================================
+   BAR SCENE SOCIALS — shared styles
+   Milwaukee bar-crawl events. Bold, minimalist, one loud color per event.
+   Single page, four routes (#/ , #/halloween , #/christmas , #/shamrock).
+   All motion is choreographed in js/app.js.
+   ========================================================================= */
+
+/* ---- Brand fonts (self-hosted — neither is on Google Fonts) ------------- */
+@font-face {
+  font-family: "Coral Candy";
+  src: url("../fonts/CoralCandy.woff2") format("woff2");
+  font-weight: 400 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Richard Samuels";
+  src: url("../fonts/RichardSamuels.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+:root {
+  /* Event colors — sampled straight from the Figma exports */
+  --green:  #11A156;   /* Shamrock Shuffle     */
+  --orange: #F48515;   /* Halloween Bar Crawl  */
+  --red:    #D01E21;   /* 12 Bars of Christmas */
+  --cream:  #EAEAEA;   /* page bg + logo tone  */
+  --ink:    #0A0A0A;   /* near-black           */
+
+  --font-brand: "Coral Candy", "Sniglet", system-ui, -apple-system, sans-serif;
+  --font-serif: "Richard Samuels", "Playfair Display", Georgia, serif;
+
+  --page-pad: clamp(20px, 3.2vw, 52px);
+  --radius: clamp(16px, 1.6vw, 26px);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-brand);
+  background: var(--cream);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+body.is-event { overflow: hidden; }
+
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+
+/* =========================================================================
+   WORDMARK — one element, four routes.
+   Drawn as a stencil: the logo art masks a solid color block, so the color
+   is an animatable property. It never moves, never swaps out.
+   ========================================================================= */
+.wordmark {
+  position: fixed;
+  top: var(--page-pad);
+  left: var(--page-pad);
+  z-index: 60;
+  height: clamp(34px, 4.2vw, 54px);
+  aspect-ratio: 786 / 174;
+  background-color: var(--ink);
+  -webkit-mask: url("../assets/logo-bss-black.png") no-repeat center / contain;
+          mask: url("../assets/logo-bss-black.png") no-repeat center / contain;
+  transition: background-color .34s ease .06s;
+}
+body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
+
+/* =========================================================================
+   HOME
+   ========================================================================= */
+.home {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--page-pad);
+  padding-top: calc(var(--page-pad) * 2 + clamp(34px, 4.2vw, 54px));
+  gap: clamp(18px, 2.4vw, 34px);
+}
+
+.home__title {
+  margin: 0;
+  font-weight: 800;
+  line-height: .9;
+  letter-spacing: -.01em;
+  font-size: clamp(44px, 8.5vw, 132px);
+  text-transform: uppercase;
+}
+
+.grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(14px, 1.6vw, 26px);
+  min-height: min(62vh, 600px);
+}
+
+.card {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: clamp(20px, 3vw, 56px);
+  cursor: pointer;
+  will-change: transform, opacity;
+  transition: transform .35s cubic-bezier(.2,.8,.2,1),
+              box-shadow .35s cubic-bezier(.2,.8,.2,1);
+}
+.card:hover { transform: translateY(-6px); box-shadow: 0 24px 50px -20px rgba(0,0,0,.45); }
+.card:active { transform: translateY(-2px) scale(.995); }
+
+.card--green  { background: var(--green); }
+.card--orange { background: var(--orange); }
+.card--red    { background: var(--red); }
+
+.card__logo {
+  width: min(82%, 460px);
+  height: auto;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 6px 22px rgba(0,0,0,.14));
+}
+
+/* =========================================================================
+   EVENT VIEW — a full-bleed color field that the card expands into.
+   Hidden entirely until a transition activates it.
+   ========================================================================= */
+.event {
+  position: fixed;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+  color: var(--cream);
+}
+.event.is-active { visibility: visible; pointer-events: auto; }
+
+/* The color field. Its clip-path is animated from the card's rect → full bleed. */
+.event__panel {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  will-change: clip-path;
+}
+
+/* Incoming color for arrow navigation — sweeps across, then commits. */
+.event__wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: none;
+  will-change: clip-path;
+}
+.event__wipe.is-live { display: block; }
+
+/* Centered lockup (inset + margin:auto centers an intrinsically-sized image) */
+.event__logo {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  z-index: 3;
+  width: auto;
+  height: auto;
+  max-width: min(70%, 820px);
+  max-height: 56vh;
+  will-change: transform, opacity;
+}
+
+/* ---- Controls ----------------------------------------------------------- */
+.back {
+  position: fixed;
+  top: var(--page-pad);
+  right: var(--page-pad);
+  z-index: 4;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  font-size: clamp(13px, 1.1vw, 16px);
+  padding: 10px 18px;
+  border: 2px solid var(--cream);
+  border-radius: 999px;
+  transition: background-color .25s ease, color .25s ease;
+}
+.back:hover { background: var(--cream); color: var(--ink); }
+
+.arrow {
+  position: fixed;
+  top: 50%;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: clamp(46px, 4.4vw, 62px);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 2px solid rgba(234,234,234,.55);
+  transform: translateY(-50%);
+  transition: background-color .22s ease, border-color .22s ease,
+              transform .22s cubic-bezier(.2,.8,.2,1);
+}
+.arrow--prev { left: var(--page-pad); }
+.arrow--next { right: var(--page-pad); }
+
+.arrow svg {
+  width: 42%;
+  fill: none;
+  stroke: var(--cream);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke .22s ease;
+}
+.arrow:hover { background: var(--cream); border-color: var(--cream); }
+.arrow:hover svg { stroke: var(--ink); }
+.arrow--prev:hover { transform: translateY(-50%) translateX(-4px); }
+.arrow--next:hover { transform: translateY(-50%) translateX(4px); }
+
+/* =========================================================================
+   Responsive + reduced motion
+   ========================================================================= */
+@media (max-width: 720px) {
+  .grid { grid-template-columns: 1fr; min-height: 0; }
+  .card { min-height: 40vh; }
+  .arrow { width: 44px; }
+  /* Keep the lockup clear of the arrows on narrow screens */
+  .event__logo { max-width: calc(100% - 2 * (44px + var(--page-pad) + 14px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .back, .arrow, .wordmark { transition: none; }
+}
