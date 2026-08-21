@@ -273,6 +273,7 @@ async function toHome(from) {
    ========================================================================= */
 async function toSibling(key, dir) {
   const cfg = EVENTS[key];
+  const fromColor = getComputedStyle(header).backgroundColor;   // read before anything changes
   body.classList.add('is-transitioning');
   // Arrow-key navigation can fire from anywhere on the page (it doesn't
   // need the visible, hover-only arrow buttons) — including while the logo
@@ -281,13 +282,6 @@ async function toSibling(key, dir) {
   // the page happened to be scrolled.
   clearHeroScrollStyles();
   scrollTo(0, 0);
-  // body.dataset.route is deliberately NOT set yet — it drives the header's
-  // (now always-opaque, per-event) color, and the header sits above the
-  // wipe in stacking order. Flipping it now would snap the header to the
-  // new color instantly, well before the wipe has actually swept that far —
-  // a visible mismatch the whole 280ms the wipe takes. Set it down by the
-  // panel instead, right as the wipe finishes, so header and page change
-  // color at exactly the same moment.
 
   await settle([anim(logo, DROP_OUT, { duration: t(150), easing: EASE_IN })]);
 
@@ -299,17 +293,30 @@ async function toSibling(key, dir) {
   logo.alt = cfg.name;
   showBody(key);
 
+  // body.dataset.route flips right here — synchronously, in the same tick
+  // as starting the header's own animation below, not a moment earlier.
+  // The CSS rule keyed on data-route has no transition of its own, so if
+  // this ran any earlier (e.g. up at the top of the function) the header
+  // would instantly snap to the new color the second this line ran, well
+  // before its animation even starts — the exact premature-snap problem
+  // this is meant to fix, just moved earlier. Animating the header's own
+  // background alongside the wipe, both starting in this same instant, is
+  // what makes it read as one continuous color change instead of a
+  // separate hand-off.
+  body.dataset.route = key;
   await settle([
     anim(wipe, [{ clipPath: from }, { clipPath: 'inset(0px 0px 0px 0px)' }],
       { duration: t(280), easing: EASE }),
     anim(logo, DROP_IN, { duration: t(290), delay: t(190), easing: EASE_BACK }),
+    anim(header, [{ backgroundColor: fromColor }, { backgroundColor: cfg.color }],
+      { duration: t(280), easing: EASE }),
   ]);
 
-  body.dataset.route = key;             // header recolors right as the wipe hands off
   panel.style.background = cfg.color;   // commit before removing the wipe
   wipe.classList.remove('is-live');
   reset(wipe);
   reset(logo);
+  reset(header);   // hand the now-settled color back to the plain CSS rule
   measureDockGeometry();
   applyHeroScroll();
   body.classList.remove('is-transitioning');
