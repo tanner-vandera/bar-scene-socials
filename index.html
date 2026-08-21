@@ -12,21 +12,26 @@
 <body data-route="home">
 
   <!-- Persistent header. Never re-rendered across routes — only its
-       backdrop + the wordmark's color animate. Hamburger only shows on
-       the homepage; event pages use their own back+arrow nav. -->
+       backdrop + the wordmark's color animate. Hamburger only shows on the
+       homepage; the "All events" link only shows on event routes, in the
+       same top-right slot — always visible/clickable regardless of scroll,
+       since the header itself never fades. -->
   <header class="site-header">
     <a class="wordmark" href="#/" aria-label="Bar Scene Socials — home"></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
+    <a class="header-back" href="#/">← All events</a>
   </header>
 
   <nav class="site-menu" id="site-menu" aria-label="Site">
     <div>
       <ul class="site-menu__list">
         <li><a href="#events">Our Events</a></li>
+        <li><a href="#/halloween">Halloween Bar Crawl</a></li>
+        <li><a href="#/christmas">12 Bars of Christmas</a></li>
+        <li><a href="#/shamrock">Shamrock Shuffle</a></li>
         <li><a href="#why">Why Crawl With Us</a></li>
-        <li><a href="#about">About Us</a></li>
         <li><a href="#footer">Contact</a></li>
       </ul>
       <p class="site-menu__meta">Milwaukee, WI</p>
@@ -44,13 +49,26 @@
 
     <nav class="grid" id="events" aria-label="Events">
       <a class="card card--orange" data-event="halloween" href="#/halloween" aria-label="Halloween Bar Crawl">
+        <span class="card__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" /></svg></span>
         <img class="card__logo" src="assets/halloween-lockup.png" alt="Halloween Bar Crawl" />
+        <!-- Keep this date in sync with the matching countdown in the event page body below. -->
+        <div class="card__countdown" data-countdown="2026-10-31T15:00:00">
+          <span class="cd__d">00</span><span class="card__countdown-label">Days Away</span>
+        </div>
       </a>
       <a class="card card--red" data-event="christmas" href="#/christmas" aria-label="12 Bars of Christmas">
+        <span class="card__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" /></svg></span>
         <img class="card__logo" src="assets/christmas-lockup.png" alt="12 Bars of Christmas" />
+        <div class="card__countdown" data-countdown="2026-12-12T14:00:00">
+          <span class="cd__d">00</span><span class="card__countdown-label">Days Away</span>
+        </div>
       </a>
       <a class="card card--green" data-event="shamrock" href="#/shamrock" aria-label="Shamrock Shuffle">
+        <span class="card__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" /></svg></span>
         <img class="card__logo" src="assets/shamrock-lockup.png" alt="Shamrock Shuffle" />
+        <div class="card__countdown" data-countdown="2027-03-17T12:00:00">
+          <span class="cd__d">00</span><span class="card__countdown-label">Days Away</span>
+        </div>
       </a>
     </nav>
   </main>
@@ -63,19 +81,6 @@
       <p>Three signature bar crawls, one wristband, zero boring nights. We turn Milwaukee's best bars into one unforgettable route — costumes, cheer, and confetti included.</p>
     </div>
   </section>
-
-  <!-- ============================ CURVED TEXT RIBBON ============================
-       The "delightful" signature moment — a looping ticker bent along an arc,
-       built in plain SVG (no libraries). Loops seamlessly because the phrase
-       repeats uniformly well past twice the path's length. -->
-  <div class="ribbon" aria-hidden="true">
-    <svg class="ribbon__svg" viewBox="0 0 1200 220" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <path id="ribbonPath" d="M -100 190 Q 600 20 1300 190" />
-      </defs>
-      <text class="ribbon__word" xml:space="preserve"><textPath href="#ribbonPath" startOffset="0%"><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><animate attributeName="startOffset" from="0%" to="-100%" dur="28s" repeatCount="indefinite" /></textPath></text>
-    </svg>
-  </div>
 
   <!-- ============================ WHY CRAWL WITH US ============================ -->
   <section class="section" id="why">
@@ -104,43 +109,6 @@
         <h3>Prizes & Contests</h3>
         <p>Best dressed wins big at every crawl — bragging rights included.</p>
       </div>
-    </div>
-  </section>
-
-  <!-- ============================ ABOUT US + STATS ============================ -->
-  <section class="section about" id="about">
-    <div class="section__head reveal">
-      <span class="eyebrow">How It Started</span>
-      <h2>Built by locals who love this city's bars.</h2>
-      <p>Bar Scene Socials kicked off in 2019 when a handful of Milwaukee friends decided the city needed more excuses to bar hop. What began as one Shamrock Shuffle with 40 people has grown into three signature crawls and thousands of regulars every year.</p>
-    </div>
-    <div class="stats reveal reveal--stagger">
-      <div class="stat" style="--i:0"><div class="stat__num" data-count-to="50000" data-count-suffix="+">0</div><div class="stat__label">Bar Hoppers</div></div>
-      <div class="stat" style="--i:1"><div class="stat__num" data-count-to="3">0</div><div class="stat__label">Signature Crawls</div></div>
-      <div class="stat" style="--i:2"><div class="stat__num" data-count-to="120" data-count-suffix="+">0</div><div class="stat__label">Partner Bars</div></div>
-      <div class="stat" style="--i:3"><div class="stat__num" data-count-to="7">0</div><div class="stat__label">Years Running</div></div>
-    </div>
-  </section>
-
-  <!-- ============================ TESTIMONIALS (placeholder quotes) ============================ -->
-  <section class="section" id="quotes">
-    <div class="section__head reveal">
-      <span class="eyebrow">Don't Just Take Our Word For It</span>
-      <h2>Placeholder praise, 100% real energy.</h2>
-    </div>
-    <div class="quotes reveal reveal--stagger">
-      <blockquote class="quote" style="--i:0">
-        <p>"Best decision I made all October. Woke up with no voice and no regrets."</p>
-        <cite>— 2025 Halloween Bar Crawl attendee</cite>
-      </blockquote>
-      <blockquote class="quote" style="--i:1">
-        <p>"My ugly sweater lost. My liver won. 10/10 would crawl again."</p>
-        <cite>— 2025 12 Bars of Christmas attendee</cite>
-      </blockquote>
-      <blockquote class="quote" style="--i:2">
-        <p>"I've never seen this much green in one zip code. Absolute chaos, in the best way."</p>
-        <cite>— 2025 Shamrock Shuffle attendee</cite>
-      </blockquote>
     </div>
   </section>
 
@@ -181,7 +149,6 @@
       <div class="footer__col">
         <h4>Company</h4>
         <ul>
-          <li><a href="#about">About Us</a></li>
           <li><a href="#why">Why Crawl With Us</a></li>
           <li><a href="#" onclick="return false;" aria-disabled="true">Contact (placeholder)</a></li>
         </ul>
@@ -209,8 +176,6 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8" /></svg>
     </a>
 
-    <a class="back" href="#/">← All events</a>
-
     <div class="event__hero" aria-hidden="true"></div>
 
     <div class="event__content">
@@ -218,7 +183,7 @@
       <!-- ============ HALLOWEEN BAR CRAWL ============ -->
       <article class="event__body" data-for="halloween">
         <div class="event__intro reveal">
-          <span class="eyebrow" style="color:var(--orange)">Saturday, October 31</span>
+          <span class="eyebrow">Saturday, October 31</span>
           <h1 class="event__tagline">Milwaukee's spookiest night out.</h1>
           <div class="countdown" data-countdown="2026-10-31T15:00:00">
             <div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div>
@@ -269,7 +234,7 @@
       <!-- ============ 12 BARS OF CHRISTMAS ============ -->
       <article class="event__body" data-for="christmas">
         <div class="event__intro reveal">
-          <span class="eyebrow" style="color:var(--red)">Saturday, December 12</span>
+          <span class="eyebrow">Saturday, December 12</span>
           <h1 class="event__tagline">Deck the bars.</h1>
           <div class="countdown" data-countdown="2026-12-12T14:00:00">
             <div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div>
@@ -320,7 +285,7 @@
       <!-- ============ SHAMROCK SHUFFLE ============ -->
       <article class="event__body" data-for="shamrock">
         <div class="event__intro reveal">
-          <span class="eyebrow" style="color:var(--green)">Wednesday, March 17</span>
+          <span class="eyebrow">Wednesday, March 17</span>
           <h1 class="event__tagline">Milwaukee's original St. Paddy's crawl.</h1>
           <div class="countdown" data-countdown="2027-03-17T12:00:00">
             <div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div>

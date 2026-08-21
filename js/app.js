@@ -23,10 +23,10 @@ const eventView = document.querySelector('[data-view="event"]');
 const panel     = document.querySelector('.event__panel');
 const wipe      = document.querySelector('.event__wipe');
 const logo      = document.querySelector('.event__logo');
-const hero      = document.querySelector('.event__hero');
 const prevArrow = document.querySelector('.arrow--prev');
 const nextArrow = document.querySelector('.arrow--next');
-const backLink  = document.querySelector('.back');
+const header    = document.querySelector('.site-header');
+const wordmark  = document.querySelector('.site-header .wordmark');
 
 /* ---- Motion vocabulary -------------------------------------------------- */
 const REDUCED   = matchMedia('(prefers-reduced-motion: reduce)');
@@ -97,13 +97,72 @@ function showEvent(show) {
 function showBody(key) {
   document.querySelectorAll('.event__body').forEach(b => b.classList.toggle('is-shown', b.dataset.for === key));
 }
-/* Side arrows + back pill fade once scrolled past the hero. Set explicitly
-   (not left to the IntersectionObserver's first callback alone) at every
-   point we land on the hero — that first callback can fire before layout
-   has settled right after .event flips from display:none to block, and
-   wrongly report "not intersecting" for a hero that's plainly on screen. */
-function setChromeFaded(faded) {
-  [prevArrow, nextArrow, backLink, panel, logo].forEach(el => el && el.classList.toggle('is-faded', faded));
+/* =========================================================================
+   HERO SCROLL EFFECT — side arrows fade, and the big hero logo shrinks and
+   docks down into a small mark centered in the header, both mapped 1:1 to
+   scroll position rather than toggled at a threshold. The whole event page
+   is one continuous color field now (hero and content match), so there's
+   nothing left to "reveal" by wiping the panel away — only the logo needs
+   to go somewhere, and a direct scroll-linked transform is what fixes the
+   earlier version's biggest complaint: a threshold trigger either needs a
+   full screen of scroll to fire, or re-fires the instant you nudge back
+   up past it. A continuous mapping has no trigger point to get wrong.
+   On narrow viewports there's no room to dock a logo into the header
+   alongside the wordmark, so it just fades there instead.
+   ========================================================================= */
+const DOCK_DISTANCE = 260;                             // px of scroll the effect completes over
+const DOCK_MEDIA = matchMedia('(min-width: 721px)');   // dock on desktop/tablet; fade-only below that
+let logoRestHeight = 0, dockHeight = 0;
+
+/* Natural (undocked) logo height + the wordmark's height as the dock
+   target, so the docked mark visually matches the wordmark's scale. Must
+   run only once the entrance/exit animation has fully settled — reading
+   geometry mid-animation would capture a transient frame, not the resting
+   size (harmless here since the entrance only translates, never scales,
+   but this is the correct place for it regardless). */
+function measureDockGeometry() {
+  logoRestHeight = logo.getBoundingClientRect().height || 1;
+  dockHeight = wordmark.getBoundingClientRect().height || 1;
+}
+
+function applyHeroScroll() {
+  if (!EVENTS[routeOf()]) return;
+  const p = REDUCED.matches ? 0 : Math.min(1, Math.max(0, scrollY / DOCK_DISTANCE));
+
+  const arrowStyle = el => { el.style.opacity = String(1 - p); el.style.pointerEvents = p > 0.85 ? 'none' : ''; };
+  arrowStyle(prevArrow);
+  arrowStyle(nextArrow);
+
+  if (DOCK_MEDIA.matches && logoRestHeight) {
+    const scale = 1 - p * (1 - dockHeight / logoRestHeight);
+    const dockTranslate = (header.getBoundingClientRect().height / 2) - (innerHeight / 2);
+    logo.style.transform = `translateY(${p * dockTranslate}px) scale(${scale})`;
+    logo.style.opacity = '';
+  } else {
+    logo.style.transform = '';
+    logo.style.opacity = String(1 - p);
+  }
+}
+
+let scrollTicking = false;
+function queueHeroScroll() {
+  if (scrollTicking) return;
+  scrollTicking = true;
+  requestAnimationFrame(() => { applyHeroScroll(); scrollTicking = false; });
+}
+addEventListener('scroll', queueHeroScroll, { passive: true });
+addEventListener('resize', () => { measureDockGeometry(); applyHeroScroll(); });
+
+/* Instant reset for the moments a transition already places panel/logo
+   itself — clears any inline transform/opacity this scroll effect left
+   behind (a WAAPI animation's own keyframes override a plain style write
+   like this while it's actively running, so calling it early, before the
+   entrance/exit animation claims these properties, is what makes this
+   safe rather than a fight over the same CSS properties). */
+function clearHeroScrollStyles() {
+  logo.style.transform = '';
+  logo.style.opacity = '';
+  [prevArrow, nextArrow].forEach(el => { el.style.opacity = ''; el.style.pointerEvents = ''; });
 }
 
 /* =========================================================================
@@ -137,13 +196,21 @@ async function toEvent(key) {
   showBody(key);
   showEvent(true);
   scrollTo(0, 0);   // always land on the hero, never mid-scroll from home
-  setChromeFaded(false);
+  clearHeroScrollStyles();
 
   await settle([
     anim(panel, [{ clipPath: from.clip, borderRadius: from.radius }, { clipPath: FULL_BLEED.clip, borderRadius: FULL_BLEED.radius }],
       { duration: t(360), easing: EASE }),
     anim(logo, DROP_IN, { duration: t(300), delay: t(190), easing: EASE_BACK }),
   ]);
+
+  // Hand transform/opacity back to plain styles (the scroll effect can't
+  // touch them while this finished-but-uncancelled animation still holds
+  // them), then measure the now-settled, now-correct logo for docking.
+  reset(panel);
+  reset(logo);
+  measureDockGeometry();
+  applyHeroScroll();
 
   homeView.inert = true;
   eventView.inert = false;
@@ -170,11 +237,13 @@ async function toHome(from) {
   body.classList.add('is-transitioning');
   homeView.inert = false;
   eventView.inert = true;
-  // The panel/logo may currently be scroll-faded (invisible) if the user
-  // was reading content further down — e.g. they pressed Escape rather
-  // than clicking the (faded, unclickable) back pill. Make them visible
-  // again before animating, or the whole contract-back plays unseen.
-  setChromeFaded(false);
+  // The logo may currently be scrolled-down/docked if the user was reading
+  // content further down. Clear that back to plain styles and jump to the
+  // top *before* the drop-out plays — otherwise a docked (small, tucked in
+  // the header) logo would visibly snap to full size against whatever was
+  // scrolled into view, instead of against the hero it actually belongs to.
+  clearHeroScrollStyles();
+  scrollTo(0, 0);
 
   await settle([anim(logo, DROP_OUT, { duration: t(160), easing: EASE_IN })]);
 
@@ -187,7 +256,6 @@ async function toHome(from) {
   ]);
 
   showEvent(false);
-  scrollTo(0, 0);   // return to the top of the grid, not wherever the page last scrolled
   reset(panel);
   reset(logo);
 
@@ -205,8 +273,21 @@ async function toHome(from) {
    ========================================================================= */
 async function toSibling(key, dir) {
   const cfg = EVENTS[key];
-  body.dataset.route = key;
   body.classList.add('is-transitioning');
+  // Arrow-key navigation can fire from anywhere on the page (it doesn't
+  // need the visible, hover-only arrow buttons) — including while the logo
+  // is currently docked small. Same fix as toHome: clear + jump to the top
+  // before the drop-out plays, so it snaps against the hero, not wherever
+  // the page happened to be scrolled.
+  clearHeroScrollStyles();
+  scrollTo(0, 0);
+  // body.dataset.route is deliberately NOT set yet — it drives the header's
+  // (now always-opaque, per-event) color, and the header sits above the
+  // wipe in stacking order. Flipping it now would snap the header to the
+  // new color instantly, well before the wipe has actually swept that far —
+  // a visible mismatch the whole 280ms the wipe takes. Set it down by the
+  // panel instead, right as the wipe finishes, so header and page change
+  // color at exactly the same moment.
 
   await settle([anim(logo, DROP_OUT, { duration: t(150), easing: EASE_IN })]);
 
@@ -217,8 +298,6 @@ async function toSibling(key, dir) {
   logo.src = cfg.logo;
   logo.alt = cfg.name;
   showBody(key);
-  scrollTo(0, 0);   // fresh hero for the new event, not mid-scroll from the last one
-  setChromeFaded(false);
 
   await settle([
     anim(wipe, [{ clipPath: from }, { clipPath: 'inset(0px 0px 0px 0px)' }],
@@ -226,9 +305,13 @@ async function toSibling(key, dir) {
     anim(logo, DROP_IN, { duration: t(290), delay: t(190), easing: EASE_BACK }),
   ]);
 
+  body.dataset.route = key;             // header recolors right as the wipe hands off
   panel.style.background = cfg.color;   // commit before removing the wipe
   wipe.classList.remove('is-live');
   reset(wipe);
+  reset(logo);
+  measureDockGeometry();
+  applyHeroScroll();
   body.classList.remove('is-transitioning');
 }
 
@@ -302,7 +385,12 @@ addEventListener('keydown', e => {
     logo.alt = cfg.name;
     showBody(k);
     showEvent(true);
-    setChromeFaded(false);
+    scrollTo(0, 0);   // a saved scroll position (bfcache, extensions) shouldn't land mid-page
+    clearHeroScrollStyles();
+    // No entrance animation to wait for on a direct/deep-link boot — but
+    // defer a frame anyway so the just-set logo image has definitely
+    // completed layout before its resting height is measured.
+    requestAnimationFrame(() => { measureDockGeometry(); applyHeroScroll(); });
     homeView.inert = true;
     current = k;
   } else {
@@ -315,13 +403,6 @@ addEventListener('keydown', e => {
    SITE CHROME — header backdrop, hamburger menu, in-page smooth scroll
    (homepage only; event pages keep their existing arrow/back nav)
    ========================================================================= */
-const header = document.querySelector('.site-header');
-if (header) {
-  const onScroll = () => header.classList.toggle('is-scrolled', scrollY > 8);
-  addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-}
-
 const menuToggle = document.querySelector('.menu-toggle');
 const siteMenu   = document.querySelector('.site-menu');
 if (menuToggle && siteMenu) {
@@ -383,19 +464,6 @@ if ('IntersectionObserver' in window) {
     });
   }, { threshold: 0.6 });
   document.querySelectorAll('[data-count-to]').forEach(el => countIO.observe(el));
-
-  // Side arrows + back pill fade once you've scrolled past the event hero,
-  // so they don't sit on top of the countdown/CTA/details content below.
-  if (hero) {
-    const chromeIO = new IntersectionObserver(entries => {
-      entries.forEach(en => setChromeFaded(!en.isIntersecting));
-    }, { threshold: 0.15 });
-    // Delayed by a frame: registering immediately after boot() flips .event
-    // from display:none to block can hand the observer a stale first
-    // measurement (taken before that layout change has actually settled),
-    // wrongly reporting the on-screen hero as "not intersecting."
-    requestAnimationFrame(() => chromeIO.observe(hero));
-  }
 }
 
 /* =========================================================================

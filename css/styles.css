@@ -55,6 +55,9 @@ body {
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
 }
+/* Homepage is a black site — bold cards + white type/logo on black. Event
+   pages keep their own bold-color-then-cream-content scheme, untouched. */
+body[data-route="home"] { background: var(--ink); color: var(--cream); }
 body.is-transitioning,
 body.menu-open { overflow: hidden; }
 
@@ -81,11 +84,13 @@ ul { margin: 0; padding: 0; list-style: none; }
 .reveal--stagger > * { transition-delay: calc(var(--i, 0) * 90ms); }
 
 /* =========================================================================
-   SITE HEADER — persistent across every route. Transparent at rest so the
-   hero reads clean; gains a backdrop once you scroll, so content passes
-   behind it instead of visually colliding with it (the original bug).
-   Backdrop color flips with the route: cream behind the black home
-   wordmark, ink behind the cream event wordmark — always readable.
+   SITE HEADER — persistent across every route, never re-rendered.
+   Home: solid black always (the site is black-themed), so the cream logo/
+   hamburger never lose contrast, regardless of scroll or menu state.
+   Event routes: each event's own color, always — the whole page (hero AND
+   the content below it) is now that same color, so there's no seam to
+   worry about; no scroll-conditional needed. No border/shadow anywhere —
+   the header just reads as part of the same color field.
    ========================================================================= */
 .site-header {
   position: fixed;
@@ -96,36 +101,30 @@ ul { margin: 0; padding: 0; list-style: none; }
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--page-pad);
-  background: transparent;
-  transition: background-color .3s ease, box-shadow .3s ease;
-}
-.site-header.is-scrolled {
-  background: var(--cream);
-  box-shadow: 0 1px 0 rgba(0,0,0,.06);
-}
-body:not([data-route="home"]) .site-header.is-scrolled {
   background: var(--ink);
-  box-shadow: 0 1px 0 rgba(0,0,0,.2);
 }
+body[data-route="halloween"] .site-header { background: var(--orange); }
+body[data-route="christmas"] .site-header { background: var(--red); }
+body[data-route="shamrock"]  .site-header { background: var(--green); }
 
+/* The header always has a dark or bold-color backdrop now (never a light
+   one), so the wordmark can just always be cream — no more conditional. */
 .wordmark {
   display: block;
   height: clamp(30px, 3.6vw, 46px);
   aspect-ratio: 786 / 174;
-  background-color: var(--ink);
+  background-color: var(--cream);
   -webkit-mask: url("../assets/logo-bss-black.png") no-repeat center / contain;
           mask: url("../assets/logo-bss-black.png") no-repeat center / contain;
-  transition: background-color .34s ease .06s;
 }
-body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
-/* The full-screen nav panel is dark — keep the header mark + hamburger
-   legible against it regardless of route or scroll state. */
-body.menu-open .site-header .wordmark { background-color: var(--cream); }
-body.menu-open .menu-toggle span { background-color: var(--cream); }
 
-/* ---- Hamburger (home route only — event pages use back+arrows) ---------- */
+/* ---- Hamburger (home only) / "All events" link (event routes only) —
+   share the same top-right header slot. ------------------------------- */
+.menu-toggle, .header-back { display: none; }
+body[data-route="home"] .menu-toggle { display: flex; }
+body:not([data-route="home"]) .header-back { display: inline-flex; }
+
 .menu-toggle {
-  display: none;
   width: 46px;
   height: 46px;
   border: none;
@@ -137,17 +136,32 @@ body.menu-open .menu-toggle span { background-color: var(--cream); }
   justify-content: center;
   gap: 6px;
 }
-body[data-route="home"] .menu-toggle { display: flex; }
 .menu-toggle span {
   width: 26px;
   height: 3px;
   border-radius: 2px;
-  background: var(--ink);
-  transition: transform .3s cubic-bezier(.62,.03,.16,1), opacity .2s ease, background-color .3s ease;
+  background: var(--cream);
+  transition: transform .3s cubic-bezier(.62,.03,.16,1), opacity .2s ease;
 }
 .menu-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(9px) rotate(45deg); }
 .menu-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
 .menu-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+
+.header-back {
+  align-items: center;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  font-size: clamp(13px, 1.1vw, 16px);
+  padding: 10px 18px;
+  border: 2px solid var(--cream);
+  color: var(--cream);
+  border-radius: 999px;
+  transition: background-color .25s ease, color .25s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .header-back:hover { background: var(--cream); color: var(--ink); }
+}
 
 /* ---- Full-panel nav ------------------------------------------------------ */
 .site-menu {
@@ -199,9 +213,9 @@ body[data-route="home"] .menu-toggle { display: flex; }
   margin: 0;
   font-family: var(--font-brand);
   font-weight: 800;
-  line-height: .9;
+  line-height: .95;
   letter-spacing: -.01em;
-  font-size: clamp(44px, 8.5vw, 132px);
+  font-size: clamp(34px, 6.4vw, 84px);   /* matches the blurb's headline size */
   text-transform: uppercase;
 }
 
@@ -222,12 +236,11 @@ body[data-route="home"] .menu-toggle { display: flex; }
   padding: clamp(20px, 3vw, 56px);
   cursor: pointer;
   will-change: transform, opacity;
-  transition: transform .35s cubic-bezier(.2,.8,.2,1),
-              box-shadow .35s cubic-bezier(.2,.8,.2,1);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1);
 }
 .card:active { transform: translateY(-2px) scale(.995); }
 @media (hover: hover) and (pointer: fine) {
-  .card:hover { transform: translateY(-6px); box-shadow: 0 24px 50px -20px rgba(0,0,0,.45); }
+  .card:hover { transform: translateY(-6px); }
 }
 
 .card--green  { background: var(--green); }
@@ -238,7 +251,54 @@ body[data-route="home"] .menu-toggle { display: flex; }
   width: min(82%, 460px);
   height: auto;
   will-change: transform, opacity;
-  filter: drop-shadow(0 6px 22px rgba(0,0,0,.14));
+}
+
+/* Top-right "this is a link" affordance — hidden until hover, real pointers only. */
+.card__arrow {
+  position: absolute;
+  top: clamp(16px, 2vw, 22px);
+  right: clamp(16px, 2vw, 22px);
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 2px solid rgba(234,234,234,.6);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: translate(-4px, 4px) scale(.9);
+  transition: opacity .25s ease, transform .25s ease;
+}
+.card__arrow svg { width: 18px; height: 18px; stroke: var(--cream); fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+@media (hover: hover) and (pointer: fine) {
+  .card:hover .card__arrow { opacity: 1; transform: translate(0, 0) scale(1); }
+}
+
+/* Bottom-anchored live countdown, reusing the same [data-countdown]/.cd__d
+   ticking already wired up in js/app.js — just a shorter, days-only read. */
+.card__countdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(20px, 3vw, 32px);
+  text-align: center;
+  color: var(--cream);
+}
+.card__countdown .cd__d {
+  display: block;
+  font-family: var(--font-brand);
+  font-weight: 800;
+  font-size: clamp(24px, 3.2vw, 34px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.card__countdown-label {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .8;
 }
 
 /* =========================================================================
@@ -268,24 +328,9 @@ body[data-route="home"] .menu-toggle { display: flex; }
 }
 
 /* ---- Marketing blurb ----------------------------------------------------- */
-.blurb { background: var(--ink); color: var(--cream); }
 .blurb .section__head .eyebrow { color: var(--orange); }
 .blurb h2 { font-size: clamp(34px, 6.4vw, 84px); }
 .blurb p { opacity: .82; }
-
-/* ---- Curved text ribbon (the signature "delightful" moment) ------------- */
-.ribbon {
-  background: var(--cream);
-  padding: clamp(18px, 3vw, 34px) 0;
-  overflow: hidden;
-}
-.ribbon__svg { display: block; width: 100%; height: auto; }
-.ribbon__word {
-  font-family: var(--font-brand);
-  font-weight: 800;
-  font-size: 42px;
-  letter-spacing: .02em;
-}
 
 /* ---- Why crawl with us ---------------------------------------------------- */
 .features {
@@ -294,8 +339,8 @@ body[data-route="home"] .menu-toggle { display: flex; }
   gap: clamp(16px, 2vw, 28px);
 }
 .feature {
-  background: var(--cream);
-  border: 2px solid rgba(10,10,10,.09);
+  background: transparent;
+  border: 2px solid rgba(234,234,234,.18);
   border-radius: var(--radius);
   padding: clamp(20px, 2.4vw, 30px);
 }
@@ -308,72 +353,8 @@ body[data-route="home"] .menu-toggle { display: flex; }
 }
 .feature p { margin: 0; font-size: 15px; line-height: 1.5; opacity: .72; }
 
-/* ---- About + stats -------------------------------------------------------- */
-.about { background: var(--green); color: var(--cream); }
-.about .section__head .eyebrow { color: var(--ink); }
-.about .section__head p { opacity: .92; }
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: clamp(28px, 5vw, 48px);
-  margin-top: clamp(24px, 4vw, 44px);
-}
-/* A thin rule between stats — at this font size a gap alone reads too
-   tight (adjacent big numbers like "50,000+" and "3" can misread as one
-   string), so give each a firmer, explicit boundary. */
-.stat { padding-left: clamp(20px, 3vw, 32px); border-left: 2px solid rgba(234,234,234,.3); }
-.stat:first-child { padding-left: 0; border-left: none; }
-.stat__num {
-  font-family: var(--font-brand);   /* big bold number = headline moment */
-  font-weight: 800;
-  font-size: clamp(40px, 6vw, 72px);
-  line-height: 1;
-}
-.stat__label {
-  margin-top: 8px;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  opacity: .85;
-}
-
-/* ---- Testimonials ---------------------------------------------------------- */
-.quotes {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: clamp(16px, 2vw, 24px);
-}
-.quote {
-  border-radius: var(--radius);
-  padding: clamp(24px, 2.6vw, 34px);
-  color: var(--cream);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 200px;
-}
-.quote:nth-child(3n+1) { background: var(--orange); }
-.quote:nth-child(3n+2) { background: var(--red); }
-.quote:nth-child(3n+3) { background: var(--green); }
-.quote p {
-  margin: 0;
-  font-family: var(--font-brand);
-  font-size: clamp(19px, 2vw, 23px);
-  font-weight: 700;
-  line-height: 1.35;
-}
-.quote cite {
-  display: block;
-  margin-top: 18px;
-  font-style: normal;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  opacity: .85;
-}
-
 /* ---- Email signup teaser ---------------------------------------------------- */
-.signup { background: var(--ink); color: var(--cream); text-align: center; }
+.signup { text-align: center; }
 .signup .section__head { margin-left: auto; margin-right: auto; }
 .signup .section__head p { margin-left: auto; margin-right: auto; }
 .signup__form {
@@ -416,9 +397,8 @@ body[data-route="home"] .menu-toggle { display: flex; }
 
 /* ---- Footer ---------------------------------------------------------------- */
 .footer {
-  background: var(--cream);
   padding: clamp(48px, 6vw, 72px) var(--page-pad) clamp(24px, 3vw, 36px);
-  border-top: 2px solid rgba(10,10,10,.08);
+  border-top: 2px solid rgba(234,234,234,.12);
 }
 .footer__top {
   display: grid;
@@ -426,7 +406,6 @@ body[data-route="home"] .menu-toggle { display: flex; }
   gap: clamp(24px, 4vw, 60px);
   padding-bottom: clamp(32px, 4vw, 48px);
 }
-.footer__brand .wordmark { background-color: var(--ink); }
 .footer__brand p { margin: 16px 0 0; font-size: 14px; opacity: .65; max-width: 34ch; line-height: 1.5; }
 .footer__col h4 {
   margin: 0 0 14px;
@@ -442,19 +421,19 @@ body[data-route="home"] .menu-toggle { display: flex; }
 .footer__social a {
   width: 36px; height: 36px;
   border-radius: 999px;
-  border: 2px solid rgba(10,10,10,.15);
+  border: 2px solid rgba(234,234,234,.2);
   display: grid; place-items: center;
   font-size: 12px; font-weight: 800;
   transition: background-color .2s ease, color .2s ease, border-color .2s ease;
 }
-.footer__social a:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.footer__social a:hover { background: var(--cream); color: var(--ink); border-color: var(--cream); }
 .footer__bottom {
   display: flex;
   flex-wrap: wrap;
   gap: 10px 20px;
   justify-content: space-between;
   padding-top: clamp(18px, 2.4vw, 26px);
-  border-top: 1px solid rgba(10,10,10,.08);
+  border-top: 1px solid rgba(234,234,234,.12);
   font-size: 13px;
   opacity: .55;
 }
@@ -472,13 +451,7 @@ body[data-route="home"] .menu-toggle { display: flex; }
   z-index: 1;
   border-radius: 0;
   will-change: clip-path, border-radius;
-  transition: opacity .3s ease;
 }
-/* The panel is fixed + full-viewport for the whole time an event is active
-   (that's what the entrance/exit animations need) — so once you've scrolled
-   past the hero it has to fade out, or it permanently blankets the
-   scrollable content below it in solid color, no matter how far you scroll. */
-.event__panel.is-faded { opacity: 0; }
 .event__wipe {
   position: fixed;
   inset: 0;
@@ -492,39 +465,22 @@ body[data-route="home"] .menu-toggle { display: flex; }
   position: fixed;
   inset: 0;
   margin: auto;
-  z-index: 3;
+  /* Above the header (60): once docked, the logo's screen position sits
+     inside the header's box, and the header is opaque now (each event's
+     own color, always) — without this, the header's own background would
+     paint right over the docked logo. */
+  z-index: 61;
   width: auto;
   height: auto;
   max-width: min(70%, 820px);
   max-height: 56vh;
   will-change: transform, opacity;
-  transition: opacity .3s ease;   /* only applies at rest — animations win while active */
 }
-.event__logo.is-faded { opacity: 0; }
 
 /* Reserves exactly one screen of scroll room so content starts below the
-   fixed hero. The hero visuals themselves (panel/logo/arrows/back) don't
-   need this box — they're independently fixed — this is purely a spacer. */
+   fixed hero. The hero visuals themselves (panel/logo/arrows) don't need
+   this box — they're independently fixed — this is purely a spacer. */
 .event__hero { height: 100svh; }
-
-.back {
-  position: fixed;
-  top: calc((var(--header-h) - 40px) / 2);
-  right: var(--page-pad);
-  z-index: 4;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .02em;
-  font-size: clamp(13px, 1.1vw, 16px);
-  padding: 10px 18px;
-  border: 2px solid var(--cream);
-  color: var(--cream);
-  border-radius: 999px;
-  transition: background-color .25s ease, color .25s ease, opacity .3s ease;
-}
-@media (hover: hover) and (pointer: fine) {
-  .back:hover { background: var(--cream); color: var(--ink); }
-}
 
 .arrow {
   position: fixed;
@@ -538,7 +494,7 @@ body[data-route="home"] .menu-toggle { display: flex; }
   border: 2px solid rgba(234,234,234,.55);
   transform: translateY(-50%);
   transition: background-color .22s ease, border-color .22s ease,
-              transform .22s cubic-bezier(.2,.8,.2,1), opacity .3s ease;
+              transform .22s cubic-bezier(.2,.8,.2,1);
 }
 .arrow--prev { left: var(--page-pad); }
 .arrow--next { right: var(--page-pad); }
@@ -559,16 +515,23 @@ body[data-route="home"] .menu-toggle { display: flex; }
   .arrow--next:hover { transform: translateY(-50%) translateX(4px); }
 }
 
-/* Fade the side arrows + back pill once you've scrolled past the hero, so
-   they don't sit on top of the content below. */
-.arrow.is-faded, .back.is-faded { opacity: 0; pointer-events: none; }
-
 /* =========================================================================
    EVENT CONTENT — countdown, CTA, details, bar lineup, gallery. One block
    per event, hand-authored in index.html for easy copy edits; JS toggles
-   which one is shown via .is-shown.
-   ========================================================================= */
-.event__content { background: var(--cream); color: var(--ink); }
+   which one is shown via .is-shown. The whole page is now flooded with
+   that event's own color (hero AND content, same field) — so content just
+   needs to read clearly in cream/white against it; z-index lifts it above
+   the hero's fixed color panel, which never moves out of the way anymore
+   (there's nothing left for it to reveal — the color's the same either way). */
+.event__content {
+  position: relative;
+  z-index: 5;
+  color: var(--cream);
+}
+body[data-route="halloween"] .event__content { background: var(--orange); }
+body[data-route="christmas"] .event__content { background: var(--red); }
+body[data-route="shamrock"]  .event__content { background: var(--green); }
+
 .event__body { display: none; }
 .event__body.is-shown { display: block; }
 
@@ -581,9 +544,6 @@ body[data-route="home"] .menu-toggle { display: flex; }
   line-height: .95;
   font-size: clamp(28px, 4.6vw, 52px);
 }
-.event__body[data-for="halloween"] .event__tagline { color: var(--orange); }
-.event__body[data-for="christmas"] .event__tagline { color: var(--red); }
-.event__body[data-for="shamrock"]  .event__tagline { color: var(--green); }
 
 /* ---- Countdown ------------------------------------------------------------- */
 .countdown {
@@ -609,6 +569,8 @@ body[data-route="home"] .menu-toggle { display: flex; }
 }
 
 /* ---- CTA -------------------------------------------------------------------- */
+/* Cream-on-color, inverted from before — now that the page itself carries
+   the event's color, a same-color button would just blend into it. */
 .event__cta {
   display: inline-flex;
   align-items: center;
@@ -619,14 +581,12 @@ body[data-route="home"] .menu-toggle { display: flex; }
   text-transform: uppercase;
   letter-spacing: .03em;
   font-size: 15px;
-  color: var(--cream);
-  transition: transform .2s ease, box-shadow .2s ease;
+  background: var(--cream);
+  color: var(--ink);
+  transition: transform .2s ease;
 }
-.event__body[data-for="halloween"] .event__cta { background: var(--orange); }
-.event__body[data-for="christmas"] .event__cta { background: var(--red); }
-.event__body[data-for="shamrock"]  .event__cta { background: var(--green); }
-.event__cta:hover { transform: translateY(-2px); box-shadow: 0 14px 26px -14px rgba(0,0,0,.4); }
-.event__cta-note { margin: 12px 0 0; font-size: 13px; opacity: .55; }
+.event__cta:hover { transform: translateY(-2px); }
+.event__cta-note { margin: 12px 0 0; font-size: 13px; opacity: .7; }
 
 /* ---- Details ------------------------------------------------------------------ */
 .event__details {
@@ -646,8 +606,14 @@ body[data-route="home"] .menu-toggle { display: flex; }
 .detail dd { margin: 0; font-size: 17px; font-weight: 700; }
 
 /* ---- Sub-section header, reused by the bars + gallery blocks below ------------- */
-.event__subhead .eyebrow { display: block; margin-bottom: 8px; opacity: .6; }
-.event__subhead h2 { margin: 0; font-weight: 800; text-transform: uppercase; font-size: clamp(22px, 3vw, 34px); }
+.event__subhead .eyebrow { display: block; margin-bottom: 8px; opacity: .7; }
+.event__subhead h2 {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(22px, 3vw, 34px);
+}
 
 /* ---- Bars grid ------------------------------------------------------------------ */
 .event__bars { margin-top: clamp(56px, 7vw, 96px); padding: 0 var(--page-pad); }
@@ -657,12 +623,14 @@ body[data-route="home"] .menu-toggle { display: flex; }
   gap: clamp(12px, 1.6vw, 18px);
   margin-top: clamp(20px, 2.6vw, 30px);
 }
+/* Solid cream/white chips read as clean "cutouts" against the now-bold
+   page color, and guarantee contrast regardless of which event it is. */
 .bar-tile {
-  border: 2px solid rgba(10,10,10,.1);
   border-radius: 16px;
   padding: 20px 14px;
   text-align: center;
-  background: #fff;
+  background: var(--cream);
+  color: var(--ink);
 }
 .bar-tile__icon { font-size: 26px; margin-bottom: 8px; }
 .bar-tile__name { font-size: 13px; font-weight: 700; }
@@ -681,11 +649,9 @@ body[data-route="home"] .menu-toggle { display: flex; }
   display: grid;
   place-items: center;
   font-size: 22px;
-  opacity: .8;
+  background: var(--cream);
+  opacity: .85;
 }
-.event__body[data-for="halloween"] .gallery__tile { background: color-mix(in srgb, var(--orange) 22%, white); }
-.event__body[data-for="christmas"] .gallery__tile { background: color-mix(in srgb, var(--red) 18%, white); }
-.event__body[data-for="shamrock"]  .gallery__tile { background: color-mix(in srgb, var(--green) 18%, white); }
 
 /* =========================================================================
    Responsive + reduced motion
@@ -699,6 +665,6 @@ body[data-route="home"] .menu-toggle { display: flex; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card, .back, .arrow, .wordmark, .site-header, .menu-toggle span, .site-menu, .reveal { transition: none; }
+  .card, .header-back, .arrow, .site-header, .menu-toggle span, .site-menu, .reveal { transition: none; }
   .reveal { opacity: 1; transform: none; }
 }
