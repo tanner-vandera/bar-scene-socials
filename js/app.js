@@ -6,6 +6,10 @@
    matching transition. That keeps view and URL from ever disagreeing.
    ========================================================================= */
 
+// This is a single-page app with real scrollable content now — stop the
+// browser from restoring a stale scroll position on reload/back-forward.
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
 const EVENTS = {
   halloween: { color: '#F48515', logo: 'assets/halloween-lockup.png', name: 'Halloween Bar Crawl' },
   christmas: { color: '#D01E21', logo: 'assets/christmas-lockup.png', name: '12 Bars of Christmas' },
@@ -19,8 +23,10 @@ const eventView = document.querySelector('[data-view="event"]');
 const panel     = document.querySelector('.event__panel');
 const wipe      = document.querySelector('.event__wipe');
 const logo      = document.querySelector('.event__logo');
+const hero      = document.querySelector('.event__hero');
 const prevArrow = document.querySelector('.arrow--prev');
 const nextArrow = document.querySelector('.arrow--next');
+const backLink  = document.querySelector('.back');
 
 /* ---- Motion vocabulary -------------------------------------------------- */
 const REDUCED   = matchMedia('(prefers-reduced-motion: reduce)');
@@ -77,6 +83,29 @@ function cardRect(card) {
 }
 const FULL_BLEED = { clip: 'inset(0px 0px 0px 0px)', radius: '0px' };
 
+/* Which top-level view (home grid vs. event) is on screen. Event pages now
+   scroll, so — unlike a pure viewport overlay — home has to be fully taken
+   out of flow (display:none) whenever an event is showing, or both would be
+   stacked in the document at once. */
+function showEvent(show) {
+  eventView.classList.toggle('is-active', show);
+  homeView.classList.toggle('is-hidden', show);
+}
+/* Which event's content section (countdown/CTA/details/bars) is showing —
+   independent of the hero, which is one shared set of elements reused
+   across all three routes. */
+function showBody(key) {
+  document.querySelectorAll('.event__body').forEach(b => b.classList.toggle('is-shown', b.dataset.for === key));
+}
+/* Side arrows + back pill fade once scrolled past the hero. Set explicitly
+   (not left to the IntersectionObserver's first callback alone) at every
+   point we land on the hero — that first callback can fire before layout
+   has settled right after .event flips from display:none to block, and
+   wrongly report "not intersecting" for a hero that's plainly on screen. */
+function setChromeFaded(faded) {
+  [prevArrow, nextArrow, backLink, panel, logo].forEach(el => el && el.classList.toggle('is-faded', faded));
+}
+
 /* =========================================================================
    HOME → EVENT   (three beats: logo drops out, color consumes, logo drops in)
    ========================================================================= */
@@ -91,6 +120,7 @@ async function toEvent(key) {
   const from = cardRect(card);              // measured only once truly at rest
 
   body.dataset.route = key;                 // wordmark starts its color shift
+  body.classList.add('is-transitioning');   // no scrolling mid-animation
 
   // Beat 1 — the event's logo drops away, its neighbours recede.
   await settle([
@@ -104,8 +134,10 @@ async function toEvent(key) {
   panel.style.background = cfg.color;
   logo.src = cfg.logo;
   logo.alt = cfg.name;
-  eventView.classList.add('is-active');
-  body.classList.add('is-event');
+  showBody(key);
+  showEvent(true);
+  scrollTo(0, 0);   // always land on the hero, never mid-scroll from home
+  setChromeFaded(false);
 
   await settle([
     anim(panel, [{ clipPath: from.clip, borderRadius: from.radius }, { clipPath: FULL_BLEED.clip, borderRadius: FULL_BLEED.radius }],
@@ -115,6 +147,7 @@ async function toEvent(key) {
 
   homeView.inert = true;
   eventView.inert = false;
+  body.classList.remove('is-transitioning');
 }
 
 /* =========================================================================
@@ -134,8 +167,14 @@ async function toHome(from) {
   const to = cardRect(card);
 
   body.dataset.route = 'home';
+  body.classList.add('is-transitioning');
   homeView.inert = false;
   eventView.inert = true;
+  // The panel/logo may currently be scroll-faded (invisible) if the user
+  // was reading content further down — e.g. they pressed Escape rather
+  // than clicking the (faded, unclickable) back pill. Make them visible
+  // again before animating, or the whole contract-back plays unseen.
+  setChromeFaded(false);
 
   await settle([anim(logo, DROP_OUT, { duration: t(160), easing: EASE_IN })]);
 
@@ -147,8 +186,8 @@ async function toHome(from) {
       { duration: t(300), easing: 'ease' })),
   ]);
 
-  eventView.classList.remove('is-active');
-  body.classList.remove('is-event');
+  showEvent(false);
+  scrollTo(0, 0);   // return to the top of the grid, not wherever the page last scrolled
   reset(panel);
   reset(logo);
 
@@ -158,6 +197,7 @@ async function toHome(from) {
 
   reset(cardLogo);
   siblings(from).forEach(reset);
+  body.classList.remove('is-transitioning');
 }
 
 /* =========================================================================
@@ -166,6 +206,7 @@ async function toHome(from) {
 async function toSibling(key, dir) {
   const cfg = EVENTS[key];
   body.dataset.route = key;
+  body.classList.add('is-transitioning');
 
   await settle([anim(logo, DROP_OUT, { duration: t(150), easing: EASE_IN })]);
 
@@ -175,6 +216,9 @@ async function toSibling(key, dir) {
 
   logo.src = cfg.logo;
   logo.alt = cfg.name;
+  showBody(key);
+  scrollTo(0, 0);   // fresh hero for the new event, not mid-scroll from the last one
+  setChromeFaded(false);
 
   await settle([
     anim(wipe, [{ clipPath: from }, { clipPath: 'inset(0px 0px 0px 0px)' }],
@@ -185,6 +229,7 @@ async function toSibling(key, dir) {
   panel.style.background = cfg.color;   // commit before removing the wipe
   wipe.classList.remove('is-live');
   reset(wipe);
+  body.classList.remove('is-transitioning');
 }
 
 /* =========================================================================
@@ -255,12 +300,124 @@ addEventListener('keydown', e => {
     panel.style.background = cfg.color;
     logo.src = cfg.logo;
     logo.alt = cfg.name;
-    eventView.classList.add('is-active');
-    body.classList.add('is-event');
+    showBody(k);
+    showEvent(true);
+    setChromeFaded(false);
     homeView.inert = true;
     current = k;
   } else {
     eventView.inert = true;
   }
   syncArrows();
+})();
+
+/* =========================================================================
+   SITE CHROME — header backdrop, hamburger menu, in-page smooth scroll
+   (homepage only; event pages keep their existing arrow/back nav)
+   ========================================================================= */
+const header = document.querySelector('.site-header');
+if (header) {
+  const onScroll = () => header.classList.toggle('is-scrolled', scrollY > 8);
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
+
+const menuToggle = document.querySelector('.menu-toggle');
+const siteMenu   = document.querySelector('.site-menu');
+if (menuToggle && siteMenu) {
+  const setMenu = open => {
+    menuToggle.setAttribute('aria-expanded', String(open));
+    siteMenu.classList.toggle('is-open', open);
+    siteMenu.inert = !open;
+    body.classList.toggle('menu-open', open);
+  };
+  menuToggle.addEventListener('click', () => setMenu(!siteMenu.classList.contains('is-open')));
+  siteMenu.addEventListener('click', e => {
+    if (e.target === siteMenu || e.target.closest('a')) setMenu(false);
+  });
+  addEventListener('keydown', e => {
+    if (e.key === 'Escape' && siteMenu.classList.contains('is-open')) setMenu(false);
+  });
+}
+
+/* Smooth-scroll same-page anchors (nav menu + footer links). Router links
+   (#/halloween etc.) are left alone — only bare #id anchors are intercepted. */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  const id = a.getAttribute('href');
+  if (!id || id.length < 2 || id.startsWith('#/')) return;
+  a.addEventListener('click', e => {
+    const target = document.querySelector(id);
+    if (!target) return;
+    e.preventDefault();
+    target.scrollIntoView({ behavior: REDUCED.matches ? 'auto' : 'smooth', block: 'start' });
+  });
+});
+
+/* =========================================================================
+   DELIGHT — reveal-on-scroll + number count-up (homepage), shared by
+   whatever sections happen to use them.
+   ========================================================================= */
+if ('IntersectionObserver' in window) {
+  const revealIO = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) { en.target.classList.add('is-visible'); revealIO.unobserve(en.target); }
+    });
+  }, { threshold: 0.2 });
+  document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+
+  function animateCount(el) {
+    const target = parseInt(el.dataset.countTo, 10) || 0;
+    const suffix = el.dataset.countSuffix || '';
+    const dur = t(1200);
+    const start = performance.now();
+    (function tick(now) {
+      const p = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(eased * target).toLocaleString() + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+  const countIO = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) { animateCount(en.target); countIO.unobserve(en.target); }
+    });
+  }, { threshold: 0.6 });
+  document.querySelectorAll('[data-count-to]').forEach(el => countIO.observe(el));
+
+  // Side arrows + back pill fade once you've scrolled past the event hero,
+  // so they don't sit on top of the countdown/CTA/details content below.
+  if (hero) {
+    const chromeIO = new IntersectionObserver(entries => {
+      entries.forEach(en => setChromeFaded(!en.isIntersecting));
+    }, { threshold: 0.15 });
+    // Delayed by a frame: registering immediately after boot() flips .event
+    // from display:none to block can hand the observer a stale first
+    // measurement (taken before that layout change has actually settled),
+    // wrongly reporting the on-screen hero as "not intersecting."
+    requestAnimationFrame(() => chromeIO.observe(hero));
+  }
+}
+
+/* =========================================================================
+   COUNTDOWNS — data-countdown="<ISO date>" on any element containing
+   .cd__d / .cd__h / .cd__m / .cd__s spans. Placeholder dates; see README.
+   ========================================================================= */
+(function countdowns() {
+  const els = document.querySelectorAll('[data-countdown]');
+  if (!els.length) return;
+  const DAY = 86400000, HOUR = 3600000, MIN = 60000;
+  function tick() {
+    const now = Date.now();
+    els.forEach(el => {
+      let diff = Math.max(0, new Date(el.dataset.countdown).getTime() - now);
+      const d = Math.floor(diff / DAY);  diff -= d * DAY;
+      const h = Math.floor(diff / HOUR); diff -= h * HOUR;
+      const m = Math.floor(diff / MIN);  diff -= m * MIN;
+      const s = Math.floor(diff / 1000);
+      const set = (cls, v) => { const n = el.querySelector(cls); if (n) n.textContent = String(v).padStart(2, '0'); };
+      set('.cd__d', d); set('.cd__h', h); set('.cd__m', m); set('.cd__s', s);
+    });
+  }
+  tick();
+  setInterval(tick, 1000);
 })();

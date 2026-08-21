@@ -6,19 +6,43 @@
   <title>Bar Scene Socials</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Meow+Script&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Meow+Script&family=Inter:wght@400;500;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body data-route="home">
 
-  <!-- Persistent brand mark. Never re-rendered — only its color animates. -->
-  <a class="wordmark" href="#/" aria-label="Bar Scene Socials — home"></a>
+  <!-- Persistent header. Never re-rendered across routes — only its
+       backdrop + the wordmark's color animate. Hamburger only shows on
+       the homepage; event pages use their own back+arrow nav. -->
+  <header class="site-header">
+    <a class="wordmark" href="#/" aria-label="Bar Scene Socials — home"></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
 
-  <!-- ============================ HOME ============================ -->
-  <main class="home" data-view="home">
+  <nav class="site-menu" id="site-menu" aria-label="Site">
+    <div>
+      <ul class="site-menu__list">
+        <li><a href="#events">Our Events</a></li>
+        <li><a href="#why">Why Crawl With Us</a></li>
+        <li><a href="#about">About Us</a></li>
+        <li><a href="#footer">Contact</a></li>
+      </ul>
+      <p class="site-menu__meta">Milwaukee, WI</p>
+    </div>
+  </nav>
+
+  <!-- ============================ HOME ============================
+       Everything from the grid through the footer lives inside this one
+       wrapper so a single toggle hides all of it when an event is active —
+       the marketing sections below are siblings of the grid, not children
+       of it, so they need a shared container to hide as a unit. -->
+  <div data-view="home">
+  <main class="home">
     <h1 class="home__title">Our Events</h1>
 
-    <nav class="grid" aria-label="Events">
+    <nav class="grid" id="events" aria-label="Events">
       <a class="card card--orange" data-event="halloween" href="#/halloween" aria-label="Halloween Bar Crawl">
         <img class="card__logo" src="assets/halloween-lockup.png" alt="Halloween Bar Crawl" />
       </a>
@@ -31,7 +55,148 @@
     </nav>
   </main>
 
-  <!-- ============================ EVENT =========================== -->
+  <!-- ============================ MARKETING BLURB ============================ -->
+  <section class="section blurb reveal">
+    <div class="section__head">
+      <span class="eyebrow">Milwaukee, Wisconsin</span>
+      <h2>Your excuse to get out<br />and go loud.</h2>
+      <p>Three signature bar crawls, one wristband, zero boring nights. We turn Milwaukee's best bars into one unforgettable route — costumes, cheer, and confetti included.</p>
+    </div>
+  </section>
+
+  <!-- ============================ CURVED TEXT RIBBON ============================
+       The "delightful" signature moment — a looping ticker bent along an arc,
+       built in plain SVG (no libraries). Loops seamlessly because the phrase
+       repeats uniformly well past twice the path's length. -->
+  <div class="ribbon" aria-hidden="true">
+    <svg class="ribbon__svg" viewBox="0 0 1200 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <path id="ribbonPath" d="M -100 190 Q 600 20 1300 190" />
+      </defs>
+      <text class="ribbon__word" xml:space="preserve"><textPath href="#ribbonPath" startOffset="0%"><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><tspan fill="var(--orange)">CHEERS </tspan><tspan fill="var(--red)">• CRAWL </tspan><tspan fill="var(--green)">• REPEAT </tspan><tspan fill="var(--ink)">• </tspan><animate attributeName="startOffset" from="0%" to="-100%" dur="28s" repeatCount="indefinite" /></textPath></text>
+    </svg>
+  </div>
+
+  <!-- ============================ WHY CRAWL WITH US ============================ -->
+  <section class="section" id="why">
+    <div class="section__head reveal">
+      <span class="eyebrow">Why Crawl With Us</span>
+      <h2>Everything you need, nothing you don't.</h2>
+    </div>
+    <div class="features reveal reveal--stagger">
+      <div class="feature" style="--i:0">
+        <div class="feature__icon">🎟️</div>
+        <h3>One Wristband, Every Bar</h3>
+        <p>Skip the line, skip the cover — just show your wristband at every stop.</p>
+      </div>
+      <div class="feature" style="--i:1">
+        <div class="feature__icon">🎭</div>
+        <h3>Themed, Every Time</h3>
+        <p>Halloween, Christmas, St. Paddy's — always a reason to dress up.</p>
+      </div>
+      <div class="feature" style="--i:2">
+        <div class="feature__icon">🍹</div>
+        <h3>Drink Specials, All Route</h3>
+        <p>Discounted pours waiting at every single stop on the crawl.</p>
+      </div>
+      <div class="feature" style="--i:3">
+        <div class="feature__icon">🏆</div>
+        <h3>Prizes & Contests</h3>
+        <p>Best dressed wins big at every crawl — bragging rights included.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ ABOUT US + STATS ============================ -->
+  <section class="section about" id="about">
+    <div class="section__head reveal">
+      <span class="eyebrow">How It Started</span>
+      <h2>Built by locals who love this city's bars.</h2>
+      <p>Bar Scene Socials kicked off in 2019 when a handful of Milwaukee friends decided the city needed more excuses to bar hop. What began as one Shamrock Shuffle with 40 people has grown into three signature crawls and thousands of regulars every year.</p>
+    </div>
+    <div class="stats reveal reveal--stagger">
+      <div class="stat" style="--i:0"><div class="stat__num" data-count-to="50000" data-count-suffix="+">0</div><div class="stat__label">Bar Hoppers</div></div>
+      <div class="stat" style="--i:1"><div class="stat__num" data-count-to="3">0</div><div class="stat__label">Signature Crawls</div></div>
+      <div class="stat" style="--i:2"><div class="stat__num" data-count-to="120" data-count-suffix="+">0</div><div class="stat__label">Partner Bars</div></div>
+      <div class="stat" style="--i:3"><div class="stat__num" data-count-to="7">0</div><div class="stat__label">Years Running</div></div>
+    </div>
+  </section>
+
+  <!-- ============================ TESTIMONIALS (placeholder quotes) ============================ -->
+  <section class="section" id="quotes">
+    <div class="section__head reveal">
+      <span class="eyebrow">Don't Just Take Our Word For It</span>
+      <h2>Placeholder praise, 100% real energy.</h2>
+    </div>
+    <div class="quotes reveal reveal--stagger">
+      <blockquote class="quote" style="--i:0">
+        <p>"Best decision I made all October. Woke up with no voice and no regrets."</p>
+        <cite>— 2025 Halloween Bar Crawl attendee</cite>
+      </blockquote>
+      <blockquote class="quote" style="--i:1">
+        <p>"My ugly sweater lost. My liver won. 10/10 would crawl again."</p>
+        <cite>— 2025 12 Bars of Christmas attendee</cite>
+      </blockquote>
+      <blockquote class="quote" style="--i:2">
+        <p>"I've never seen this much green in one zip code. Absolute chaos, in the best way."</p>
+        <cite>— 2025 Shamrock Shuffle attendee</cite>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- ============================ EMAIL SIGNUP (placeholder, not wired up) ============================ -->
+  <section class="section signup" id="signup">
+    <div class="section__head reveal">
+      <span class="eyebrow">Stay In The Loop</span>
+      <h2>Don't miss the next crawl.</h2>
+      <p>We'll email you when tickets drop. No spam, just bar crawls.</p>
+    </div>
+    <form class="signup__form reveal" onsubmit="return false;" aria-label="Email signup — placeholder, not yet connected">
+      <input type="email" placeholder="you@email.com" aria-label="Email address" />
+      <button type="submit">Notify Me</button>
+    </form>
+    <p class="signup__note">Placeholder form — not yet connected.</p>
+  </section>
+
+  <!-- ============================ FOOTER ============================ -->
+  <footer class="footer" id="footer">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a class="wordmark" href="#/" aria-label="Bar Scene Socials — home"></a>
+        <p>Milwaukee's home for themed bar crawls — bold nights, three times a year.</p>
+        <div class="footer__social">
+          <a href="#" onclick="return false;" aria-label="Instagram (placeholder)">IG</a>
+          <a href="#" onclick="return false;" aria-label="TikTok (placeholder)">TT</a>
+          <a href="#" onclick="return false;" aria-label="Facebook (placeholder)">FB</a>
+        </div>
+      </div>
+      <div class="footer__col">
+        <h4>Events</h4>
+        <ul>
+          <li><a href="#/halloween">Halloween Bar Crawl</a></li>
+          <li><a href="#/christmas">12 Bars of Christmas</a></li>
+          <li><a href="#/shamrock">Shamrock Shuffle</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#why">Why Crawl With Us</a></li>
+          <li><a href="#" onclick="return false;" aria-disabled="true">Contact (placeholder)</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2026 Bar Scene Socials. Milwaukee, WI.</span>
+      <span>Prototype content — not a real business listing.</span>
+    </div>
+  </footer>
+  </div>
+
+  <!-- ============================ EVENT ============================
+       Hero (color field + logo + arrows + back) is the tested transition
+       engine — untouched. Scrollable content below it is new. -->
   <section class="event" data-view="event" aria-label="Event">
     <div class="event__panel"></div>
     <div class="event__wipe"></div>
@@ -45,6 +210,165 @@
     </a>
 
     <a class="back" href="#/">← All events</a>
+
+    <div class="event__hero" aria-hidden="true"></div>
+
+    <div class="event__content">
+
+      <!-- ============ HALLOWEEN BAR CRAWL ============ -->
+      <article class="event__body" data-for="halloween">
+        <div class="event__intro reveal">
+          <span class="eyebrow" style="color:var(--orange)">Saturday, October 31</span>
+          <h1 class="event__tagline">Milwaukee's spookiest night out.</h1>
+          <div class="countdown" data-countdown="2026-10-31T15:00:00">
+            <div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div>
+            <div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div>
+            <div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div>
+            <div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div>
+          </div>
+          <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
+          <p class="event__cta-note">Placeholder — will link to our ticketing partner.</p>
+        </div>
+
+        <dl class="event__details reveal">
+          <div class="detail"><dt>Date &amp; Time</dt><dd>Sat, Oct 31, 2026 · 3PM–Close</dd></div>
+          <div class="detail"><dt>Starting Bar</dt><dd>The Rusted Anchor</dd></div>
+          <div class="detail"><dt>What's Included</dt><dd>Wristband + drink specials at every stop</dd></div>
+          <div class="detail"><dt>Dress Code</dt><dd>Costumes strongly encouraged 🎃</dd></div>
+        </dl>
+
+        <div class="event__bars reveal">
+          <div class="event__subhead">
+            <span class="eyebrow">The Lineup</span>
+            <h2>Bars on the route</h2>
+          </div>
+          <div class="bars">
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Rusted Anchor</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Copper Kettle Tavern</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Hopyard</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Molly's Corner</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Brass Rail Saloon</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Gilded Mug</div></div>
+          </div>
+        </div>
+
+        <div class="event__gallery reveal">
+          <div class="event__subhead">
+            <span class="eyebrow">From Past Crawls</span>
+            <h2>Photo placeholders</h2>
+          </div>
+          <div class="gallery">
+            <div class="gallery__tile">📷</div>
+            <div class="gallery__tile">📷</div>
+            <div class="gallery__tile">📷</div>
+            <div class="gallery__tile">📷</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============ 12 BARS OF CHRISTMAS ============ -->
+      <article class="event__body" data-for="christmas">
+        <div class="event__intro reveal">
+          <span class="eyebrow" style="color:var(--red)">Saturday, December 12</span>
+          <h1 class="event__tagline">Deck the bars.</h1>
+          <div class="countdown" data-countdown="2026-12-12T14:00:00">
+            <div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div>
+            <div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div>
+            <div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div>
+            <div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div>
+          </div>
+          <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
+          <p class="event__cta-note">Placeholder — will link to our ticketing partner.</p>
+        </div>
+
+        <dl class="event__details reveal">
+          <div class="detail"><dt>Date &amp; Time</dt><dd>Sat, Dec 12, 2026 · 2PM–Close</dd></div>
+          <div class="detail"><dt>Starting Bar</dt><dd>Whistle Stop Pub</dd></div>
+          <div class="detail"><dt>What's Included</dt><dd>Wristband + festive drink specials</dd></div>
+          <div class="detail"><dt>Dress Code</dt><dd>Ugly sweaters win prizes 🎄</dd></div>
+        </dl>
+
+        <div class="event__bars reveal">
+          <div class="event__subhead">
+            <span class="eyebrow">The Lineup</span>
+            <h2>Bars on the route</h2>
+          </div>
+          <div class="bars">
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Whistle Stop Pub</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Tap &amp; Vine</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Old Anchor Inn</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Tipsy Trotter</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Northbound Tavern</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Barrel &amp; Bone</div></div>
+          </div>
+        </div>
+
+        <div class="event__gallery reveal">
+          <div class="event__subhead">
+            <span class="eyebrow">From Past Crawls</span>
+            <h2>Photo placeholders</h2>
+          </div>
+          <div class="gallery">
+            <div class="gallery__tile">📷</div>
+            <div class="gallery__tile">📷</div>
+            <div class="gallery__tile">📷</div>
+            <div class="gallery__tile">📷</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============ SHAMROCK SHUFFLE ============ -->
+      <article class="event__body" data-for="shamrock">
+        <div class="event__intro reveal">
+          <span class="eyebrow" style="color:var(--green)">Wednesday, March 17</span>
+          <h1 class="event__tagline">Milwaukee's original St. Paddy's crawl.</h1>
+          <div class="countdown" data-countdown="2027-03-17T12:00:00">
+            <div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div>
+            <div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div>
+            <div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div>
+            <div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div>
+          </div>
+          <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
+          <p class="event__cta-note">Placeholder — will link to our ticketing partner.</p>
+        </div>
+
+        <dl class="event__details reveal">
+          <div class="detail"><dt>Date &amp; Time</dt><dd>Wed, Mar 17, 2027 · 12PM–Close</dd></div>
+          <div class="detail"><dt>Starting Bar</dt><dd>The Gilded Mug</dd></div>
+          <div class="detail"><dt>What's Included</dt><dd>Wristband + green beer specials</dd></div>
+          <div class="detail"><dt>Dress Code</dt><dd>Wear green or walk the plank ☘️</dd></div>
+        </dl>
+
+        <div class="event__bars reveal">
+          <div class="event__subhead">
+            <span class="eyebrow">The Lineup</span>
+            <h2>Bars on the route</h2>
+          </div>
+          <div class="bars">
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Gilded Mug</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Molly's Corner</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Copper Kettle Tavern</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Brass Rail Saloon</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Hopyard</div></div>
+            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Old Anchor Inn</div></div>
+          </div>
+        </div>
+
+        <div class="event__gallery reveal">
+          <div class="event__subhead">
+            <span class="eyebrow">From Past Crawls</span>
+            <h2>Photo placeholders</h2>
+          </div>
+          <div class="gallery">
+            <div class="gallery__tile">📷</div>
+            <div class="gallery__tile">📷</div>
+            <div class="gallery__tile">📷</div>
+            <div class="gallery__tile">📷</div>
+          </div>
+        </div>
+      </article>
+
+    </div>
   </section>
 
   <script src="js/app.js"></script>

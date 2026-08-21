@@ -27,41 +27,90 @@
   --cream:  #EAEAEA;   /* page bg + logo tone  */
   --ink:    #0A0A0A;   /* near-black           */
 
-  --font-brand: "Coral Candy", "Sniglet", system-ui, -apple-system, sans-serif;
+  --font-brand: "Coral Candy", "Sniglet", system-ui, -apple-system, sans-serif;   /* headlines only */
+  --font-body:  "Inter", system-ui, -apple-system, sans-serif;                    /* everything else */
   --font-serif: "Richard Samuels", "Playfair Display", Georgia, serif;
+  --font-creep: "Creepster", var(--font-brand);
+  --font-meow:  "Meow Script", cursive;
 
   --page-pad: clamp(20px, 3.2vw, 52px);
   --radius: clamp(16px, 1.6vw, 26px);
+  --header-h: clamp(74px, 9vw, 106px);
 }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
+/* Deliberately NOT `scroll-behavior: smooth` globally — that would make
+   every scrollTo() call smoothly animate, including the transition engine's
+   own scroll-to-top resets (which need to be instant) and the arrow-key
+   event navigation. The nav menu's in-page links opt into smooth scrolling
+   individually, in js/app.js, via scrollIntoView({behavior:'smooth'}). */
 
 body {
   margin: 0;
-  font-family: var(--font-brand);
+  font-family: var(--font-body);
   background: var(--cream);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
 }
-body.is-event { overflow: hidden; }
+body.is-transitioning,
+body.menu-open { overflow: hidden; }
+
+.is-hidden { display: none !important; }
 
 img { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
+ul { margin: 0; padding: 0; list-style: none; }
+
+.eyebrow {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: clamp(12px, 1vw, 14px);
+}
+
+/* ---- Reveal-on-scroll (used across the new homepage sections) ----------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1);
+}
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+.reveal--stagger > * { transition-delay: calc(var(--i, 0) * 90ms); }
 
 /* =========================================================================
-   WORDMARK — one element, four routes.
-   Drawn as a stencil: the logo art masks a solid color block, so the color
-   is an animatable property. It never moves, never swaps out.
+   SITE HEADER — persistent across every route. Transparent at rest so the
+   hero reads clean; gains a backdrop once you scroll, so content passes
+   behind it instead of visually colliding with it (the original bug).
+   Backdrop color flips with the route: cream behind the black home
+   wordmark, ink behind the cream event wordmark — always readable.
    ========================================================================= */
-.wordmark {
+.site-header {
   position: fixed;
-  top: var(--page-pad);
-  left: var(--page-pad);
+  inset: 0 0 auto 0;
   z-index: 60;
-  height: clamp(34px, 4.2vw, 54px);
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--page-pad);
+  background: transparent;
+  transition: background-color .3s ease, box-shadow .3s ease;
+}
+.site-header.is-scrolled {
+  background: var(--cream);
+  box-shadow: 0 1px 0 rgba(0,0,0,.06);
+}
+body:not([data-route="home"]) .site-header.is-scrolled {
+  background: var(--ink);
+  box-shadow: 0 1px 0 rgba(0,0,0,.2);
+}
+
+.wordmark {
+  display: block;
+  height: clamp(30px, 3.6vw, 46px);
   aspect-ratio: 786 / 174;
   background-color: var(--ink);
   -webkit-mask: url("../assets/logo-bss-black.png") no-repeat center / contain;
@@ -69,6 +118,70 @@ a { color: inherit; text-decoration: none; }
   transition: background-color .34s ease .06s;
 }
 body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
+/* The full-screen nav panel is dark — keep the header mark + hamburger
+   legible against it regardless of route or scroll state. */
+body.menu-open .site-header .wordmark { background-color: var(--cream); }
+body.menu-open .menu-toggle span { background-color: var(--cream); }
+
+/* ---- Hamburger (home route only — event pages use back+arrows) ---------- */
+.menu-toggle {
+  display: none;
+  width: 46px;
+  height: 46px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+body[data-route="home"] .menu-toggle { display: flex; }
+.menu-toggle span {
+  width: 26px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ink);
+  transition: transform .3s cubic-bezier(.62,.03,.16,1), opacity .2s ease, background-color .3s ease;
+}
+.menu-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(9px) rotate(45deg); }
+.menu-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.menu-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+
+/* ---- Full-panel nav ------------------------------------------------------ */
+.site-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 59;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2%);
+  transition: opacity .38s cubic-bezier(.22,1.15,.36,1), transform .38s cubic-bezier(.22,1.15,.36,1);
+}
+.site-menu.is-open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.site-menu__list { display: flex; flex-direction: column; gap: clamp(10px, 2.4vh, 22px); text-align: center; }
+.site-menu__list a {
+  font-family: var(--font-brand);   /* full-screen nav takeover = headline moment */
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .01em;
+  font-size: clamp(30px, 6vw, 56px);
+  color: var(--cream);
+  transition: color .2s ease, transform .2s ease;
+  display: inline-block;
+}
+.site-menu__list a:hover { color: var(--orange); transform: translateX(6px); }
+.site-menu__meta {
+  margin-top: clamp(24px, 5vh, 48px);
+  color: rgba(234,234,234,.55);
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
 
 /* =========================================================================
    HOME
@@ -78,12 +191,13 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
   display: flex;
   flex-direction: column;
   padding: var(--page-pad);
-  padding-top: calc(var(--page-pad) * 2 + clamp(34px, 4.2vw, 54px));
+  padding-top: calc(var(--header-h) + var(--page-pad));
   gap: clamp(18px, 2.4vw, 34px);
 }
 
 .home__title {
   margin: 0;
+  font-family: var(--font-brand);
   font-weight: 800;
   line-height: .9;
   letter-spacing: -.01em;
@@ -112,9 +226,6 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
               box-shadow .35s cubic-bezier(.2,.8,.2,1);
 }
 .card:active { transform: translateY(-2px) scale(.995); }
-/* Hover lift only for real pointers. Touch has no "leave" event, so iOS can
-   leave a tapped card stuck mid-hover — right as the transition measures the
-   card's exact position to animate from, which is what made taps feel glitchy. */
 @media (hover: hover) and (pointer: fine) {
   .card:hover { transform: translateY(-6px); box-shadow: 0 24px 50px -20px rgba(0,0,0,.45); }
 }
@@ -131,28 +242,243 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
 }
 
 /* =========================================================================
-   EVENT VIEW — a full-bleed color field that the card expands into.
-   Hidden entirely until a transition activates it.
+   HOMEPAGE CONTENT — marketing, ribbon, features, about, testimonials,
+   signup, footer. All placeholder copy, easy to swap in index.html.
    ========================================================================= */
-.event {
-  position: fixed;
-  inset: 0;
-  visibility: hidden;
-  pointer-events: none;
-  color: var(--cream);
+.section {
+  padding: clamp(56px, 9vw, 128px) var(--page-pad);
 }
-.event.is-active { visibility: visible; pointer-events: auto; }
+.section__head { max-width: 780px; margin: 0 0 clamp(28px, 4vw, 52px); }
+.section__head .eyebrow { color: var(--red); margin-bottom: 10px; display: block; }
+.section__head h2 {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: .95;
+  letter-spacing: -.01em;
+  font-size: clamp(32px, 5.4vw, 64px);
+}
+.section__head p {
+  margin: 14px 0 0;
+  font-size: clamp(16px, 1.6vw, 19px);
+  line-height: 1.5;
+  max-width: 56ch;
+  opacity: .78;
+}
 
-/* The color field. Its clip-path is animated from the card's rect → full bleed. */
+/* ---- Marketing blurb ----------------------------------------------------- */
+.blurb { background: var(--ink); color: var(--cream); }
+.blurb .section__head .eyebrow { color: var(--orange); }
+.blurb h2 { font-size: clamp(34px, 6.4vw, 84px); }
+.blurb p { opacity: .82; }
+
+/* ---- Curved text ribbon (the signature "delightful" moment) ------------- */
+.ribbon {
+  background: var(--cream);
+  padding: clamp(18px, 3vw, 34px) 0;
+  overflow: hidden;
+}
+.ribbon__svg { display: block; width: 100%; height: auto; }
+.ribbon__word {
+  font-family: var(--font-brand);
+  font-weight: 800;
+  font-size: 42px;
+  letter-spacing: .02em;
+}
+
+/* ---- Why crawl with us ---------------------------------------------------- */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: clamp(16px, 2vw, 28px);
+}
+.feature {
+  background: var(--cream);
+  border: 2px solid rgba(10,10,10,.09);
+  border-radius: var(--radius);
+  padding: clamp(20px, 2.4vw, 30px);
+}
+.feature__icon { font-size: 34px; line-height: 1; margin-bottom: 14px; }
+.feature h3 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.feature p { margin: 0; font-size: 15px; line-height: 1.5; opacity: .72; }
+
+/* ---- About + stats -------------------------------------------------------- */
+.about { background: var(--green); color: var(--cream); }
+.about .section__head .eyebrow { color: var(--ink); }
+.about .section__head p { opacity: .92; }
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: clamp(28px, 5vw, 48px);
+  margin-top: clamp(24px, 4vw, 44px);
+}
+/* A thin rule between stats — at this font size a gap alone reads too
+   tight (adjacent big numbers like "50,000+" and "3" can misread as one
+   string), so give each a firmer, explicit boundary. */
+.stat { padding-left: clamp(20px, 3vw, 32px); border-left: 2px solid rgba(234,234,234,.3); }
+.stat:first-child { padding-left: 0; border-left: none; }
+.stat__num {
+  font-family: var(--font-brand);   /* big bold number = headline moment */
+  font-weight: 800;
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 1;
+}
+.stat__label {
+  margin-top: 8px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  opacity: .85;
+}
+
+/* ---- Testimonials ---------------------------------------------------------- */
+.quotes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: clamp(16px, 2vw, 24px);
+}
+.quote {
+  border-radius: var(--radius);
+  padding: clamp(24px, 2.6vw, 34px);
+  color: var(--cream);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 200px;
+}
+.quote:nth-child(3n+1) { background: var(--orange); }
+.quote:nth-child(3n+2) { background: var(--red); }
+.quote:nth-child(3n+3) { background: var(--green); }
+.quote p {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: clamp(19px, 2vw, 23px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+.quote cite {
+  display: block;
+  margin-top: 18px;
+  font-style: normal;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  opacity: .85;
+}
+
+/* ---- Email signup teaser ---------------------------------------------------- */
+.signup { background: var(--ink); color: var(--cream); text-align: center; }
+.signup .section__head { margin-left: auto; margin-right: auto; }
+.signup .section__head p { margin-left: auto; margin-right: auto; }
+.signup__form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  max-width: 480px;
+  margin: 8px auto 0;
+}
+.signup__form input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 14px 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(234,234,234,.3);
+  background: transparent;
+  color: var(--cream);
+  font: inherit;
+  font-size: 15px;
+}
+.signup__form input::placeholder { color: rgba(234,234,234,.5); }
+.signup__form input:focus { outline: none; border-color: var(--cream); }
+.signup__form button {
+  padding: 14px 26px;
+  border-radius: 999px;
+  border: none;
+  background: var(--orange);
+  color: var(--ink);
+  font-family: inherit;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform .2s ease;
+}
+.signup__form button:hover { transform: translateY(-2px); }
+.signup__note { margin-top: 14px; font-size: 12px; opacity: .5; }
+
+/* ---- Footer ---------------------------------------------------------------- */
+.footer {
+  background: var(--cream);
+  padding: clamp(48px, 6vw, 72px) var(--page-pad) clamp(24px, 3vw, 36px);
+  border-top: 2px solid rgba(10,10,10,.08);
+}
+.footer__top {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(2, 1fr);
+  gap: clamp(24px, 4vw, 60px);
+  padding-bottom: clamp(32px, 4vw, 48px);
+}
+.footer__brand .wordmark { background-color: var(--ink); }
+.footer__brand p { margin: 16px 0 0; font-size: 14px; opacity: .65; max-width: 34ch; line-height: 1.5; }
+.footer__col h4 {
+  margin: 0 0 14px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .55;
+}
+.footer__col ul { display: flex; flex-direction: column; gap: 10px; }
+.footer__col a { font-size: 15px; font-weight: 600; transition: opacity .2s ease; }
+.footer__col a:hover { opacity: .55; }
+.footer__social { display: flex; gap: 10px; margin-top: 16px; }
+.footer__social a {
+  width: 36px; height: 36px;
+  border-radius: 999px;
+  border: 2px solid rgba(10,10,10,.15);
+  display: grid; place-items: center;
+  font-size: 12px; font-weight: 800;
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+.footer__social a:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  justify-content: space-between;
+  padding-top: clamp(18px, 2.4vw, 26px);
+  border-top: 1px solid rgba(10,10,10,.08);
+  font-size: 13px;
+  opacity: .55;
+}
+
+/* =========================================================================
+   EVENT VIEW — hero (color field + logo, first screen) stays exactly as
+   built/tested. Scrollable content (countdown, CTA, bars, details) follows.
+   ========================================================================= */
+.event { display: none; }
+.event.is-active { display: block; }
+
 .event__panel {
   position: fixed;
   inset: 0;
   z-index: 1;
   border-radius: 0;
   will-change: clip-path, border-radius;
+  transition: opacity .3s ease;
 }
-
-/* Incoming color for arrow navigation — sweeps across, then commits. */
+/* The panel is fixed + full-viewport for the whole time an event is active
+   (that's what the entrance/exit animations need) — so once you've scrolled
+   past the hero it has to fade out, or it permanently blankets the
+   scrollable content below it in solid color, no matter how far you scroll. */
+.event__panel.is-faded { opacity: 0; }
 .event__wipe {
   position: fixed;
   inset: 0;
@@ -162,7 +488,6 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
 }
 .event__wipe.is-live { display: block; }
 
-/* Centered lockup (inset + margin:auto centers an intrinsically-sized image) */
 .event__logo {
   position: fixed;
   inset: 0;
@@ -173,12 +498,18 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
   max-width: min(70%, 820px);
   max-height: 56vh;
   will-change: transform, opacity;
+  transition: opacity .3s ease;   /* only applies at rest — animations win while active */
 }
+.event__logo.is-faded { opacity: 0; }
 
-/* ---- Controls ----------------------------------------------------------- */
+/* Reserves exactly one screen of scroll room so content starts below the
+   fixed hero. The hero visuals themselves (panel/logo/arrows/back) don't
+   need this box — they're independently fixed — this is purely a spacer. */
+.event__hero { height: 100svh; }
+
 .back {
   position: fixed;
-  top: var(--page-pad);
+  top: calc((var(--header-h) - 40px) / 2);
   right: var(--page-pad);
   z-index: 4;
   font-weight: 800;
@@ -187,8 +518,9 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
   font-size: clamp(13px, 1.1vw, 16px);
   padding: 10px 18px;
   border: 2px solid var(--cream);
+  color: var(--cream);
   border-radius: 999px;
-  transition: background-color .25s ease, color .25s ease;
+  transition: background-color .25s ease, color .25s ease, opacity .3s ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .back:hover { background: var(--cream); color: var(--ink); }
@@ -206,7 +538,7 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
   border: 2px solid rgba(234,234,234,.55);
   transform: translateY(-50%);
   transition: background-color .22s ease, border-color .22s ease,
-              transform .22s cubic-bezier(.2,.8,.2,1);
+              transform .22s cubic-bezier(.2,.8,.2,1), opacity .3s ease;
 }
 .arrow--prev { left: var(--page-pad); }
 .arrow--next { right: var(--page-pad); }
@@ -227,6 +559,134 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
   .arrow--next:hover { transform: translateY(-50%) translateX(4px); }
 }
 
+/* Fade the side arrows + back pill once you've scrolled past the hero, so
+   they don't sit on top of the content below. */
+.arrow.is-faded, .back.is-faded { opacity: 0; pointer-events: none; }
+
+/* =========================================================================
+   EVENT CONTENT — countdown, CTA, details, bar lineup, gallery. One block
+   per event, hand-authored in index.html for easy copy edits; JS toggles
+   which one is shown via .is-shown.
+   ========================================================================= */
+.event__content { background: var(--cream); color: var(--ink); }
+.event__body { display: none; }
+.event__body.is-shown { display: block; }
+
+.event__intro { padding: clamp(40px, 6vw, 80px) var(--page-pad) 0; }
+.event__tagline {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: .95;
+  font-size: clamp(28px, 4.6vw, 52px);
+}
+.event__body[data-for="halloween"] .event__tagline { color: var(--orange); }
+.event__body[data-for="christmas"] .event__tagline { color: var(--red); }
+.event__body[data-for="shamrock"]  .event__tagline { color: var(--green); }
+
+/* ---- Countdown ------------------------------------------------------------- */
+.countdown {
+  display: flex;
+  gap: clamp(10px, 2vw, 22px);
+  margin: clamp(22px, 3vw, 34px) 0;
+  flex-wrap: wrap;
+}
+.countdown__unit { text-align: center; min-width: 66px; }
+.countdown__num {
+  font-family: var(--font-brand);   /* big bold number = headline moment */
+  font-weight: 800;
+  font-size: clamp(34px, 5vw, 54px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.countdown__label {
+  margin-top: 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .6;
+}
+
+/* ---- CTA -------------------------------------------------------------------- */
+.event__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 30px;
+  border-radius: 999px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  font-size: 15px;
+  color: var(--cream);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.event__body[data-for="halloween"] .event__cta { background: var(--orange); }
+.event__body[data-for="christmas"] .event__cta { background: var(--red); }
+.event__body[data-for="shamrock"]  .event__cta { background: var(--green); }
+.event__cta:hover { transform: translateY(-2px); box-shadow: 0 14px 26px -14px rgba(0,0,0,.4); }
+.event__cta-note { margin: 12px 0 0; font-size: 13px; opacity: .55; }
+
+/* ---- Details ------------------------------------------------------------------ */
+.event__details {
+  margin-top: clamp(48px, 6vw, 80px);
+  padding: 0 var(--page-pad);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: clamp(16px, 2vw, 24px);
+}
+.detail dt {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .55;
+  margin-bottom: 6px;
+}
+.detail dd { margin: 0; font-size: 17px; font-weight: 700; }
+
+/* ---- Sub-section header, reused by the bars + gallery blocks below ------------- */
+.event__subhead .eyebrow { display: block; margin-bottom: 8px; opacity: .6; }
+.event__subhead h2 { margin: 0; font-weight: 800; text-transform: uppercase; font-size: clamp(22px, 3vw, 34px); }
+
+/* ---- Bars grid ------------------------------------------------------------------ */
+.event__bars { margin-top: clamp(56px, 7vw, 96px); padding: 0 var(--page-pad); }
+.bars {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: clamp(12px, 1.6vw, 18px);
+  margin-top: clamp(20px, 2.6vw, 30px);
+}
+.bar-tile {
+  border: 2px solid rgba(10,10,10,.1);
+  border-radius: 16px;
+  padding: 20px 14px;
+  text-align: center;
+  background: #fff;
+}
+.bar-tile__icon { font-size: 26px; margin-bottom: 8px; }
+.bar-tile__name { font-size: 13px; font-weight: 700; }
+
+/* ---- Gallery placeholder ------------------------------------------------------- */
+.event__gallery { margin: clamp(56px, 7vw, 96px) 0 0; padding: 0 var(--page-pad) clamp(64px, 8vw, 104px); }
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: clamp(10px, 1.4vw, 16px);
+  margin-top: clamp(20px, 2.6vw, 30px);
+}
+.gallery__tile {
+  aspect-ratio: 4/5;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  opacity: .8;
+}
+.event__body[data-for="halloween"] .gallery__tile { background: color-mix(in srgb, var(--orange) 22%, white); }
+.event__body[data-for="christmas"] .gallery__tile { background: color-mix(in srgb, var(--red) 18%, white); }
+.event__body[data-for="shamrock"]  .gallery__tile { background: color-mix(in srgb, var(--green) 18%, white); }
+
 /* =========================================================================
    Responsive + reduced motion
    ========================================================================= */
@@ -234,10 +694,11 @@ body:not([data-route="home"]) .wordmark { background-color: var(--cream); }
   .grid { grid-template-columns: 1fr; min-height: 0; }
   .card { min-height: 40vh; }
   .arrow { width: 44px; }
-  /* Keep the lockup clear of the arrows on narrow screens */
   .event__logo { max-width: calc(100% - 2 * (44px + var(--page-pad) + 14px)); }
+  .footer__top { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card, .back, .arrow, .wordmark { transition: none; }
+  .card, .back, .arrow, .wordmark, .site-header, .menu-toggle span, .site-menu, .reveal { transition: none; }
+  .reveal { opacity: 1; transform: none; }
 }
