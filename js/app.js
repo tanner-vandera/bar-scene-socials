@@ -27,6 +27,7 @@ const prevArrow = document.querySelector('.arrow--prev');
 const nextArrow = document.querySelector('.arrow--next');
 const header    = document.querySelector('.site-header');
 const wordmark  = document.querySelector('.site-header .wordmark');
+const cardGrid  = document.querySelector('.grid');
 
 /* ---- Motion vocabulary -------------------------------------------------- */
 const REDUCED   = matchMedia('(prefers-reduced-motion: reduce)');
@@ -90,6 +91,9 @@ const FULL_BLEED = { clip: 'inset(0px 0px 0px 0px)', radius: '0px' };
 function showEvent(show) {
   eventView.classList.toggle('is-active', show);
   homeView.classList.toggle('is-hidden', show);
+  // Hiding the grid mid-hover means its pointerleave never fires, so the
+  // active card would still be expanded when you came back. Clear it here.
+  if (show && cardGrid) delete cardGrid.dataset.active;
 }
 /* Which event's content section (countdown/CTA/details/bars) is showing —
    independent of the hero, which is one shared set of elements reused
@@ -112,16 +116,20 @@ function showBody(key) {
    ========================================================================= */
 const DOCK_DISTANCE = 260;                             // px of scroll the effect completes over
 const DOCK_MEDIA = matchMedia('(min-width: 721px)');   // dock on desktop/tablet; fade-only below that
-let logoRestHeight = 0, dockHeight = 0;
+let logoRestHeight = 0, logoRestCenterY = 0, dockHeight = 0;
 
-/* Natural (undocked) logo height + the wordmark's height as the dock
-   target, so the docked mark visually matches the wordmark's scale. Must
-   run only once the entrance/exit animation has fully settled — reading
-   geometry mid-animation would capture a transient frame, not the resting
-   size (harmless here since the entrance only translates, never scales,
-   but this is the correct place for it regardless). */
+/* Measure the logo at rest: its natural height, its vertical center on
+   screen (it's no longer viewport-centered — it lives in the upper band),
+   and the wordmark's height as the dock target so the docked mark matches
+   the wordmark's scale. The transform is cleared for the measurement so a
+   mid-scroll resize reads the true rest position, not a shrunken frame. */
 function measureDockGeometry() {
-  logoRestHeight = logo.getBoundingClientRect().height || 1;
+  const prev = logo.style.transform;
+  logo.style.transform = 'none';
+  const r = logo.getBoundingClientRect();
+  logo.style.transform = prev;
+  logoRestHeight = r.height || 1;
+  logoRestCenterY = r.top + r.height / 2;
   dockHeight = wordmark.getBoundingClientRect().height || 1;
 }
 
@@ -135,7 +143,8 @@ function applyHeroScroll() {
 
   if (DOCK_MEDIA.matches && logoRestHeight) {
     const scale = 1 - p * (1 - dockHeight / logoRestHeight);
-    const dockTranslate = (header.getBoundingClientRect().height / 2) - (innerHeight / 2);
+    // Move the logo's center from its resting spot to the header's center.
+    const dockTranslate = (header.getBoundingClientRect().height / 2) - logoRestCenterY;
     logo.style.transform = `translateY(${p * dockTranslate}px) scale(${scale})`;
     logo.style.opacity = '';
   } else {
@@ -144,11 +153,25 @@ function applyHeroScroll() {
   }
 }
 
+/* Header backdrop toggles in only after a few px of scroll — transparent
+   over the hero (so the wipe shows through it), solid under content. */
+function syncHeader() { header.classList.toggle('is-scrolled', scrollY > 8); }
+
+/* Single owner of the event color, set on html + body so iOS Safari paints
+   it reliably everywhere — including the overscroll/toolbar zones a fixed,
+   clip-path-animated panel mis-composited (the leftover-color artifact).
+   '' hands the color back to the CSS route rules (home = ink). */
+function setPageColor(key) {
+  const c = EVENTS[key] ? EVENTS[key].color : '';
+  document.documentElement.style.backgroundColor = c;
+  body.style.backgroundColor = c;
+}
+
 let scrollTicking = false;
 function queueHeroScroll() {
   if (scrollTicking) return;
   scrollTicking = true;
-  requestAnimationFrame(() => { applyHeroScroll(); scrollTicking = false; });
+  requestAnimationFrame(() => { syncHeader(); applyHeroScroll(); scrollTicking = false; });
 }
 addEventListener('scroll', queueHeroScroll, { passive: true });
 addEventListener('resize', () => { measureDockGeometry(); applyHeroScroll(); });
@@ -209,12 +232,17 @@ async function toEvent(key) {
   // them), then measure the now-settled, now-correct logo for docking.
   reset(panel);
   reset(logo);
+  // Commit the color to html/body only now, once the panel has finished
+  // consuming the screen — set any earlier and the whole viewport would be
+  // the event color before the panel got there, spoiling the grow.
+  setPageColor(key);
+  syncHeader();
   measureDockGeometry();
   applyHeroScroll();
 
   homeView.inert = true;
   eventView.inert = false;
-  body.classList.remove('is-transitioning');
+  body.classList.remove('is-transitioning');   // intro fades in
 }
 
 /* =========================================================================
@@ -237,6 +265,9 @@ async function toHome(from) {
   body.classList.add('is-transitioning');
   homeView.inert = false;
   eventView.inert = true;
+  // Hand the page color back to home (black) now, so the un-covered area
+  // behind the shrinking panel is black — the home we're contracting into.
+  setPageColor('home');
   // The logo may currently be scrolled-down/docked if the user was reading
   // content further down. Clear that back to plain styles and jump to the
   // top *before* the drop-out plays — otherwise a docked (small, tucked in
@@ -244,6 +275,7 @@ async function toHome(from) {
   // scrolled into view, instead of against the hero it actually belongs to.
   clearHeroScrollStyles();
   scrollTo(0, 0);
+  syncHeader();
 
   await settle([anim(logo, DROP_OUT, { duration: t(160), easing: EASE_IN })]);
 
@@ -273,7 +305,6 @@ async function toHome(from) {
    ========================================================================= */
 async function toSibling(key, dir) {
   const cfg = EVENTS[key];
-  const fromColor = getComputedStyle(header).backgroundColor;   // read before anything changes
   body.classList.add('is-transitioning');
   // Arrow-key navigation can fire from anywhere on the page (it doesn't
   // need the visible, hover-only arrow buttons) — including while the logo
@@ -282,6 +313,7 @@ async function toSibling(key, dir) {
   // the page happened to be scrolled.
   clearHeroScrollStyles();
   scrollTo(0, 0);
+  syncHeader();   // back at the top → header transparent → the wipe shows through it
 
   await settle([anim(logo, DROP_OUT, { duration: t(150), easing: EASE_IN })]);
 
@@ -292,34 +324,26 @@ async function toSibling(key, dir) {
   logo.src = cfg.logo;
   logo.alt = cfg.name;
   showBody(key);
+  body.dataset.route = key;   // only matters for the (currently transparent) header + arrow targets
 
-  // body.dataset.route flips right here — synchronously, in the same tick
-  // as starting the header's own animation below, not a moment earlier.
-  // The CSS rule keyed on data-route has no transition of its own, so if
-  // this ran any earlier (e.g. up at the top of the function) the header
-  // would instantly snap to the new color the second this line ran, well
-  // before its animation even starts — the exact premature-snap problem
-  // this is meant to fix, just moved earlier. Animating the header's own
-  // background alongside the wipe, both starting in this same instant, is
-  // what makes it read as one continuous color change instead of a
-  // separate hand-off.
-  body.dataset.route = key;
+  // No separate header animation anymore: the header is transparent at the
+  // top, so the wipe passing behind it recolors it for free — one motion,
+  // nothing to keep in sync.
   await settle([
     anim(wipe, [{ clipPath: from }, { clipPath: 'inset(0px 0px 0px 0px)' }],
       { duration: t(280), easing: EASE }),
     anim(logo, DROP_IN, { duration: t(290), delay: t(190), easing: EASE_BACK }),
-    anim(header, [{ backgroundColor: fromColor }, { backgroundColor: cfg.color }],
-      { duration: t(280), easing: EASE }),
   ]);
 
-  panel.style.background = cfg.color;   // commit before removing the wipe
+  // Commit the new color to the whole field at the moment the wipe lands.
+  panel.style.background = cfg.color;
+  setPageColor(key);
   wipe.classList.remove('is-live');
   reset(wipe);
   reset(logo);
-  reset(header);   // hand the now-settled color back to the plain CSS rule
   measureDockGeometry();
   applyHeroScroll();
-  body.classList.remove('is-transitioning');
+  body.classList.remove('is-transitioning');   // intro fades in
 }
 
 /* =========================================================================
@@ -392,8 +416,10 @@ addEventListener('keydown', e => {
     logo.alt = cfg.name;
     showBody(k);
     showEvent(true);
+    setPageColor(k);
     scrollTo(0, 0);   // a saved scroll position (bfcache, extensions) shouldn't land mid-page
     clearHeroScrollStyles();
+    syncHeader();
     // No entrance animation to wait for on a direct/deep-link boot — but
     // defer a frame anyway so the just-set logo image has definitely
     // completed layout before its resting height is measured.
@@ -410,6 +436,27 @@ addEventListener('keydown', e => {
    SITE CHROME — header backdrop, hamburger menu, in-page smooth scroll
    (homepage only; event pages keep their existing arrow/back nav)
    ========================================================================= */
+/* ---- Event-card hover expand -------------------------------------------
+   Which card is "active" is tracked here rather than with CSS :hover,
+   because the grid's gaps belong to no card. A :hover-driven version had a
+   dead strip between every pair of cards: sweeping across, the row would
+   start springing back to even and then re-expand, once per gap. Here the
+   active card only changes when the pointer is genuinely over a different
+   card, and only clears on pointerleave of the whole grid — so moving
+   across all three reads as one continuous motion, and it still collapses
+   the moment you leave.
+
+   pointerover (not pointerenter) because it bubbles, so one listener on the
+   grid covers all three cards and their children. */
+if (cardGrid && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+  cardGrid.addEventListener('pointerover', e => {
+    const card = e.target.closest('.card');
+    if (!card || !cardGrid.contains(card)) return;   // over a gap → hold current
+    cardGrid.dataset.active = String([...cardGrid.children].indexOf(card) + 1);
+  });
+  cardGrid.addEventListener('pointerleave', () => { delete cardGrid.dataset.active; });
+}
+
 const menuToggle = document.querySelector('.menu-toggle');
 const siteMenu   = document.querySelector('.site-menu');
 if (menuToggle && siteMenu) {

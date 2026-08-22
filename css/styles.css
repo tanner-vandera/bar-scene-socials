@@ -36,6 +36,15 @@
   --page-pad: clamp(20px, 3.2vw, 52px);
   --radius: clamp(16px, 1.6vw, 26px);
   --header-h: clamp(74px, 9vw, 106px);
+
+  /* Height of the event hero's upper band (where the logo lives). Shared by
+     the .event__hero spacer and the side arrows, so the arrows stay
+     vertically centered on the logo no matter how the band is retuned. */
+  --hero-band: 48svh;
+
+  /* Bouncy overshoot — card expand/collapse (classic ease-out-back) */
+  --ease-bounce: cubic-bezier(.34, 1.56, .64, 1);
+  --dur-bounce: .52s;
 }
 
 * { box-sizing: border-box; }
@@ -67,11 +76,27 @@ img { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
 ul { margin: 0; padding: 0; list-style: none; }
 
-.eyebrow {
+/* =========================================================================
+   EYEBROW — one treatment for every all-caps micro-label on the site.
+   `.eyebrow` is the explicit class; the rest of this selector list is the
+   same role wearing a different tag (detail terms, countdown units, footer
+   column headings, the card countdown caption). They all share the weight,
+   tracking, size and off-white color so nothing drifts. Anything that
+   needs to sit back visually should do it with opacity at the usage site,
+   NOT by inventing a different size/weight/color here.
+   ========================================================================= */
+.eyebrow,
+.detail dt,
+.countdown__label,
+.card__countdown-label,
+.footer__col h4 {
+  font-family: var(--font-body);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: .12em;
   font-size: clamp(12px, 1vw, 14px);
+  color: var(--cream);
+  opacity: 1;
 }
 
 /* ---- Reveal-on-scroll (used across the new homepage sections) ----------- */
@@ -85,12 +110,12 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 /* =========================================================================
    SITE HEADER — persistent across every route, never re-rendered.
-   Home: solid black always (the site is black-themed), so the cream logo/
-   hamburger never lose contrast, regardless of scroll or menu state.
-   Event routes: each event's own color, always — the whole page (hero AND
-   the content below it) is now that same color, so there's no seam to
-   worry about; no scroll-conditional needed. No border/shadow anywhere —
-   the header just reads as part of the same color field.
+   Transparent at rest so whatever color is behind it (the hero, and the
+   arrow-wipe as it sweeps across) shows straight through — that's what
+   lets the arrow navigation recolor the header for free, no separate
+   header animation to keep in sync. Once you scroll, it fades in a solid
+   same-color backdrop so the wordmark/controls stay legible over content.
+   No border/shadow anywhere. Color per route.
    ========================================================================= */
 .site-header {
   position: fixed;
@@ -101,11 +126,13 @@ ul { margin: 0; padding: 0; list-style: none; }
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--page-pad);
-  background: var(--ink);
+  background: transparent;
+  transition: background-color .3s ease;
 }
-body[data-route="halloween"] .site-header { background: var(--orange); }
-body[data-route="christmas"] .site-header { background: var(--red); }
-body[data-route="shamrock"]  .site-header { background: var(--green); }
+.site-header.is-scrolled { background: var(--ink); }
+body[data-route="halloween"] .site-header.is-scrolled { background: var(--orange); }
+body[data-route="christmas"] .site-header.is-scrolled { background: var(--red); }
+body[data-route="shamrock"]  .site-header.is-scrolled { background: var(--green); }
 
 /* The header always has a dark or bold-color backdrop now (never a light
    one), so the wordmark can just always be cream — no more conditional. */
@@ -189,12 +216,14 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
   display: inline-block;
 }
 .site-menu__list a:hover { color: var(--orange); transform: translateX(6px); }
+/* Same eyebrow treatment as every other all-caps micro-label. */
 .site-menu__meta {
   margin-top: clamp(24px, 5vh, 48px);
-  color: rgba(234,234,234,.55);
-  font-size: 13px;
-  letter-spacing: .08em;
+  font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: clamp(12px, 1vw, 14px);
+  color: var(--cream);
 }
 
 /* =========================================================================
@@ -222,7 +251,13 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
 .grid {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Written as an explicit 3-track list, NOT repeat(3, 1fr): a track list
+     only animates into another track list of the same form, and the hover
+     states below are explicit lists. With repeat() here, card-to-card
+     animated (list → list) but entering and leaving the grid snapped
+     instantly (repeat → list), which read as a jarring jump on exactly
+     those two interactions. */
+  grid-template-columns: 1fr 1fr 1fr;
   gap: clamp(14px, 1.6vw, 26px);
   min-height: min(62vh, 600px);
 }
@@ -238,9 +273,27 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
   will-change: transform, opacity;
   transition: transform .35s cubic-bezier(.2,.8,.2,1);
 }
-.card:active { transform: translateY(-2px) scale(.995); }
-@media (hover: hover) and (pointer: fine) {
-  .card:hover { transform: translateY(-6px); }
+.card:active { transform: scale(.995); }
+
+/* Desktop: the active card widens and squeezes its neighbours, with a bouncy
+   overshoot. The grid (not the card) animates, so the three always tile the
+   row exactly — no gaps, no overlap. Neighbours keep their logo at full size
+   and let it crop at the card edge (overflow:hidden + centered), which is
+   what gives the squeezed cards their bold, graphic look rather than
+   shrinking the lockups down to nothing.
+
+   Keyed on [data-active] (set in js/app.js), NOT :hover. The grid's gaps
+   belong to no card, so a :hover-driven version had a dead zone: dragging
+   from one card to the next crossed a strip where nothing was hovered, the
+   row started springing back to even, then re-expanded — a visible stutter
+   between every pair. With data-active the last card stays active until the
+   pointer leaves the whole grid, so sweeping across all three is one
+   continuous motion. */
+@media (hover: hover) and (pointer: fine) and (min-width: 1025px) {
+  .grid { transition: grid-template-columns var(--dur-bounce) var(--ease-bounce); }
+  .grid[data-active="1"] { grid-template-columns: 1.8fr .6fr .6fr; }
+  .grid[data-active="2"] { grid-template-columns: .6fr 1.8fr .6fr; }
+  .grid[data-active="3"] { grid-template-columns: .6fr .6fr 1.8fr; }
 }
 
 .card--green  { background: var(--green); }
@@ -252,8 +305,24 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
   height: auto;
   will-change: transform, opacity;
 }
+/* Desktop only: size the lockup against the VIEWPORT rather than its card,
+   so a squeezing card crops it instead of shrinking it — that crop is what
+   gives the neighbours their bold, graphic look during the hover expand.
+   Must come after the base rule above: same specificity, so source order
+   decides. A fixed px min-width can't substitute here — the resting card
+   width scales with the viewport, so any floor that crops at 1440px would
+   already be cropping at rest on a narrower screen. */
+@media (min-width: 1025px) {
+  /* max-width:none lifts the global `img { max-width: 100% }` clamp, which
+     would otherwise shrink the lockup back down to the squeezed card's
+     content box — defeating the crop. The card's overflow:hidden does the
+     cropping, and place-items:center keeps it even on both sides. */
+  .card__logo { width: min(23vw, 460px); max-width: none; }
+}
 
-/* Top-right "this is a link" affordance — hidden until hover, real pointers only. */
+/* Top-right "this is a link" affordance — appears on the active card only,
+   real pointers only. Same [data-active] source as the expand above, so it
+   doesn't blink off while the pointer crosses a gap between cards. */
 .card__arrow {
   position: absolute;
   top: clamp(16px, 2vw, 22px);
@@ -261,16 +330,21 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
   width: 40px;
   height: 40px;
   border-radius: 999px;
-  border: 2px solid rgba(234,234,234,.6);
+  border: 2px solid var(--cream);   /* matches .header-back / .arrow */
   display: grid;
   place-items: center;
   opacity: 0;
-  transform: translate(-4px, 4px) scale(.9);
-  transition: opacity .25s ease, transform .25s ease;
+  transform: translate(-6px, 6px) scale(.85);
+  transition: opacity .2s ease, transform var(--dur-bounce) var(--ease-bounce);
 }
 .card__arrow svg { width: 18px; height: 18px; stroke: var(--cream); fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 @media (hover: hover) and (pointer: fine) {
-  .card:hover .card__arrow { opacity: 1; transform: translate(0, 0) scale(1); }
+  .grid[data-active="1"] .card:nth-child(1) .card__arrow,
+  .grid[data-active="2"] .card:nth-child(2) .card__arrow,
+  .grid[data-active="3"] .card:nth-child(3) .card__arrow {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
 }
 
 /* Bottom-anchored live countdown, reusing the same [data-countdown]/.cd__d
@@ -294,11 +368,6 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
 .card__countdown-label {
   display: block;
   margin-top: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  opacity: .8;
 }
 
 /* =========================================================================
@@ -309,7 +378,7 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
   padding: clamp(56px, 9vw, 128px) var(--page-pad);
 }
 .section__head { max-width: 780px; margin: 0 0 clamp(28px, 4vw, 52px); }
-.section__head .eyebrow { color: var(--red); margin-bottom: 10px; display: block; }
+.section__head .eyebrow { margin-bottom: 10px; display: block; }
 .section__head h2 {
   margin: 0;
   font-family: var(--font-brand);
@@ -328,7 +397,6 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
 }
 
 /* ---- Marketing blurb ----------------------------------------------------- */
-.blurb .section__head .eyebrow { color: var(--orange); }
 .blurb h2 { font-size: clamp(34px, 6.4vw, 84px); }
 .blurb p { opacity: .82; }
 
@@ -407,13 +475,7 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
   padding-bottom: clamp(32px, 4vw, 48px);
 }
 .footer__brand p { margin: 16px 0 0; font-size: 14px; opacity: .65; max-width: 34ch; line-height: 1.5; }
-.footer__col h4 {
-  margin: 0 0 14px;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  opacity: .55;
-}
+.footer__col h4 { margin: 0 0 14px; }
 .footer__col ul { display: flex; flex-direction: column; gap: 10px; }
 .footer__col a { font-size: 15px; font-weight: 600; transition: opacity .2s ease; }
 .footer__col a:hover { opacity: .55; }
@@ -463,36 +525,54 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
 
 .event__logo {
   position: fixed;
-  inset: 0;
+  /* Centered within the UPPER band of the viewport (header bottom →
+     --hero-band), not the whole screen — that leaves the lower band of the
+     first screen for the tagline/countdown/CTA, bringing them above the
+     fold. The side arrows key off the same band, so they stay centered on
+     the logo automatically. */
+  inset: var(--header-h) 0 calc(100svh - var(--hero-band)) 0;
   margin: auto;
   /* Above the header (60): once docked, the logo's screen position sits
-     inside the header's box, and the header is opaque now (each event's
-     own color, always) — without this, the header's own background would
-     paint right over the docked logo. */
+     inside the header's box, and the header would otherwise paint over it. */
   z-index: 61;
   width: auto;
   height: auto;
-  max-width: min(70%, 820px);
-  max-height: 56vh;
+  max-width: min(66%, 700px);
+  max-height: 26vh;
   will-change: transform, opacity;
 }
 
-/* Reserves exactly one screen of scroll room so content starts below the
-   fixed hero. The hero visuals themselves (panel/logo/arrows) don't need
-   this box — they're independently fixed — this is purely a spacer. */
-.event__hero { height: 100svh; }
+/* Reserves the upper-band scroll room so the intro content lands in the
+   lower half of the first screen (above the fold), with the fixed logo
+   centered above it. Purely a spacer — the fixed hero visuals don't need
+   it. Sized just under the logo band so intro tucks in right below. */
+.event__hero { height: var(--hero-band); }
 
+/* Vertically centered on the logo — the logo is centered inside the band
+   from the header's bottom edge down to --hero-band, so that band's
+   midpoint is the shared anchor. Stroke matches .header-back exactly. */
 .arrow {
   position: fixed;
-  top: 50%;
-  z-index: 4;
+  top: calc((var(--header-h) + var(--hero-band)) / 2);
+  /* Above .event__content (5) so a tap always reaches the button, even if a
+     short viewport squeezes them close to the content. Safe to sit on top:
+     they fade out and drop pointer-events as soon as you scroll. */
+  z-index: 6;
   display: grid;
   place-items: center;
   width: clamp(46px, 4.4vw, 62px);
   aspect-ratio: 1;
   border-radius: 999px;
-  border: 2px solid rgba(234,234,234,.55);
-  transform: translateY(-50%);
+  border: 2px solid var(--cream);
+  /* The hover nudge lives in its own custom property, and the positioning
+     lives in the transform. Hover then only rewrites --arrow-nudge, never
+     the whole transform. Previously :hover replaced the entire transform
+     with the desktop value, which on mobile wiped out the side-by-side
+     centering AND re-applied translateY(-50%) — the arrow jumped up and
+     sideways out from under the cursor, un-hovering itself, snapping back,
+     re-hovering: a visible vibration. */
+  --arrow-nudge: 0px;
+  transform: translateY(-50%) translateX(var(--arrow-nudge));
   transition: background-color .22s ease, border-color .22s ease,
               transform .22s cubic-bezier(.2,.8,.2,1);
 }
@@ -511,8 +591,8 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
 @media (hover: hover) and (pointer: fine) {
   .arrow:hover { background: var(--cream); border-color: var(--cream); }
   .arrow:hover svg { stroke: var(--ink); }
-  .arrow--prev:hover { transform: translateY(-50%) translateX(-4px); }
-  .arrow--next:hover { transform: translateY(-50%) translateX(4px); }
+  .arrow--prev:hover { --arrow-nudge: -4px; }
+  .arrow--next:hover { --arrow-nudge: 4px; }
 }
 
 /* =========================================================================
@@ -523,19 +603,40 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
    needs to read clearly in cream/white against it; z-index lifts it above
    the hero's fixed color panel, which never moves out of the way anymore
    (there's nothing left for it to reveal — the color's the same either way). */
+/* Transparent — the event color is now owned by html/body (set in
+   js/app.js on every route change), which iOS Safari paints reliably in
+   the overscroll/toolbar zones where a fixed, clip-path-animated panel
+   left a stale-color artifact. Content just floats over that single
+   color field. z-index lifts it above the fixed hero panel. */
 .event__content {
   position: relative;
   z-index: 5;
+  background: transparent;
   color: var(--cream);
 }
-body[data-route="halloween"] .event__content { background: var(--orange); }
-body[data-route="christmas"] .event__content { background: var(--red); }
-body[data-route="shamrock"]  .event__content { background: var(--green); }
 
 .event__body { display: none; }
 .event__body.is-shown { display: block; }
 
-.event__intro { padding: clamp(40px, 6vw, 80px) var(--page-pad) 0; }
+/* Content sits above the panel/wipe in the stack, and the hero is short
+   now, so upper sections would otherwise paint over the growing panel /
+   wipe mid-transition. Hide the whole content field while transitioning;
+   it reappears the instant the transition ends. */
+body.is-transitioning .event__content { visibility: hidden; }
+
+/* The above-the-fold intro fades/rises in after the entrance transition
+   settles (is-transitioning is dropped at the end of each route change).
+   It's hidden *instantly* during a transition — no fade-out — so it can
+   never flash on top of the wipe, which sits below it in the stack. */
+.event__intro {
+  padding: clamp(20px, 3vw, 40px) var(--page-pad) 0;
+  transition: opacity .45s ease .12s, transform .45s ease .12s;
+}
+body.is-transitioning .event__intro {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: none;
+}
 .event__tagline {
   margin: 0;
   font-family: var(--font-brand);
@@ -560,13 +661,7 @@ body[data-route="shamrock"]  .event__content { background: var(--green); }
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
-.countdown__label {
-  margin-top: 6px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  opacity: .6;
-}
+.countdown__label { margin-top: 6px; }
 
 /* ---- CTA -------------------------------------------------------------------- */
 /* Cream-on-color, inverted from before — now that the page itself carries
@@ -596,17 +691,11 @@ body[data-route="shamrock"]  .event__content { background: var(--green); }
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: clamp(16px, 2vw, 24px);
 }
-.detail dt {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  opacity: .55;
-  margin-bottom: 6px;
-}
+.detail dt { margin-bottom: 6px; }
 .detail dd { margin: 0; font-size: 17px; font-weight: 700; }
 
 /* ---- Sub-section header, reused by the bars + gallery blocks below ------------- */
-.event__subhead .eyebrow { display: block; margin-bottom: 8px; opacity: .7; }
+.event__subhead .eyebrow { display: block; margin-bottom: 8px; }
 .event__subhead h2 {
   margin: 0;
   font-family: var(--font-brand);
@@ -656,15 +745,60 @@ body[data-route="shamrock"]  .event__content { background: var(--green); }
 /* =========================================================================
    Responsive + reduced motion
    ========================================================================= */
-@media (max-width: 720px) {
-  .grid { grid-template-columns: 1fr; min-height: 0; }
-  .card { min-height: 40vh; }
-  .arrow { width: 44px; }
-  .event__logo { max-width: calc(100% - 2 * (44px + var(--page-pad) + 14px)); }
+/* ---- Tablet and below: the event cards stack ----------------------------- */
+@media (max-width: 1024px) {
+  .grid {
+    flex: none;                              /* explicit rows govern height */
+    grid-template-columns: 1fr;
+    /* Explicit list, not repeat() — same interpolation requirement as the
+       desktop columns above, so entering/leaving animates rather than snaps. */
+    grid-template-rows: 38svh 38svh 38svh;
+    min-height: 0;
+  }
+  .card { min-height: 0; }
   .footer__top { grid-template-columns: 1fr; }
 }
 
+/* Stacked equivalent of the desktop widen: the hovered card grows taller
+   and its neighbours give up the height, same bouncy curve. Row totals are
+   identical in both states (38·3 = 56+29+29 = 114svh) so nothing below the
+   grid shifts while the animation plays. */
+@media (hover: hover) and (pointer: fine) and (max-width: 1024px) {
+  .grid { transition: grid-template-rows var(--dur-bounce) var(--ease-bounce); }
+  .grid[data-active="1"] { grid-template-rows: 56svh 29svh 29svh; }
+  .grid[data-active="2"] { grid-template-rows: 29svh 56svh 29svh; }
+  .grid[data-active="3"] { grid-template-rows: 29svh 29svh 56svh; }
+}
+
+/* ---- Mobile ------------------------------------------------------------- */
+@media (max-width: 720px) {
+  /* Logo now lives in the upper band, above the arrows, so it no longer
+     needs to keep clear of them horizontally — let it be full-width. */
+  .event__logo { max-width: 86%; }
+
+  /* Arrows pair up, centered under the logo, instead of hugging the edges.
+     They sit in the free band ABOVE where the intro content starts
+     (--hero-band), clearing it by ~24px. They used to be anchored just
+     below --hero-band, which put them on top of the intro — and because
+     .event__content stacks above them, taps landed on the headline text
+     instead of the buttons, so the arrows simply didn't work on mobile. */
+  .arrow {
+    width: 46px;
+    top: calc(var(--hero-band) - 70px);   /* 46px tall + 24px breathing room */
+    /* No translateY here: `top` above is already the true top edge. Keeps
+       the nudge as the only thing the transform carries. */
+    transform: translateX(var(--arrow-nudge));
+  }
+  /* Paired and centered via `left` offsets rather than a transform, so the
+     positioning can't be clobbered by the hover nudge. 53px = the 46px
+     button + half of the 14px gap between them. */
+  .arrow--prev { left: calc(50% - 53px); right: auto; }
+  .arrow--next { left: calc(50% + 7px);  right: auto; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .card, .header-back, .arrow, .site-header, .menu-toggle span, .site-menu, .reveal { transition: none; }
+  .card, .header-back, .arrow, .site-header, .menu-toggle span, .site-menu,
+  .reveal, .event__intro, .grid { transition: none; }
   .reveal { opacity: 1; transform: none; }
+  body.is-transitioning .event__intro { opacity: 1; transform: none; }
 }
