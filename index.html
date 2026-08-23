@@ -31,8 +31,8 @@
         <li><a href="#/halloween">Halloween Bar Crawl</a></li>
         <li><a href="#/christmas">12 Bars of Christmas</a></li>
         <li><a href="#/shamrock">Shamrock Shuffle</a></li>
-        <li><a href="#why">Why Crawl With Us</a></li>
-        <li><a href="#footer">Contact</a></li>
+        <li><a href="#about">About Us</a></li>
+        <li><a href="#contact">Contact</a></li>
       </ul>
       <p class="site-menu__meta">Milwaukee, WI</p>
     </div>
@@ -82,33 +82,18 @@
     </div>
   </section>
 
-  <!-- ============================ WHY CRAWL WITH US ============================ -->
-  <section class="section" id="why">
+  <!-- ============================ ABOUT US ============================ -->
+  <section class="section about" id="about">
     <div class="section__head reveal">
-      <span class="eyebrow">Why Crawl With Us</span>
-      <h2>Everything you need, nothing you don't.</h2>
+      <span class="eyebrow">Who We Are</span>
+      <h2>The city's loudest<br />night out, x3 a year.</h2>
+      <p>Bar Scene Socials started in 2019 with one green-soaked St. Paddy's crawl and a simple idea: Milwaukee's best nights happen between bars, not inside them. Today we throw three signature crawls a year, pack thousands of wristbands, and give a cut of every ticket back to the neighborhoods that host us.</p>
     </div>
-    <div class="features reveal reveal--stagger">
-      <div class="feature" style="--i:0">
-        <div class="feature__icon">🎟️</div>
-        <h3>One Wristband, Every Bar</h3>
-        <p>Skip the line, skip the cover — just show your wristband at every stop.</p>
-      </div>
-      <div class="feature" style="--i:1">
-        <div class="feature__icon">🎭</div>
-        <h3>Themed, Every Time</h3>
-        <p>Halloween, Christmas, St. Paddy's — always a reason to dress up.</p>
-      </div>
-      <div class="feature" style="--i:2">
-        <div class="feature__icon">🍹</div>
-        <h3>Drink Specials, All Route</h3>
-        <p>Discounted pours waiting at every single stop on the crawl.</p>
-      </div>
-      <div class="feature" style="--i:3">
-        <div class="feature__icon">🏆</div>
-        <h3>Prizes & Contests</h3>
-        <p>Best dressed wins big at every crawl — bragging rights included.</p>
-      </div>
+    <div class="stats reveal reveal--stagger">
+      <div class="stat" style="--i:0"><div class="stat__num" data-count-to="50000" data-count-suffix="+">0</div><div class="stat__label">Crawlers &amp; counting</div></div>
+      <div class="stat" style="--i:1"><div class="stat__num" data-count-to="120" data-count-suffix="+">0</div><div class="stat__label">Partner bars</div></div>
+      <div class="stat" style="--i:2"><div class="stat__num" data-count-to="3">0</div><div class="stat__label">Signature crawls</div></div>
+      <div class="stat" style="--i:3"><div class="stat__num" data-count-to="8">0</div><div class="stat__label">Years running</div></div>
     </div>
   </section>
 
@@ -124,6 +109,196 @@
       <button type="submit">Notify Me</button>
     </form>
     <p class="signup__note">Placeholder form — not yet connected.</p>
+  </section>
+
+  <!-- ============================ CONTACT ============================ -->
+  <section class="section contact" id="contact">
+    <div class="section__head reveal">
+      <span class="eyebrow">Say Hi</span>
+      <h2>Let's throw a party.</h2>
+      <p>Bar owner who wants in? Sponsor, press, or just here to say the green beer was unforgettable? We're all ears.</p>
+    </div>
+    <div class="contact__actions reveal">
+      <a class="contact__email" href="#" onclick="return false;">hello@barscenesocials.com</a>
+      <div class="footer__social">
+        <a href="#" onclick="return false;" aria-label="Instagram (placeholder)">IG</a>
+        <a href="#" onclick="return false;" aria-label="TikTok (placeholder)">TT</a>
+        <a href="#" onclick="return false;" aria-label="Facebook (placeholder)">FB</a>
+      </div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- ============================ EVENT ============================
+       Hero (color field + logo + arrows + back) is the tested transition
+       engine — untouched. Scrollable content below it is new. -->
+  <section class="event" data-view="event" aria-label="Event">
+    <div class="event__panel"></div>
+    <div class="event__wipe"></div>
+    <img class="event__logo" src="" alt="" />
+
+    <a class="arrow arrow--prev" href="#/shamrock" aria-label="Previous event">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8" /></svg>
+    </a>
+    <a class="arrow arrow--next" href="#/christmas" aria-label="Next event">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8" /></svg>
+    </a>
+
+    <div class="event__hero" aria-hidden="true"></div>
+
+    <div class="event__content">
+
+      <!-- ============ HALLOWEEN ============ -->
+      <article class="event__body" data-for="halloween">
+
+        <!-- PRIMARY -->
+        <section class="tier tier--primary">
+          <div class="event__intro">
+            <span class="eyebrow">Saturday, October 31, 2026</span>
+            <h1 class="event__tagline">Milwaukee's spookiest night out.</h1>
+            <p class="event__blurb">One wristband, sixteen haunted watering holes, and zero survivors before last call. The Halloween Bar Crawl turns the Historic Third Ward into one giant costume party — drink specials at every stop, a contest with real prizes, and a night you'll only half remember.</p>
+            <div class="countdown" data-countdown="2026-10-31T15:00:00"><div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div><div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div><div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div><div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div></div>
+            <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
+            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
+          </div>
+          <dl class="event__details reveal">
+            <div class="detail"><dt>Date</dt><dd>Sat, Oct 31</dd></div>
+            <div class="detail"><dt>Time</dt><dd>3PM – Close</dd></div>
+            <div class="detail"><dt>Location</dt><dd>Historic Third Ward</dd></div>
+          </dl>
+        </section>
+
+        <!-- SECONDARY -->
+        <section class="tier">
+          <div class="event__block reveal">
+            <div class="event__subhead"><span class="eyebrow">What's In It For You</span><h2>What you get</h2></div>
+            <ul class="perks"><li>Wristband into all 16 bars — no cover, no lines</li><li>Exclusive drink &amp; shot specials the whole route</li><li>A collectible glow-in-the-dark cup to take home</li><li>Costume contest — best dressed takes $500</li></ul>
+          </div>
+          <div class="event__bars reveal">
+            <h2 class="event__marquee-title">Participating Bars</h2>
+            <div class="marquee" aria-hidden="true"><div class="marquee__track"><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div></div></div>
+          </div>
+          <div class="tier__cta reveal"><a class="event__cta" href="#" onclick="return false;">Get Tickets</a></div>
+        </section>
+
+        <!-- TERTIARY -->
+        <section class="tier tier--tertiary reveal">
+          <span class="tier__cta-lead">Costumes on. Cover off.</span>
+          <p class="event__blurb event__blurb--center">Costumes strongly encouraged. Regrets optional. This one sells out every October, so grab your wristband before it vanishes into the night.</p>
+          <div class="tier__cta">
+            <a class="event__cta event__cta--lg" href="#" onclick="return false;">Get Tickets</a>
+            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
+          </div>
+        </section>
+
+      </article>
+
+      <!-- ============ CHRISTMAS ============ -->
+      <article class="event__body" data-for="christmas">
+
+        <!-- PRIMARY -->
+        <section class="tier tier--primary">
+          <div class="event__intro">
+            <span class="eyebrow">Saturday, December 12, 2026</span>
+            <h1 class="event__tagline">Deck the bars.</h1>
+            <p class="event__blurb">Twelve bars, twelve drinks, one very festive disaster. Pull on your ugliest sweater and sleigh through downtown Milwaukee's merriest crawl — spiked cocoa, ugly-sweater contests, and carols nobody asked for at every single stop.</p>
+            <div class="countdown" data-countdown="2026-12-12T14:00:00"><div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div><div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div><div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div><div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div></div>
+            <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
+            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
+          </div>
+          <dl class="event__details reveal">
+            <div class="detail"><dt>Date</dt><dd>Sat, Dec 12</dd></div>
+            <div class="detail"><dt>Time</dt><dd>2PM – Close</dd></div>
+            <div class="detail"><dt>Location</dt><dd>Downtown Milwaukee</dd></div>
+          </dl>
+        </section>
+
+        <!-- SECONDARY -->
+        <section class="tier">
+          <div class="event__block reveal">
+            <div class="event__subhead"><span class="eyebrow">What's In It For You</span><h2>What you get</h2></div>
+            <ul class="perks"><li>Wristband to all 12 festive stops</li><li>Signature holiday cocktails &amp; spiked cocoa</li><li>A Santa hat to keep, naturally</li><li>Ugly-sweater contest — the worst one wins big</li></ul>
+          </div>
+          <div class="event__bars reveal">
+            <h2 class="event__marquee-title">Participating Bars</h2>
+            <div class="marquee" aria-hidden="true"><div class="marquee__track"><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div></div></div>
+          </div>
+          <div class="tier__cta reveal"><a class="event__cta" href="#" onclick="return false;">Get Tickets</a></div>
+        </section>
+
+        <!-- TERTIARY -->
+        <section class="tier tier--tertiary reveal">
+          <span class="tier__cta-lead">Grab your sweater.</span>
+          <p class="event__blurb event__blurb--center">Naughty list guaranteed. Wristbands make excellent stocking stuffers — for yourself — so lock in your spot before Santa sells the rest.</p>
+          <div class="tier__cta">
+            <a class="event__cta event__cta--lg" href="#" onclick="return false;">Get Tickets</a>
+            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
+          </div>
+        </section>
+
+      </article>
+
+      <!-- ============ SHAMROCK ============ -->
+      <article class="event__body" data-for="shamrock">
+
+        <!-- PRIMARY -->
+        <section class="tier tier--primary">
+          <div class="event__intro">
+            <span class="eyebrow">Wednesday, March 17, 2027</span>
+            <h1 class="event__tagline">Milwaukee's original St. Paddy's crawl.</h1>
+            <p class="event__blurb">The one that started it all. For eight years the Shamrock Shuffle has turned four Milwaukee neighborhoods green for St. Patrick's Day — green beer, live pipers, and the biggest bar crawl in the city. Wear green or walk the plank.</p>
+            <div class="countdown" data-countdown="2027-03-17T12:00:00"><div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div><div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div><div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div><div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div></div>
+            <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
+            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
+          </div>
+          <dl class="event__details reveal">
+            <div class="detail"><dt>Date</dt><dd>Wed, Mar 17</dd></div>
+            <div class="detail"><dt>Time</dt><dd>12PM – Close</dd></div>
+            <div class="detail"><dt>Location</dt><dd>4 neighborhoods</dd></div>
+          </dl>
+        </section>
+
+        <!-- SECONDARY -->
+        <section class="tier">
+          <div class="event__block reveal">
+            <div class="event__subhead"><span class="eyebrow">What's In It For You</span><h2>What you get</h2></div>
+            <ul class="perks"><li>Wristband good across all four routes</li><li>Green beer &amp; Irish specials at every stop</li><li>This year's limited Shuffle tee</li><li>Live bagpipers and a whole lot of green</li></ul>
+          </div>
+          <div class="event__crawls reveal">
+            <div class="event__subhead"><span class="eyebrow">Four Routes, One City</span><h2>Pick your route</h2></div>
+            <div class="crawls">
+              <div class="crawl"><div class="crawl__name">Third Street</div><p class="crawl__desc">MLK Drive. The downtown stretch, and the biggest of the four.</p><a class="crawl__btn" href="#" onclick="return false;">Register</a></div>
+              <div class="crawl"><div class="crawl__name">Walker's Point</div><p class="crawl__desc">Second &amp; National. The south-side crawl.</p><a class="crawl__btn" href="#" onclick="return false;">Register</a></div>
+              <div class="crawl"><div class="crawl__name">Water Street</div><p class="crawl__desc">The classic. Bars shoulder to shoulder, all night long.</p><a class="crawl__btn" href="#" onclick="return false;">Register</a></div>
+              <div class="crawl"><div class="crawl__name">Brady Street</div><p class="crawl__desc">The east side. Milwaukee's most historic mile of bars.</p><a class="crawl__btn" href="#" onclick="return false;">Register</a></div>
+            </div>
+          </div>
+          <div class="event__bars reveal">
+            <h2 class="event__marquee-title">Participating Bars</h2>
+            <div class="marquee" aria-hidden="true"><div class="marquee__track"><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div></div></div>
+          </div>
+          <div class="tier__cta reveal"><a class="event__cta" href="#" onclick="return false;">Get Tickets</a></div>
+        </section>
+
+        <!-- TERTIARY -->
+        <section class="tier tier--tertiary reveal">
+          <div class="moneyraised reveal">
+            <span class="eyebrow">Every Wristband Gives Back</span>
+            <div class="moneyraised__num">$<span data-count-to="123000" data-count-suffix="+">0</span></div>
+            <p class="moneyraised__cap">Since 2019 the Shuffle has raised over $123,000 for Milwaukee food banks and youth programs. Every wristband keeps the city green in more ways than one.</p>
+          </div>
+          <span class="tier__cta-lead">Go on, go green.</span>
+          <p class="event__blurb event__blurb--center">Sláinte. The Shuffle sells out earlier every year — don't be the one stuck sober on the sidewalk. Grab your wristband and go green.</p>
+          <div class="tier__cta">
+            <a class="event__cta event__cta--lg" href="#" onclick="return false;">Get Tickets</a>
+            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
+          </div>
+        </section>
+
+      </article>
+
+        </div>
   </section>
 
   <!-- ============================ FOOTER ============================ -->
@@ -149,8 +324,8 @@
       <div class="footer__col">
         <h4>Company</h4>
         <ul>
-          <li><a href="#why">Why Crawl With Us</a></li>
-          <li><a href="#" onclick="return false;" aria-disabled="true">Contact (placeholder)</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#contact">Contact</a></li>
         </ul>
       </div>
     </div>
@@ -159,182 +334,6 @@
       <span>Prototype content — not a real business listing.</span>
     </div>
   </footer>
-  </div>
-
-  <!-- ============================ EVENT ============================
-       Hero (color field + logo + arrows + back) is the tested transition
-       engine — untouched. Scrollable content below it is new. -->
-  <section class="event" data-view="event" aria-label="Event">
-    <div class="event__panel"></div>
-    <div class="event__wipe"></div>
-    <img class="event__logo" src="" alt="" />
-
-    <a class="arrow arrow--prev" href="#/shamrock" aria-label="Previous event">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8" /></svg>
-    </a>
-    <a class="arrow arrow--next" href="#/christmas" aria-label="Next event">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8" /></svg>
-    </a>
-
-    <div class="event__hero" aria-hidden="true"></div>
-
-    <div class="event__content">
-
-      <!-- ============ HALLOWEEN BAR CRAWL ============ -->
-      <article class="event__body" data-for="halloween">
-        <div class="event__intro">
-          <span class="eyebrow">Saturday, October 31</span>
-          <h1 class="event__tagline">Milwaukee's spookiest night out.</h1>
-          <div class="countdown" data-countdown="2026-10-31T15:00:00">
-            <div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div>
-            <div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div>
-            <div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div>
-            <div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div>
-          </div>
-          <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
-          <p class="event__cta-note">Placeholder — will link to our ticketing partner.</p>
-        </div>
-
-        <dl class="event__details reveal">
-          <div class="detail"><dt>Date &amp; Time</dt><dd>Sat, Oct 31, 2026 · 3PM–Close</dd></div>
-          <div class="detail"><dt>Starting Bar</dt><dd>The Rusted Anchor</dd></div>
-          <div class="detail"><dt>What's Included</dt><dd>Wristband + drink specials at every stop</dd></div>
-          <div class="detail"><dt>Dress Code</dt><dd>Costumes strongly encouraged 🎃</dd></div>
-        </dl>
-
-        <div class="event__bars reveal">
-          <div class="event__subhead">
-            <span class="eyebrow">The Lineup</span>
-            <h2>Bars on the route</h2>
-          </div>
-          <div class="bars">
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Rusted Anchor</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Copper Kettle Tavern</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Hopyard</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Molly's Corner</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Brass Rail Saloon</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Gilded Mug</div></div>
-          </div>
-        </div>
-
-        <div class="event__gallery reveal">
-          <div class="event__subhead">
-            <span class="eyebrow">From Past Crawls</span>
-            <h2>Photo placeholders</h2>
-          </div>
-          <div class="gallery">
-            <div class="gallery__tile">📷</div>
-            <div class="gallery__tile">📷</div>
-            <div class="gallery__tile">📷</div>
-            <div class="gallery__tile">📷</div>
-          </div>
-        </div>
-      </article>
-
-      <!-- ============ 12 BARS OF CHRISTMAS ============ -->
-      <article class="event__body" data-for="christmas">
-        <div class="event__intro">
-          <span class="eyebrow">Saturday, December 12</span>
-          <h1 class="event__tagline">Deck the bars.</h1>
-          <div class="countdown" data-countdown="2026-12-12T14:00:00">
-            <div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div>
-            <div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div>
-            <div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div>
-            <div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div>
-          </div>
-          <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
-          <p class="event__cta-note">Placeholder — will link to our ticketing partner.</p>
-        </div>
-
-        <dl class="event__details reveal">
-          <div class="detail"><dt>Date &amp; Time</dt><dd>Sat, Dec 12, 2026 · 2PM–Close</dd></div>
-          <div class="detail"><dt>Starting Bar</dt><dd>Whistle Stop Pub</dd></div>
-          <div class="detail"><dt>What's Included</dt><dd>Wristband + festive drink specials</dd></div>
-          <div class="detail"><dt>Dress Code</dt><dd>Ugly sweaters win prizes 🎄</dd></div>
-        </dl>
-
-        <div class="event__bars reveal">
-          <div class="event__subhead">
-            <span class="eyebrow">The Lineup</span>
-            <h2>Bars on the route</h2>
-          </div>
-          <div class="bars">
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Whistle Stop Pub</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Tap &amp; Vine</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Old Anchor Inn</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Tipsy Trotter</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Northbound Tavern</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Barrel &amp; Bone</div></div>
-          </div>
-        </div>
-
-        <div class="event__gallery reveal">
-          <div class="event__subhead">
-            <span class="eyebrow">From Past Crawls</span>
-            <h2>Photo placeholders</h2>
-          </div>
-          <div class="gallery">
-            <div class="gallery__tile">📷</div>
-            <div class="gallery__tile">📷</div>
-            <div class="gallery__tile">📷</div>
-            <div class="gallery__tile">📷</div>
-          </div>
-        </div>
-      </article>
-
-      <!-- ============ SHAMROCK SHUFFLE ============ -->
-      <article class="event__body" data-for="shamrock">
-        <div class="event__intro">
-          <span class="eyebrow">Wednesday, March 17</span>
-          <h1 class="event__tagline">Milwaukee's original St. Paddy's crawl.</h1>
-          <div class="countdown" data-countdown="2027-03-17T12:00:00">
-            <div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div>
-            <div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div>
-            <div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div>
-            <div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div>
-          </div>
-          <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
-          <p class="event__cta-note">Placeholder — will link to our ticketing partner.</p>
-        </div>
-
-        <dl class="event__details reveal">
-          <div class="detail"><dt>Date &amp; Time</dt><dd>Wed, Mar 17, 2027 · 12PM–Close</dd></div>
-          <div class="detail"><dt>Starting Bar</dt><dd>The Gilded Mug</dd></div>
-          <div class="detail"><dt>What's Included</dt><dd>Wristband + green beer specials</dd></div>
-          <div class="detail"><dt>Dress Code</dt><dd>Wear green or walk the plank ☘️</dd></div>
-        </dl>
-
-        <div class="event__bars reveal">
-          <div class="event__subhead">
-            <span class="eyebrow">The Lineup</span>
-            <h2>Bars on the route</h2>
-          </div>
-          <div class="bars">
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Gilded Mug</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Molly's Corner</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Copper Kettle Tavern</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Brass Rail Saloon</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">The Hopyard</div></div>
-            <div class="bar-tile"><div class="bar-tile__icon">🍸</div><div class="bar-tile__name">Old Anchor Inn</div></div>
-          </div>
-        </div>
-
-        <div class="event__gallery reveal">
-          <div class="event__subhead">
-            <span class="eyebrow">From Past Crawls</span>
-            <h2>Photo placeholders</h2>
-          </div>
-          <div class="gallery">
-            <div class="gallery__tile">📷</div>
-            <div class="gallery__tile">📷</div>
-            <div class="gallery__tile">📷</div>
-            <div class="gallery__tile">📷</div>
-          </div>
-        </div>
-      </article>
-
-    </div>
-  </section>
 
   <script src="js/app.js"></script>
 </body>

@@ -45,6 +45,11 @@
   /* Bouncy overshoot — card expand/collapse (classic ease-out-back) */
   --ease-bounce: cubic-bezier(.34, 1.56, .64, 1);
   --dur-bounce: .52s;
+
+  /* Unified vertical rhythm + divider for every top-level section (event
+     tiers AND homepage sections), so spacing/dividers match everywhere. */
+  --section-y: clamp(48px, 7vw, 104px);
+  --divider: 2px solid rgba(234,234,234,.16);
 }
 
 * { box-sizing: border-box; }
@@ -375,7 +380,7 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
    signup, footer. All placeholder copy, easy to swap in index.html.
    ========================================================================= */
 .section {
-  padding: clamp(56px, 9vw, 128px) var(--page-pad);
+  padding: var(--section-y) var(--page-pad);
 }
 .section__head { max-width: 780px; margin: 0 0 clamp(28px, 4vw, 52px); }
 .section__head .eyebrow { margin-bottom: 10px; display: block; }
@@ -466,7 +471,7 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
 /* ---- Footer ---------------------------------------------------------------- */
 .footer {
   padding: clamp(48px, 6vw, 72px) var(--page-pad) clamp(24px, 3vw, 36px);
-  border-top: 2px solid rgba(234,234,234,.12);
+  border-top: var(--divider);
 }
 .footer__top {
   display: grid;
@@ -801,4 +806,161 @@ body.is-transitioning .event__intro {
   .reveal, .event__intro, .grid { transition: none; }
   .reveal { opacity: 1; transform: none; }
   body.is-transitioning .event__intro { opacity: 1; transform: none; }
+}
+
+/* =========================================================================
+   NEW ARCHITECTURE (AIM: tiered event pages + About/Contact + shared footer)
+   ========================================================================= */
+
+/* Shared footer is now a global element after the event section, so it must
+   carry its own black background + cream text — on event routes the body
+   text color is ink, which would otherwise render it black-on-black. The
+   black band at the bottom of every page also keeps the iOS overscroll zone
+   neutral instead of flashing a stale event color. */
+.footer { background: var(--ink); color: var(--cream); position: relative; z-index: 5; }
+
+/* ---- Event page: three tiers ------------------------------------------- */
+.tier { padding: var(--section-y) 0; }
+.tier--primary { padding: clamp(16px, 3vw, 32px) 0 var(--section-y); }
+.tier + .tier { border-top: var(--divider); }
+.tier--tertiary {
+  text-align: center;
+  padding-left: var(--page-pad);
+  padding-right: var(--page-pad);
+}
+
+/* Marketing blurb (primary + tertiary) */
+.event__blurb {
+  margin: clamp(18px, 2.4vw, 28px) 0 0;
+  max-width: 46ch;
+  font-size: clamp(17px, 1.9vw, 21px);
+  line-height: 1.55;
+}
+.event__blurb--center { margin-left: auto; margin-right: auto; text-align: center; }
+
+/* Generic padded content block inside a tier (what-you-get, locations) */
+.event__block { padding: 0 var(--page-pad); }
+.event__block ~ .event__block { margin-top: clamp(40px, 5vw, 72px); }
+
+/* What you get — perks list */
+.perks {
+  list-style: none; padding: 0;
+  margin: clamp(18px, 2.4vw, 28px) 0 0;
+  display: grid; gap: 14px; max-width: 60ch;
+}
+.perks li {
+  position: relative; padding-left: 32px;
+  font-size: clamp(16px, 1.7vw, 19px); line-height: 1.4; font-weight: 500;
+}
+.perks li::before { content: "✓"; position: absolute; left: 0; top: 0; font-weight: 800; }
+
+/* Repeated Get Tickets CTA per tier */
+.tier__cta { margin-top: clamp(28px, 4vw, 48px); padding: 0 var(--page-pad); }
+.tier--tertiary .tier__cta { padding: 0; margin-top: clamp(8px, 1.6vw, 18px); }
+.tier__cta-lead {
+  display: block;
+  font-family: var(--font-brand); font-weight: 800; text-transform: uppercase;
+  line-height: .95; font-size: clamp(30px, 5vw, 64px);
+  margin-bottom: clamp(16px, 2vw, 24px);
+}
+.event__cta--lg { padding: 20px 46px; font-size: 17px; }
+
+/* ---- Participating bars: centered title + looping logo marquee --------- */
+.event__bars { margin-top: clamp(56px, 7vw, 104px); padding: 0; }
+.event__marquee-title {
+  text-align: center; margin: 0 0 clamp(22px, 3vw, 34px); padding: 0 var(--page-pad);
+  font-family: var(--font-brand); font-weight: 800; text-transform: uppercase;
+  line-height: 1; font-size: clamp(30px, 5vw, 60px);
+}
+.marquee {
+  overflow: hidden;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+          mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+/* Two identical halves; the seam is seamless because each chip carries its
+   own right margin (not a flex gap), so translateX(-50%) lands exactly one
+   half-track over. */
+.marquee__track { display: flex; width: max-content; animation: bss-marquee 34s linear infinite; }
+.marquee:hover .marquee__track { animation-play-state: paused; }
+.logo-chip {
+  flex: 0 0 auto;
+  width: clamp(150px, 15vw, 210px); height: clamp(92px, 9vw, 120px);
+  margin-right: clamp(14px, 1.6vw, 24px);
+  border: 2px dashed rgba(0,0,0,.5); border-radius: 18px;
+  display: grid; place-items: center;
+}
+.logo-chip span {
+  font-family: var(--font-brand); font-weight: 800; letter-spacing: .08em;
+  font-size: clamp(18px, 1.8vw, 26px); color: rgba(0,0,0,.26);
+}
+@keyframes bss-marquee { to { transform: translateX(-50%); } }
+
+/* ---- Shamrock only: four locations + money raised ---------------------- */
+.locations {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: clamp(12px, 1.6vw, 18px); margin-top: clamp(20px, 2.6vw, 30px);
+}
+.location { background: var(--cream); color: var(--ink); border-radius: 16px; padding: clamp(18px, 2vw, 24px); }
+.location h3 { margin: 0 0 6px; font-family: var(--font-brand); font-weight: 800; text-transform: uppercase; font-size: clamp(18px, 2vw, 24px); }
+.location p { margin: 0; font-size: 14px; line-height: 1.4; opacity: .72; }
+
+.moneyraised { text-align: center; padding: 0 var(--page-pad); margin-bottom: clamp(28px, 4vw, 48px); }
+.moneyraised .eyebrow { display: block; margin-bottom: 10px; }
+.moneyraised__num { font-family: var(--font-brand); font-weight: 800; line-height: .9; font-size: clamp(64px, 13vw, 150px); }
+.moneyraised__cap { max-width: 46ch; margin: clamp(12px, 1.6vw, 18px) auto 0; font-size: clamp(15px, 1.5vw, 17px); line-height: 1.5; opacity: .9; }
+
+/* ---- Homepage: About stats + Contact ----------------------------------- */
+.stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: clamp(20px, 3vw, 40px); margin-top: clamp(32px, 4vw, 52px);
+}
+.stat__num { font-family: var(--font-brand); font-weight: 800; line-height: .9; font-size: clamp(28px, 3.6vw, 52px); white-space: nowrap; }
+.stat__label { margin-top: 8px; font-size: 14px; line-height: 1.3; opacity: .7; max-width: 16ch; }
+
+.contact { text-align: center; }
+.contact .section__head { margin-left: auto; margin-right: auto; }
+.contact__actions { display: flex; flex-direction: column; align-items: center; gap: clamp(20px, 3vw, 30px); }
+.contact__email {
+  font-family: var(--font-brand); font-weight: 800; text-transform: lowercase;
+  font-size: clamp(24px, 3.4vw, 44px); word-break: break-word; transition: opacity .2s ease;
+}
+.contact__email:hover { opacity: .7; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track { animation: none; }
+}
+
+/* ---- Section dividers on the homepage (unified with the event tiers) ---- */
+.section + .section,
+.home + .section { border-top: var(--divider); }
+
+/* ---- Shamrock: four crawl routes as full-width rows (ref screenshot) ---- */
+.event__crawls { margin-top: clamp(56px, 7vw, 104px); }
+.event__crawls > .event__subhead { padding: 0 var(--page-pad); margin-bottom: clamp(20px, 2.6vw, 30px); }
+.crawl {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 24ch) auto;
+  align-items: center;
+  gap: clamp(20px, 3vw, 48px);
+  padding: clamp(24px, 3vw, 40px) var(--page-pad);
+  border-top: var(--divider);
+}
+.crawl:last-child { border-bottom: var(--divider); }
+.crawl__name { font-family: var(--font-brand); font-weight: 800; text-transform: uppercase; line-height: .95; font-size: clamp(30px, 5vw, 64px); }
+.crawl__desc {
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(13px, 1.3vw, 15px); line-height: 1.4; opacity: .82;
+}
+.crawl__btn {
+  justify-self: end;
+  background: var(--cream); color: var(--ink);
+  font-family: var(--font-brand); font-weight: 800; text-transform: uppercase;
+  letter-spacing: .04em; font-size: 14px;
+  padding: 12px 26px; border-radius: 999px; white-space: nowrap;
+  transition: transform .2s ease;
+}
+.crawl__btn:hover { transform: translateY(-2px); }
+@media (max-width: 720px) {
+  .crawl { grid-template-columns: 1fr; gap: 12px; justify-items: start; }
 }
