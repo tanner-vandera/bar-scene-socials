@@ -202,6 +202,7 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
   z-index: 59;
   display: grid;
   place-items: center;
+  padding: var(--page-pad);
   background: var(--ink);
   opacity: 0;
   pointer-events: none;
@@ -216,13 +217,21 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
   text-transform: uppercase;
   letter-spacing: .01em;
   font-size: clamp(30px, 6vw, 56px);
+  line-height: 1.05;
   color: var(--cream);
-  transition: color .2s ease, transform .2s ease;
+  transition: color .2s ease, opacity .2s ease;
   display: inline-block;
 }
-.site-menu__list a:hover { color: var(--orange); transform: translateX(6px); }
+.site-menu__list a[href="#/halloween"]:hover { color: var(--orange); }
+.site-menu__list a[href="#/christmas"]:hover { color: var(--red); }
+.site-menu__list a[href="#/shamrock"]:hover  { color: var(--green); }
+/* Non-event links (Our Events, About Us, Contact) — same quiet dim the
+   homepage email link uses, rather than an event color. */
+.site-menu__list a[href^="#"]:not([href*="/"]):hover { opacity: .55; }
 /* Same eyebrow treatment as every other all-caps micro-label. */
+/* centered under the list */
 .site-menu__meta {
+  text-align: center;
   margin-top: clamp(24px, 5vh, 48px);
   font-weight: 800;
   text-transform: uppercase;
@@ -383,7 +392,7 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
   padding: var(--section-y) var(--page-pad);
 }
 .section__head { max-width: 780px; margin: 0 0 clamp(28px, 4vw, 52px); }
-.section__head .eyebrow { margin-bottom: 10px; display: block; }
+.section__head .eyebrow { margin-bottom: clamp(14px, 1.6vw, 22px); display: block; }
 .section__head h2 {
   margin: 0;
   font-family: var(--font-brand);
@@ -427,7 +436,19 @@ body:not([data-route="home"]) .header-back { display: inline-flex; }
 .feature p { margin: 0; font-size: 15px; line-height: 1.5; opacity: .72; }
 
 /* ---- Email signup teaser ---------------------------------------------------- */
-.signup { text-align: center; }
+/* Photo-backed CTA. The dark linear-gradient is stacked ABOVE the image in
+   the same background shorthand, so it dims the photo just enough for the
+   cream text to stay legible. If assets/signup-bg.jpg is missing the layer
+   simply falls back to the ink background-color — a clean dark section. */
+.signup {
+  text-align: center;
+  background-color: var(--ink);
+  background-image:
+    linear-gradient(rgba(10,10,10,.68), rgba(10,10,10,.68)),
+    url("../assets/signup-bg.jpg");
+  background-size: cover;
+  background-position: center;
+}
 .signup .section__head { margin-left: auto; margin-right: auto; }
 .signup .section__head p { margin-left: auto; margin-right: auto; }
 .signup__form {
@@ -633,6 +654,7 @@ body.is-transitioning .event__content { visibility: hidden; }
    settles (is-transitioning is dropped at the end of each route change).
    It's hidden *instantly* during a transition — no fade-out — so it can
    never flash on top of the wipe, which sits below it in the stack. */
+.event__intro .eyebrow { display: block; margin-bottom: clamp(14px, 1.6vw, 22px); }
 .event__intro {
   padding: clamp(20px, 3vw, 40px) var(--page-pad) 0;
   transition: opacity .45s ease .12s, transform .45s ease .12s;
@@ -700,7 +722,7 @@ body.is-transitioning .event__intro {
 .detail dd { margin: 0; font-size: 17px; font-weight: 700; }
 
 /* ---- Sub-section header, reused by the bars + gallery blocks below ------------- */
-.event__subhead .eyebrow { display: block; margin-bottom: 8px; }
+.event__subhead .eyebrow { display: block; margin-bottom: clamp(14px, 1.6vw, 22px); }
 .event__subhead h2 {
   margin: 0;
   font-family: var(--font-brand);
@@ -777,6 +799,8 @@ body.is-transitioning .event__intro {
 
 /* ---- Mobile ------------------------------------------------------------- */
 @media (max-width: 720px) {
+  .site-menu__list { gap: clamp(14px, 3.2vh, 24px); }
+  .site-menu__list a { font-size: clamp(22px, 6.2vw, 34px); }
   /* Logo now lives in the upper band, above the arrows, so it no longer
      needs to keep clear of them horizontally — let it be full-width. */
   .event__logo { max-width: 86%; }
@@ -905,7 +929,7 @@ body.is-transitioning .event__intro {
 .location p { margin: 0; font-size: 14px; line-height: 1.4; opacity: .72; }
 
 .moneyraised { text-align: center; padding: 0 var(--page-pad); margin-bottom: clamp(28px, 4vw, 48px); }
-.moneyraised .eyebrow { display: block; margin-bottom: 10px; }
+.moneyraised .eyebrow { display: block; margin-bottom: clamp(14px, 1.6vw, 22px); }
 .moneyraised__num { font-family: var(--font-brand); font-weight: 800; line-height: .9; font-size: clamp(64px, 13vw, 150px); }
 .moneyraised__cap { max-width: 46ch; margin: clamp(12px, 1.6vw, 18px) auto 0; font-size: clamp(15px, 1.5vw, 17px); line-height: 1.5; opacity: .9; }
 
