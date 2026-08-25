@@ -18,7 +18,7 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
    clean document, and what animates is a presentation decision. */
 function initReveals() {
   const targets = [
-    ...$$('.hero__h1'),
+    ...$$('.hero__h1 .line'),
     ...$$('.strip > div'),
     ...$$('.poster'),
     ...$$('.sec__n, .sec__kicker, .sec__title'),
@@ -140,47 +140,25 @@ function initGate() {
   });
 }
 
-/* ══════════════════ 3a. SMOKE ══════════════════
-   The headline exists twice: a blurred copy behind, and the sharp copy
-   masked so only its centre — plus wherever the pointer is — reads
-   clean. The pointer position is lerped, so the clearing trails the
-   cursor and drifts shut behind it. */
-function initSmoke() {
-  const hero  = $('#hero');
-  const h1    = $('#heroH1');
-  const sharp = $('.h1__sharp');
-  if (!hero || !h1 || !sharp || REDUCED) return;
+/* ══════════════════ 3a. TICKET RELEASE STAGE ══════════════════
+   The stage is derived from the remaining allocation rather than typed
+   in, so the chip can never disagree with the number beside it. */
+function initTicketStage() {
+  const el = $('.tstat');
+  if (!el) return;
 
-  /* Clone for the blur layer. initReveals() tags .hero__h1 itself rather
-     than the lines, so there is no reveal state to inherit here — but
-     strip it anyway in case that ever changes. */
-  const blur = sharp.cloneNode(true);
-  blur.className = 'h1__blur';
-  blur.setAttribute('aria-hidden', 'true');
-  blur.querySelectorAll('.rv').forEach(el => el.classList.remove('rv'));
-  h1.insertBefore(blur, sharp);
+  const left = Number(el.dataset.remaining);
+  if (!Number.isFinite(left)) return;
 
-  hero.classList.add('has-smoke');
-  if (!matchMedia('(pointer: fine)').matches) return;
+  const stage =
+    left <= 0   ? { key: 'out',  label: 'Sold out'    } :
+    left <= 300 ? { key: 'last', label: 'Last chance' } :
+    left <= 800 ? { key: 'hot',  label: 'Going fast'  } :
+                  { key: 'open', label: 'Register'    };
 
-  let tx = -999, ty = -999, cx = -999, cy = -999, running = false;
-
-  addEventListener('pointermove', e => {
-    const r = sharp.getBoundingClientRect();
-    tx = e.clientX - r.left;
-    ty = e.clientY - r.top;
-    if (cx === -999) { cx = tx; cy = ty; }
-    if (!running) { running = true; requestAnimationFrame(frame); }
-  }, { passive: true });
-
-  const frame = () => {
-    cx += (tx - cx) * .16;
-    cy += (ty - cy) * .16;
-    sharp.style.setProperty('--sx', cx.toFixed(1) + 'px');
-    sharp.style.setProperty('--sy', cy.toFixed(1) + 'px');
-    if (Math.abs(tx - cx) > .4 || Math.abs(ty - cy) > .4) requestAnimationFrame(frame);
-    else running = false;
-  };
+  el.dataset.stage = stage.key;
+  $('.tstat__label', el).textContent = stage.label;
+  $('.tstat__count', el).textContent = left > 0 ? left.toLocaleString('en-US') + ' left' : '';
 }
 
 /* ══════════════════ 3b. FLIP LABELS ══════════════════
@@ -276,30 +254,84 @@ function initNav() {
   sync();
 }
 
-/* ══════════════════ BOOT ══════════════════ */
-function init() {
-  initGate();
-  initReveals();
-  initFlip();
-  initSmoke();
-  initCountdown();
-  initFigures();
-  initNav();
+/* ══════════════════ 6. ANCHORS ══════════════════
+   Most links land just below the fixed bar. #tickets is different: it
+   parks the FOOT of the butter panel on the foot of the viewport, so the
+   whole offer — ticket, prices, terms — arrives in one frame instead of
+   at the top of a section you then have to scroll through.
 
-  /* Anchor links land below the fixed top bar. */
+   On arrival the ticket runs its own hover state once. Same fill, same
+   sweep, so the cue that draws the eye and the affordance that invites
+   the click are the same gesture rather than two different ideas. */
+function initAnchors() {
+  const flash = () => {
+    const t = $('.ticket');
+    if (!t || REDUCED) return;
+    t.classList.remove('is-flashing');
+    void t.offsetWidth;                 /* restart, so repeat clicks re-fire */
+    t.classList.add('is-flashing');
+    setTimeout(() => t.classList.remove('is-flashing'), 1900);
+  };
+
+  /* Smooth scrolling has no completion callback and its duration is the
+     browser's business, so watch for the page going still instead. */
+  const onScrollSettled = (cb) => {
+    let last = scrollY, still = 0, frames = 0, moved = false;
+    const tick = () => {
+      if (++frames > 240) return cb();                  /* ~4s ceiling */
+      if (Math.abs(scrollY - last) >= 1) { moved = true; still = 0; }
+      /* Smooth scrolling takes a few frames to start, so "not moving yet"
+         has to be distinguished from "arrived". Only settle once movement
+         has actually happened — or once enough frames have passed that
+         there clearly wasn't going to be any, which is the case when the
+         page is already parked at the target. */
+      else if (++still > 4 && (moved || frames > 20)) return cb();
+      last = scrollY;
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+
   $$('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const id = a.getAttribute('href').slice(1);
       const target = id ? document.getElementById(id) : null;
       if (!target) return;
       e.preventDefault();
+
       const off = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--top-h')) || 68;
-      scrollTo({
-        top: target.getBoundingClientRect().top + scrollY - (id === 'top' ? 0 : off + 8),
-        behavior: REDUCED ? 'auto' : 'smooth'
-      });
+      const underBar = target.getBoundingClientRect().top + scrollY - off - 8;
+      let top = id === 'top' ? target.getBoundingClientRect().top + scrollY : underBar;
+
+      if (id === 'tickets') {
+        const panel = $('.sec--feature');
+        if (panel) {
+          /* Park the panel's foot on the viewport's foot. Take whichever
+             is the smaller scroll: if the tail is taller than the screen,
+             that lands the heading under the bar instead of pushing it
+             off the top. */
+          const foot = panel.getBoundingClientRect().bottom + scrollY - innerHeight;
+          top = Math.min(foot, underBar);
+        }
+      }
+
+      scrollTo({ top, behavior: REDUCED ? 'auto' : 'smooth' });
+      if (id === 'tickets') onScrollSettled(flash);
     });
   });
+}
+
+/* ══════════════════ BOOT ══════════════════ */
+function init() {
+  initGate();
+  initReveals();
+  initFlip();
+  initTicketStage();
+  initCountdown();
+  initFigures();
+  initNav();
+
+  initAnchors();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

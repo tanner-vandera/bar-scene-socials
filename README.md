@@ -76,6 +76,17 @@ background, and no shadow anywhere.
 
 ## Layout
 
+**N.001's head is split on the same columns as its body.** The event name
+takes `1 / span 5` and the pitch plus the ticket link take `7 / -1` —
+exactly the tracks the poster and the detail rail use underneath, so the
+head sits *on* the structure it introduces rather than near it. The other
+three heads have nothing to put on the right and stay full-width.
+
+> The rule above each section title is its own element (`.sec__rule`),
+> not a `border-top` on the title. A border only spans the full grid while
+> the title does; once N.001's title narrowed to five columns it would
+> have dragged the section divider in with it.
+
 A 12-column grid (`.grid`) with a fluid page margin (`--m`) and gutter
 (`--gap`). Headlines run large and tight (`-.045em`); the small tracked
 uppercase labels (`+.1em`) are the counterweight that lets them.
@@ -83,8 +94,8 @@ uppercase labels (`+.1em`) are the counterweight that lets them.
 | | |
 |---|---|
 | Age gate | 21+ self-declaration, shown once per session |
-| Hero | The headline, and nothing else |
-| N.001 · Upcoming | Halloween — butter panel, spec table, countdown, ticket |
+| Hero | Full-bleed photograph, headline set in the bottom-left corner |
+| N.001 · Upcoming | Haunted Bar Hop — butter panel, facts, poster, ticket |
 | N.002 · Calendar | The two announced crawls, one hairline row each |
 | N.003 · History | Figures, and the amount returned to the city |
 | N.004 · Contact | Addresses and a ticket-drop signup |
@@ -124,8 +135,11 @@ own — it needs a verified ID check at purchase or handoff.
 
 Two navigation components, doing different jobs so neither has to do both:
 
-**The dock** (`.dock`) — a floating capsule, bottom-centre, translucent
-over a blurred backdrop.
+**The header and the dock** share one treatment — translucent over a
+blurred backdrop, white contents — so the two fixed elements read as a
+single layer floating above the page rather than two kinds of chrome.
+
+**The dock** (`.dock`) — a floating capsule, bottom-centre.
 
 > The backdrop filter includes `saturate(0)`, which desaturates what's
 > *behind* the bar before the grey tint lands on it. Without it the butter
@@ -150,9 +164,12 @@ they cannot disagree.
 from the bottom and the arrow stepping diagonally on hover. Deliberately
 unlike the nav capsules: **rounded = navigate, squared = act.**
 
-**The ticket** (`.ticket`) is the N.001 CTA: a stub, a dashed perforation
-and a barcode, with the notches cut as real holes via `mask-composite`
-so the butter panel shows through them. Hover fills it red.
+**The ticket** (`.ticket`) is the N.001 CTA, built in three parts like the
+real object: a **rail** carrying the mark, a **body** carrying the booking
+(eyebrow, event name, particulars), and a tear-off **stub** with a barcode
+and a serial. The perforation is drawn as actual round holes rather than a
+dashed rule, and the notches are cut as real holes via `mask-composite` so
+the butter panel shows through them. Hover fills it red.
 
 > It is **filled, not outlined**, and that isn't a style choice. A masked
 > notch cuts the fill *and* the border, and a border can't trace the curve
@@ -163,40 +180,97 @@ The cherry runs full-height down the left edge — it sets the ticket's
 height, which is what widens the whole object.
 
 A butter-coloured raking highlight sweeps the sheet as the fill turns red,
-and keeps sweeping while the pointer stays. It creeps in, sweeps,
-overshoots the far edge and rocks back once before leaving; the bounce is
-the pull-back keyframe at 74%, not an easing curve. The ticket's own notch
-mask clips it, so the light never spills past the trim.
+and keeps sweeping while the pointer stays. It leaves the mark immediately,
+overshoots the far edge and rocks back once; the bounce is the pull-back
+keyframe at 62%, not an easing curve, which is what reads as spring rather
+than lag. The red is front-loaded too — most of the way in within about a
+tenth of a second, so the ticket answers the pointer instead of easing
+toward it. The notch mask clips the light, so it never spills past the trim.
 
-**The cherry as a full stop** (`.cherrydot`) ends the hero headline in
-place of the period, running the full height of the line it sits on. It's
-an inline element sized in `em` against the headline and set to
-`vertical-align: baseline`, so its bottom edge lands on the baseline and
-both scale and position hold at every width — no media query, nothing to
-re-tune per breakpoint.
+**Arriving at the ticket.** Both ticket links target `#tickets`, and that
+anchor scrolls differently from every other: it parks the **foot of the
+butter panel on the foot of the viewport**, so the whole offer — ticket,
+prices, terms — arrives in one frame instead of at the top of a section you
+then have to scroll through. On arrival the ticket runs its hover state
+once. Same fill, same sweep, so the cue that draws the eye and the
+affordance that invites the click are one gesture rather than two ideas.
 
-**Smoke** (`.h1__blur` / `.h1__sharp`) is the hero's only effect: the
-headline exists twice, blurred behind and sharp on top, with the sharp
-copy masked by two radial stops that are *unioned* — one fixed at the
-centre of the block, one following the pointer. So the middle always reads
-clean, the edges sit out of focus, and moving across them clears them like
-a hand through smoke. The pointer position is lerped, so it drifts shut
-behind you.
+> Smooth scrolling has no completion callback, so arrival is detected by
+> watching the page go still. That check has to distinguish "hasn't started
+> moving yet" from "arrived" — smooth scroll takes several frames to start,
+> and without that distinction the flash fires before the scroll does.
 
-> The blur copy must **replicate** the headline's 12 columns, not inherit
-> them with `subgrid`. It's absolutely positioned, so it isn't a grid
-> item, and subgrid on a non-item resolves against its own box — which
-> gave it different column widths, different line breaks, and a visibly
-> doubled headline.
+**The hero** is full-bleed media with the site's own furniture laid over
+it — hairline rule, tracked caption labels, the same page margin as every
+other section. That's what stops it reading as a stock photo hero: it's a
+plate with the grid printed on top of it.
 
-The three headline lines are **placed** on that grid rather than stacked:
-two left, one pushed to the right edge, so the eye walks across the block
-instead of straight down. Below 900px they all return to full width.
+The headline sits bottom-left at every size. Stacked, it *is* the
+composition; from 1100px up it drops to **a single line along the foot**,
+so the footage gets the frame and the words become a caption on it.
+
+> Sizing that line is measured, not guessed. The sentence runs **17.37px
+> of width per 1px of font-size** against a frame ~93% of the viewport,
+> which makes 5.37vw the exact fitting size; it's set at 5.1vw so a
+> rounding difference can't tip it onto a second line.
+>
+> The `h1` also needs `width: 100%`. It's a flex item, so without it the
+> element shrinks to its own content — which makes the width it wraps
+> against narrower than the frame, and every size calibrated from it comes
+> out a line too big.
+
+The scrim is **two gradients, not one** — a light directional wash to hold
+the type, plus a deeper foot so the caption rule always has something to
+sit on. A single heavy scrim just made the photograph muddy.
+
+> **Built for video.** `.hero__media` is the only thing that changes when
+> a reel replaces the still; nothing above it cares.
+
+It carries no effects. An earlier pass had a cursor lens, a parallax cherry
+field, a radial blur that cleared under the pointer, and a cherry standing
+in for the full stop; all four were built and then cut. The media is doing
+the work now.
+
+> The poster deliberately uses a **different crop of the same photograph**
+> — and it has to be sized past `cover` to get one. With `cover` on a 2:3
+> box from a 3:2 source the height exactly fills, so the vertical position
+> does nothing and only the horizontal crop moves, which left the poster
+> showing the same whole room as the hero. `background-size: auto 138%`
+> frees both axes.
+
+**The release chip** (`.tstat`) derives its stage from the remaining
+allocation rather than a typed-in label, so the chip can never disagree
+with the number beside it:
+
+| Remaining | Stage |
+|---|---|
+| more than 800 | Register |
+| 800 or fewer | Going fast |
+| 300 or fewer | Last chance |
+| 0 | Sold out |
+
+Change `data-remaining` on the element and everything follows. It's the
+only thing on the page reporting a live condition, which is why it gets to
+spend red.
 
 **The event poster** (`.poster`) is a 2:3 sheet, the same trim every crawl
 will use, so a wall of them reads as one campaign rather than a set of
-unrelated flyers. Photo greyscaled, type printed over the foot of it, cherry
-top-left, and a caption naming the trim.
+unrelated flyers. Artwork under a scrim, type printed over the foot of it,
+cherry top-left, and a caption naming the trim.
+
+> ⚠ **The current artwork is third-party placeholder.**
+> `assets/poster-halloween.jpg` is *Halloween Bang!*, design by Jeremy
+> Wheeler, © 2012 Bang! Media, LLC — the credit is visible in the sheet's
+> left margin. It is **not licensed for use here** and must be replaced
+> before this is anything but an internal comp. The site is publicly
+> deployed, so this matters.
+>
+> It's also a *finished* poster, which the slot isn't built for: it carries
+> its own title, date and venue ("Oct. 27th / The Blind Pig"), and our
+> overlay prints a contradicting date and venue directly beneath it. The
+> overlay is correct for real artwork; it's only wrong against this
+> particular stand-in. To hide it while the placeholder is up, drop
+> `.poster__type` and `.poster__cherry` to `display:none`.
 
 **Coming-soon rows** (`.cal`) use outline type — drawn but not filled in —
 on dashed rules, with a slowly pulsing dot. Hover wipes the solid copy
@@ -223,6 +297,12 @@ the bar asking to be clicked.
 > Three slots, not two. The animation ends on slot 3 — identical to slot 1 —
 > so the restart is invisible and the cycle can repeat for as long as the
 > pointer stays. Two slots can only ever run the transition once.
+>
+> The window and the slots are **1.65em, not 1em**. At exactly the em
+> square the descender on the 'g' in "Upcoming" hung below the box and the
+> neighbouring copy's ascenders showed through the top — visible as clipped
+> slivers above and below the word. Both share one `--slot` variable so a
+> 100% translate still steps exactly one slot.
 
 `data-flip="barcode"` (the dock's ticket CTA) swaps the middle slot for a
 barcode cut to the word's own footprint, so **Tickets** morphs into a strip
@@ -251,6 +331,26 @@ assets/lockup-full-color.svg   original lockup  — reference, unused
 assets/crowd.jpg               the one photograph
 _brand-source/                 the six SVGs as delivered
 ```
+
+## Content notes
+
+The N.001 copy came from the client as a long "what you get" list. It was
+cut to nine lines, ordered by what actually sells a ticket:
+
+- **Kept and reordered** — no cover, drink specials, the flashing pin,
+  the bingo card, costume prizes, daytime DJs, the afterparty,
+  photographers, and route/check-in folded into one line.
+- **Cut** — *"100's of crawler friends"* (says nothing a photograph
+  doesn't say better), and the charity donation, which N.003 already
+  carries as a hard number rather than a bullet.
+- **Promoted out of the list** — *"only Halloween crawl on Brady Street"*
+  is the differentiator, so it's the lead line under the event name, not
+  the first of nine bullets.
+
+The event is **Haunted Bar Hop** and the route is **Brady Street**, both
+per the new brief. The **16 bars** figure is carried over from the previous
+copy — the new brief says "map to participating bars" without a count, so
+it is unconfirmed.
 
 ## Known gaps
 

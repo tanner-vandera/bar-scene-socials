@@ -81,43 +81,62 @@
     <a href="#history" data-nav data-flip>History</a>
     <a href="#contact" data-nav data-flip>Contact</a>
   </div>
-  <a class="dock__cta" href="#next" data-flip="barcode">Tickets</a>
+  <a class="dock__cta" href="#tickets" data-flip="barcode">Tickets</a>
 </nav>
 
 <main id="top">
 
 <!-- ══════════════════════════ HERO ══════════════════════════
-     Two faces on one line, and the cherry doing the work of the full
-     stop. The mark is a real inline element sized in em and sitting on
-     the baseline, so it holds its position and scale at every width
-     without a single breakpoint. -->
+     The media runs full-bleed, but the page's own furniture is laid over
+     it — hairline rules, tracked caption labels, the same page margin as
+     every other section. That's what stops it reading as a stock photo
+     hero and makes it part of the same system: a plate with the grid
+     printed on top of it.
+
+     Built for video. .hero__media is the only thing that changes when a
+     reel replaces the still; nothing above it cares. -->
 <section class="hero" id="hero">
-  <div class="hero__wrap">
-    <h1 class="hero__h1" id="heroH1">
-      <span class="h1__sharp">
-        <span class="line line--a"><b>Milwaukee&rsquo;s</b></span>
-        <span class="line line--b">bars are better</span>
-        <span class="line line--c">with a crowd<i class="cherrydot" aria-hidden="true"></i></span>
-      </span>
-    </h1>
+  <div class="hero__media" aria-hidden="true"></div>
+
+  <div class="hero__frame">
+    <div class="hero__body">
+      <h1 class="hero__h1">
+        <span class="line"><b>Milwaukee&rsquo;s</b></span>
+        <span class="line">bars are better</span>
+        <span class="line">with a crowd.</span>
+      </h1>
+    </div>
+
+    <div class="hero__foot">
+      <span class="hero__cap">Brady Street, Milwaukee</span>
+      <span class="hero__cap hero__cap--end">Three crawls a year</span>
+    </div>
   </div>
 </section>
 
 <!-- ══════════════════════════ N.001 — NEXT ══════════════════════════ -->
 <section class="sec sec--feature" id="next" data-sec="N.001" data-label="Upcoming">
-  <!-- Summary bar, unchanged, now heading the section it describes. -->
-  <dl class="strip">
-    <div><dt>Upcoming</dt><dd>Halloween Bar Crawl</dd></div>
-    <div><dt>Date</dt><dd>31 Oct 2026</dd></div>
-    <div><dt>Route</dt><dd>Historic Third Ward</dd></div>
-    <div><dt>Bars</dt><dd>16</dd></div>
-  </dl>
-
-  <header class="sec__head grid">
+  <header class="sec__head sec__head--split grid">
     <p class="label sec__n">N.001</p>
     <p class="label sec__kicker">Upcoming</p>
-    <h2 class="sec__title">Halloween<br />Bar Crawl</h2>
+    <span class="sec__rule" aria-hidden="true"></span>
+    <h2 class="sec__title">Haunted<br />Bar Hop</h2>
+    <div class="sec__aside">
+      <p class="sec__lead">The only Halloween crawl on Brady Street.</p>
+      <a class="jump" href="#tickets">
+        <span>Get tickets</span>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v11M3.5 9 8 13.5 12.5 9"/></svg>
+      </a>
+    </div>
   </header>
+
+  <!-- The facts, immediately under the name they belong to. -->
+  <dl class="strip">
+    <div><dt>Date</dt><dd>31 Oct 2026</dd></div>
+    <div><dt>Time</dt><dd>3PM &mdash; Close</dd></div>
+    <div><dt>Route</dt><dd>Brady Street</dd></div>
+    <div><dt>Bars</dt><dd>16</dd></div>
+  </dl>
 
   <div class="grid next__body">
     <!-- The event poster. 2:3, the same trim every crawl will use, so the
@@ -128,8 +147,8 @@
         <span class="poster__cherry" aria-hidden="true"></span>
         <div class="poster__type">
           <span class="poster__eyebrow">Bar Scene Socials presents</span>
-          <span class="poster__title">Halloween<br />Bar Crawl</span>
-          <span class="poster__meta">31 Oct 2026 · Historic Third Ward · 16 bars</span>
+          <span class="poster__title">Haunted<br />Bar Hop</span>
+          <span class="poster__meta">31 Oct 2026 · Brady Street · 16 bars</span>
         </div>
       </div>
       <figcaption class="poster__cap">
@@ -148,21 +167,50 @@
 
       <p class="label">Included</p>
       <ul class="rows">
-        <li><span>Wristband, no cover, all 16 bars</span><i>01</i></li>
-        <li><span>Drink specials, every stop</span><i>02</i></li>
-        <li><span>Collectible cup</span><i>03</i></li>
-        <li><span>Costume contest, $500</span><i>04</i></li>
+        <li><span>No cover at any bar on the route</span><i>01</i></li>
+        <li><span>Drink specials at every stop</span><i>02</i></li>
+        <li><span>Flashing &ldquo;Socials&rdquo; pin — your key to the specials</span><i>03</i></li>
+        <li><span>Haunted bingo card, redeemable for prizes</span><i>04</i></li>
+        <li><span>Costume prizes — solo, duo and group</span><i>05</i></li>
+        <li><span>Daytime DJs at select bars</span><i>06</i></li>
+        <li><span>Official afterparty with DJ</span><i>07</i></li>
+        <li><span>Photographers on route, photos online next day</span><i>08</i></li>
+        <li><span>Route map and check-in at the door</span><i>09</i></li>
       </ul>
 
-      <h3 class="ticket__head">Tickets</h3>
+      <!-- The nav's ticket CTA lands here rather than at the top of the
+           section — it's an action, so it should arrive at the action. -->
+      <div class="ticket__head-row" id="tickets">
+        <h3 class="ticket__head">Tickets</h3>
+
+        <!-- Release stage is derived from what's left, not hard-coded:
+             800 or fewer → going fast, 300 or fewer → last chance, 0 → out.
+             Change data-remaining and the chip follows. -->
+        <p class="tstat" data-remaining="640" aria-live="polite">
+          <span class="tstat__dot" aria-hidden="true"></span>
+          <span class="tstat__label">Register</span>
+          <span class="tstat__count"></span>
+        </p>
+      </div>
+
       <a class="ticket" href="#" onclick="return false;">
-        <span class="ticket__mark" aria-hidden="true"></span>
-        <span class="ticket__main">
-          <span class="ticket__label">Halloween Bar Crawl</span>
-          <span class="ticket__meta">Admit one · 31 Oct 2026</span>
+        <span class="ticket__rail" aria-hidden="true">
+          <span class="ticket__mark"></span>
         </span>
-        <span class="ticket__stub" aria-hidden="true"><span class="ticket__code"></span></span>
+        <span class="ticket__main">
+          <span class="ticket__eyebrow">Admit one</span>
+          <span class="ticket__label">Haunted Bar Hop</span>
+          <span class="ticket__meta">31 Oct 2026 · Brady Street</span>
+        </span>
+        <span class="ticket__stub" aria-hidden="true">
+          <span class="ticket__code"></span>
+        </span>
       </a>
+
+      <dl class="spec price">
+        <div><dt>Single</dt><dd>$14.95</dd></div>
+        <div><dt>Group of 5</dt><dd>$11.95 <i>each</i></dd></div>
+      </dl>
       <p class="note">Placeholder — ticketing not connected.</p>
     </div>
   </div>
@@ -173,6 +221,7 @@
   <header class="sec__head grid">
     <p class="label sec__n">N.002</p>
     <p class="label sec__kicker">Calendar</p>
+    <span class="sec__rule" aria-hidden="true"></span>
     <h2 class="sec__title">Also<br />announced</h2>
   </header>
 
@@ -199,6 +248,7 @@
   <header class="sec__head grid">
     <p class="label sec__n">N.003</p>
     <p class="label sec__kicker">History</p>
+    <span class="sec__rule" aria-hidden="true"></span>
     <h2 class="sec__title">Eight years<br />on the route</h2>
   </header>
 
@@ -212,7 +262,7 @@
   <div class="grid give">
     <p class="label give__label">Returned to the city</p>
     <p class="give__cap">To Milwaukee food banks and youth programs, from a share of every wristband.</p>
-    <p class="give__num">$<span data-count-to="123000">0</span></p>
+    <p class="give__num">$<span data-count-to="123000" data-count-suffix="+">0</span></p>
   </div>
 </section>
 
@@ -221,6 +271,7 @@
   <header class="sec__head grid">
     <p class="label sec__n">N.004</p>
     <p class="label sec__kicker">Contact</p>
+    <span class="sec__rule" aria-hidden="true"></span>
     <h2 class="sec__title">Get in<br />touch</h2>
   </header>
 

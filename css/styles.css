@@ -163,10 +163,15 @@ body.is-gated{ overflow:hidden; }
   height:var(--top-h);
   display:flex; align-items:center; justify-content:space-between;
   padding-inline:var(--m);
-  /* No bar, no blur, no shadow — just the page, with a hairline under it.
-     The paper is light enough that the lockup never needs a scrim. */
-  background:var(--paper);
-  border-bottom:1px solid var(--rule);
+  /* Same treatment as the dock, so the two fixed elements read as one
+     layer floating above the page rather than two different chrome
+     styles. saturate(0) desaturates what's BEHIND the bar before the
+     tint lands on it — without it the butter panel bleeds through and
+     the whole thing turns olive. */
+  background:rgba(56,54,52,.58);
+  backdrop-filter:blur(24px) saturate(0) brightness(1.04);
+  -webkit-backdrop-filter:blur(24px) saturate(0) brightness(1.04);
+  border-bottom:1px solid rgba(255,255,255,.13);
 }
 .lockup{ display:flex; align-items:center; gap:11px; }
 .lockup__cherry{
@@ -177,7 +182,7 @@ body.is-gated{ overflow:hidden; }
 }
 .lockup__word{
   width:clamp(118px,11vw,158px); aspect-ratio:1322/132;
-  background:var(--ink);
+  background:#fff;
   -webkit-mask:url(../assets/wordmark.svg) center/100% 100% no-repeat;
           mask:url(../assets/wordmark.svg) center/100% 100% no-repeat;
 }
@@ -186,13 +191,13 @@ body.is-gated{ overflow:hidden; }
 .readout{ display:flex; align-items:center; gap:10px; margin:0; }
 .readout__n{
   font-family:var(--f-ui); font-size:10.5px; font-weight:500;
-  letter-spacing:.1em; color:var(--ink);
+  letter-spacing:.1em; color:#fff;
   font-variant-numeric:tabular-nums;
 }
-.readout__rule{ width:26px; height:1px; background:var(--ink-42); }
+.readout__rule{ width:26px; height:1px; background:rgba(255,255,255,.42); }
 .readout__label{
   font-size:10.5px; font-weight:500; letter-spacing:.1em;
-  text-transform:uppercase; color:var(--ink-58);
+  text-transform:uppercase; color:rgba(255,255,255,.7);
   min-width:66px;
 }
 
@@ -236,7 +241,7 @@ body.is-gated{ overflow:hidden; }
 .dock__group a{
   position:relative; z-index:1;
   display:flex; align-items:center; gap:7px;
-  padding:clamp(10px,1.1vw,14px) clamp(13px,1.5vw,22px);
+  padding:clamp(6px,.75vw,10px) clamp(13px,1.5vw,22px);
   border-radius:999px;
   font-size:clamp(12px,1vw,14px); font-weight:500; letter-spacing:.01em;
   color:rgba(255,255,255,.66);
@@ -254,7 +259,7 @@ body.is-gated{ overflow:hidden; }
 
 .dock__cta{
   position:relative; overflow:hidden;
-  padding:clamp(10px,1.1vw,14px) clamp(15px,1.7vw,24px);
+  padding:clamp(6px,.75vw,10px) clamp(15px,1.7vw,24px);
   border-radius:999px;
   background:var(--red);
   color:#fff;
@@ -275,12 +280,13 @@ body.is-gated{ overflow:hidden; }
    stack by exactly one line so the second copy takes the first's place.
    app.js builds the second copy so the markup stays a single word. */
 .flip{
+  --slot:1.65em;
   display:block; position:relative; z-index:1;
-  height:1em; line-height:1; overflow:hidden;
+  height:var(--slot); line-height:1; overflow:hidden;
 }
 .flip i{
   display:flex; align-items:center; justify-content:center;
-  height:1em; font-style:inherit; line-height:1;
+  height:var(--slot); font-style:inherit; line-height:1;
 }
 /* Section links flip once and settle. Only the ticket CTA keeps
    cycling — it's the one thing on the bar asking to be clicked. */
@@ -307,34 +313,91 @@ body.is-gated{ overflow:hidden; }
     repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 7px);
 }
 
-/* ═══════════════ HERO ═══════════════ */
+/* ═══════════════ HERO ═══════════════
+   Full-bleed media with the site's own grid furniture laid over it:
+   hairlines on the page margin, tracked caption labels at the foot. The
+   type is set large and left, vertically centred in the frame rather
+   than dropped in a corner, so the composition is the whole plate.
+
+   Everything except .hero__media is media-agnostic — swapping the still
+   for a <video> touches one rule. */
 .hero{
   position:relative;
-  padding:calc(var(--top-h) + clamp(60px,13vh,180px)) 0 clamp(80px,15vh,200px);
+  min-height:clamp(540px, 88vh, 940px);
+  display:flex;
+  overflow:hidden;
+  background:var(--ink);
+  color:var(--paper);
 }
-.hero__wrap{ padding-inline:var(--m); }
+.hero__media{
+  position:absolute; inset:0;
+  background:url(../assets/crowd.jpg) center 40%/cover no-repeat;
+  filter:grayscale(1) contrast(1.14) brightness(.58);
+}
+/* Two gradients, not one flat scrim: a light overall wash to hold the
+   type, and a deeper foot so the caption rule always has something to
+   sit on. A single heavy scrim just made the photograph muddy. */
+.hero__media::after{
+  content:''; position:absolute; inset:0;
+  background:
+    linear-gradient(to top, rgba(17,17,17,.72) 0%, rgba(17,17,17,0) 42%),
+    linear-gradient(to right, rgba(17,17,17,.52) 0%, rgba(17,17,17,.08) 68%);
+}
 
-/* The headline is its own 12-column grid so the three lines can be
-   placed rather than merely stacked — two left, one pushed to the right
-   edge, which walks the eye across the block instead of straight down. */
+/* The frame is the page margin, drawn. */
+.hero__frame{
+  position:relative; z-index:1;
+  flex:1;
+  display:flex; flex-direction:column;
+  padding:calc(var(--top-h) + clamp(26px,4vh,54px)) var(--m) clamp(18px,2.4vw,26px);
+}
+/* Bottom-left at every size. Stacked, the type is the composition; on a
+   wide screen it drops to a single line along the foot so the footage
+   gets the frame and the words become a caption on it. */
+.hero__body{
+  flex:1;
+  display:flex; align-items:flex-end;
+  padding-block:clamp(30px,6vh,72px) 0;
+}
 .hero__h1{
-  display:grid;
-  grid-template-columns:repeat(12, minmax(0,1fr));
-  column-gap:var(--gap);
-  position:relative;
-  font-size:clamp(44px,11.4vw,190px);
-  line-height:.92;
-  letter-spacing:-.045em;
+  font-size:clamp(44px,11vw,132px);
+  line-height:.88;
+  letter-spacing:-.05em;
 }
 .hero__h1 .line{ display:block; }
-.line--a{ grid-column:1 / -1; }
-.line--b{ grid-column:1 / -1; }
-.line--c{ grid-column:1 / -1; }
-@media (min-width:900px){
-  .line--a{ grid-column:1 / span 11; }
-  .line--b{ grid-column:1 / span 10; }
-  .line--c{ grid-column:3 / -1; justify-self:end; text-align:right; }
+
+@media (min-width:1100px){
+  /* inline, not block — the newlines between the spans in the markup
+     collapse to the word spaces the sentence needs. */
+  .hero__h1 .line{ display:inline; }
+  .hero__h1{
+    /* The h1 is a flex item, so without this it shrinks to its own
+       content — which makes the width it wraps against narrower than the
+       frame, and every size calibrated from it comes out a line too big. */
+    width:100%;
+    /* Measured, not guessed: the sentence runs 17.37px wide per 1px of
+       font-size against a frame ~93% of the viewport, making 5.37vw the
+       exact fitting size. 5.1vw leaves ~60px of air at 1280 so a rounding
+       difference can't tip it onto a second line. */
+    font-size:min(5.1vw, 100px);
+    line-height:1;
+    max-width:none;
+  }
 }
+
+/* Caption row — the same pattern as the poster's, so a photograph is
+   labelled the same way wherever it appears on the site. */
+.hero__foot{
+  display:flex; justify-content:space-between; gap:16px;
+  padding-top:clamp(12px,1.4vw,18px);
+  border-top:1px solid rgba(239,236,231,.32);
+}
+.hero__cap{
+  font-size:10.5px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase;
+  color:rgba(239,236,231,.74);
+}
+.hero__cap--end{ text-align:right; }
 
 /* ── The brand face in the headline ──
    Measured, not guessed: at the same font-size Inter Tight caps stand at
@@ -342,8 +405,8 @@ body.is-gated{ overflow:hidden; }
    two faces to read as one line.
 
    Tracking is set tighter than the grotesque on purpose — the wordmark
-   sets its letters hard against each other, and this is what carries
-   that over into live type. */
+   sets its letters hard against each other, and this carries that into
+   live type. */
 .hero__h1 b{
   font-family:var(--f-brand);
   font-weight:400;
@@ -356,64 +419,6 @@ body.is-gated{ overflow:hidden; }
   padding-right:.086em;
 }
 
-/* ── The cherry as the full stop ──
-   Sized in em against the headline and set on the baseline, so its scale
-   and position hold at every width with no media query. Runs the full
-   height of the line it sits on. */
-.cherrydot{
-  display:inline-block;
-  height:.78em; aspect-ratio:549/633;
-  margin-left:.05em;
-  vertical-align:baseline;
-  background:var(--red);
-  -webkit-mask:url(../assets/cherry.svg) bottom center/contain no-repeat;
-          mask:url(../assets/cherry.svg) bottom center/contain no-repeat;
-}
-
-/* ── Smoke ──
-   Two copies of the headline: a blurred one behind, and the sharp one on
-   top masked by two radial stops that are UNIONED (mask-composite
-   defaults to add). Stop one is fixed at the centre of the block, so the
-   middle always reads clean and the edges sit out of focus. Stop two
-   follows the pointer, so moving across the blurred edges clears them
-   like a hand through smoke — and drifts back as you leave, because the
-   position is lerped rather than snapped. */
-/* The blur copy overlays the sharp one exactly. It has to REPLICATE the
-   parent's 12 columns rather than inherit them with subgrid: it's
-   absolutely positioned, so it isn't a grid item, and subgrid on a
-   non-item resolves against its own box — which gave it different column
-   widths, different line breaks, and a visibly doubled headline. */
-.h1__blur{
-  position:absolute; inset:0;
-  display:grid;
-  grid-template-columns:repeat(12, minmax(0,1fr));
-  column-gap:var(--gap);
-  filter:blur(clamp(2px,.3vw,6px));
-  opacity:.72;
-  pointer-events:none;
-}
-.h1__sharp{
-  position:relative;
-  display:grid;
-  grid-template-columns:subgrid;
-  grid-column:1 / -1;
-}
-.hero.has-smoke .h1__sharp{
-  -webkit-mask-image:
-    radial-gradient(74% 66% at 50% 50%, #000 0%, #000 48%, transparent 100%),
-    radial-gradient(circle var(--smoke-r) at var(--sx,-999px) var(--sy,-999px), #000 0%, #000 34%, transparent 100%);
-          mask-image:
-    radial-gradient(74% 66% at 50% 50%, #000 0%, #000 48%, transparent 100%),
-    radial-gradient(circle var(--smoke-r) at var(--sx,-999px) var(--sy,-999px), #000 0%, #000 34%, transparent 100%);
-  --smoke-r:clamp(140px, 17vw, 280px);
-  -webkit-mask-size:100% 100%, 100% 100%;
-          mask-size:100% 100%, 100% 100%;
-  -webkit-mask-position:0 0, 0 0;
-          mask-position:0 0, 0 0;
-  -webkit-mask-repeat:no-repeat, no-repeat;
-          mask-repeat:no-repeat, no-repeat;
-}
-
 /* ── Hairline spec strip ──────────────────────────────────────────
    The page's core information pattern: a rule, a label, a value. Used
    at three scales (.strip, .spec, .figs) so every fact on the site is
@@ -422,7 +427,7 @@ body.is-gated{ overflow:hidden; }
   display:grid;
   grid-template-columns:repeat(4, minmax(0,1fr));
   gap:0;
-  margin:0 0 clamp(56px,8vw,110px);
+  margin:clamp(40px,6vw,72px) 0 0;
   padding-inline:var(--m);
   border-top:1px solid var(--rule);
 }
@@ -461,10 +466,13 @@ body.is-gated{ overflow:hidden; }
 }
 .poster__img{
   position:absolute; inset:0;
-  background:url(../assets/crowd.jpg) center 42%/cover no-repeat;
-  /* Duotone-ish: greyscale, then dropped and lifted in contrast so the
-     type has somewhere to sit without a scrim over the whole sheet. */
-  filter:grayscale(1) contrast(1.18) brightness(.62);
+  /* Deliberately a different crop from the hero, which uses the same
+     photograph — same night, different frame, rather than one image
+     printed twice on the same screen. */
+  /* Artwork is already 2:3, so it drops straight into the trim with no
+     crop. Left in colour on purpose — it's flat orange-and-black art, and
+     the greyscale treatment the photography gets would flatten it. */
+  background:url(../assets/poster-halloween.jpg) center/cover no-repeat;
 }
 .poster__sheet::after{
   content:''; position:absolute; inset:0;
@@ -515,12 +523,55 @@ body.is-gated{ overflow:hidden; }
 .sec__head{ row-gap:clamp(14px,2vw,22px); align-items:start; }
 .sec__n{ grid-column:1 / -1; color:var(--ink); }
 .sec__kicker{ grid-column:1 / -1; margin-top:-8px; }
+.sec__rule{
+  grid-column:1 / -1;
+  height:1px;
+  background:var(--rule);
+  margin-top:clamp(2px,.6vw,8px);
+}
 .sec__title{
   grid-column:1 / -1;
   font-size:clamp(38px,6.6vw,116px);
   letter-spacing:-.042em;
-  padding-top:clamp(10px,1.6vw,26px);
-  border-top:1px solid var(--rule);
+  padding-top:clamp(4px,.9vw,12px);
+}
+
+/* Split head — the name on the left, the pitch and the call to action on
+   the right. The columns are the same 1/5 and 7/12 the poster and the
+   detail rail use below, so the head sits on exactly the structure it
+   introduces instead of near it. */
+.sec__aside{
+  grid-column:1 / -1;
+  display:flex; flex-direction:column; align-items:flex-start;
+  gap:clamp(18px,2.2vw,28px);
+}
+@media (min-width:900px){
+  .sec__head--split .sec__title{ grid-column:1 / span 5; }
+  .sec__head--split .sec__aside{ grid-column:7 / -1; padding-top:clamp(6px,1.1vw,16px); }
+}
+.jump{
+  display:inline-flex; align-items:center; gap:10px;
+  color:var(--red);
+  font-size:clamp(14px,1.15vw,17px); font-weight:500;
+  letter-spacing:-.01em;
+  padding-bottom:3px;
+  border-bottom:1.5px solid color-mix(in srgb, var(--red) 40%, transparent);
+  transition:border-color .3s var(--ease);
+}
+.jump:hover{ border-bottom-color:var(--red); }
+.jump svg{
+  width:13px; height:13px; flex:none;
+  fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:square;
+  transition:transform .4s var(--ease);
+}
+.jump:hover svg{ transform:translateY(3px); }
+
+.sec__lead{
+  margin:0;
+  font-size:clamp(17px,1.6vw,26px);
+  letter-spacing:-.02em;
+  color:var(--ink-80);
+  max-width:30ch;
 }
 @media (min-width:900px){
   .sec__n{ grid-column:1 / span 2; }
@@ -551,7 +602,7 @@ body.is-gated{ overflow:hidden; }
 .spec a{ border-bottom:1px solid var(--ink-42); transition:border-color .3s; }
 .spec a:hover{ border-color:var(--ink); }
 
-.next__body{ margin-top:clamp(34px,5vw,64px); row-gap:clamp(44px,6vw,0px); }
+.next__body{ margin-top:clamp(46px,7vw,90px); row-gap:clamp(44px,6vw,0px); }
 .poster{ grid-column:1 / -1; }
 .next__side{ grid-column:1 / -1; }
 @media (min-width:900px){
@@ -632,26 +683,66 @@ body.is-gated{ overflow:hidden; }
 .btn:hover svg{ transform:translate(3px,-3px); }
 .btn--fill{ width:100%; max-width:340px; }
 
+/* Heading and release chip share a baseline row, and that row is the
+   anchor the nav's ticket CTA lands on — it's an action, so it should
+   arrive at the action rather than at the top of the section. */
+.ticket__head-row{
+  display:flex; align-items:baseline; justify-content:space-between;
+  flex-wrap:wrap; gap:12px 20px;
+  margin:0 0 clamp(18px,2vw,26px);
+  scroll-margin-top:calc(var(--top-h) + 24px);
+}
+.ticket__head{
+  font-family:var(--f-display);
+  font-size:clamp(28px,3.1vw,50px);
+  line-height:.95; letter-spacing:-.04em;
+  margin:0;
+}
+
+/* Release stage. Colour is earned here — this is the only thing on the
+   page reporting a live condition, and it goes red only when the
+   allocation is genuinely nearly gone. */
+.tstat{
+  display:inline-flex; align-items:center; gap:10px;
+  margin:0;
+  padding:9px 15px 8px;
+  border:1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius:999px;
+  font-size:10.5px; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
+}
+.tstat__dot{
+  width:6px; height:6px; border-radius:50%; flex:none;
+  background:currentColor;
+  animation:soonpulse 2.4s var(--ease) infinite;
+}
+.tstat__count{ opacity:.6; }
+.tstat[data-stage="hot"]  { color:var(--red); border-color:color-mix(in srgb, var(--red) 45%, transparent); }
+.tstat[data-stage="last"] { color:var(--red); border-color:var(--red); }
+.tstat[data-stage="out"]  { color:var(--ink-58); border-color:var(--rule); }
+.tstat[data-stage="out"] .tstat__dot{ animation:none; opacity:.4; }
+
+.price{ margin-top:clamp(20px,2.4vw,30px); }
+.price dd i{ font-style:normal; font-size:.66em; letter-spacing:0; opacity:.55; }
+
 /* ── Ticket ──────────────────────────────────────────────────────────
-   A stub, a perforation and a barcode, cut as real holes rather than
-   drawn as circles: the notches are mask cut-outs, so they stay holes
-   when the fill turns red on hover instead of becoming coloured dots. */
+   Three parts, like the real object: a rail carrying the mark, a body
+   carrying the booking, and a tear-off stub. Notches are cut as real
+   holes with mask-composite so the butter panel shows through them.
+
+   It is FILLED, not outlined, and that isn't a style choice — a masked
+   notch cuts the fill AND the border, and a border can't trace the curve
+   it was cut with, so it just stops. Solid fill has nothing to break. */
 .ticket{
-  --perf: 76%;
+  --perf: 74%;
   --notch: 9px;
   position:relative; display:flex; align-items:stretch;
-  width:100%; max-width:460px;
-  min-height:104px;
-  /* Filled, not outlined. A masked notch cuts the fill AND the border,
-     and a border can't trace the curve it was cut with — it just stops,
-     which read as a broken box rather than a punched ticket. Solid fill
-     has nothing to break. */
+  width:100%; max-width:480px;
+  min-height:118px;
   color:var(--butter);
   background:var(--ink);
-  border-radius:4px;
+  border-radius:5px;
   overflow:hidden;
   cursor:pointer;
-  transition:background-color .4s var(--ease);
   -webkit-mask-image:
     radial-gradient(circle var(--notch) at var(--perf) 0,    transparent var(--notch), #000 calc(var(--notch) + .5px)),
     radial-gradient(circle var(--notch) at var(--perf) 100%, transparent var(--notch), #000 calc(var(--notch) + .5px));
@@ -660,86 +751,99 @@ body.is-gated{ overflow:hidden; }
     radial-gradient(circle var(--notch) at var(--perf) 100%, transparent var(--notch), #000 calc(var(--notch) + .5px));
   -webkit-mask-composite:source-in;
           mask-composite:intersect;
-  transition:color .4s var(--ease);
+  /* Short and front-loaded: the red is most of the way in within about a
+     tenth of a second, so the ticket answers the pointer instead of
+     easing toward it. */
+  transition:background-color .22s cubic-bezier(.2,0,0,1);
 }
 .ticket:hover{ background:var(--red); }
 
-/* ── Shimmer ──
-   A raking highlight that sweeps the sheet while the fill turns red, and
-   keeps sweeping for as long as the pointer stays. z-index puts it over
-   the type; the ticket's own notch mask clips it, so the light never
-   spills outside the trim. */
+/* Shimmer — butter, so the highlight reads as the section's own light
+   rather than a generic gloss. Creeps in, sweeps, overshoots the far
+   edge and rocks back once; the bounce is the pull-back at 74%, not an
+   easing curve. The notch mask clips it, so light never leaves the trim. */
 .ticket::after{
-  content:''; position:absolute; inset:0; z-index:3;
+  content:''; position:absolute; inset:0; z-index:4;
   pointer-events:none;
-  /* Butter rather than white, so the highlight reads as the section's own
-     light rather than a generic gloss. */
   background:linear-gradient(104deg,
     transparent 36%,
-    rgba(255,255,167,.55) 50%,
+    rgba(255,255,167,.5) 50%,
     transparent 64%);
   transform:translateX(-135%);
 }
-.ticket:hover::after{ animation:shimmer 1.9s infinite; }
-/* Creeps in, sweeps, overshoots the far edge and rocks back once before
-   leaving — the bounce is the pull-back at 74%, not an easing curve. */
+.ticket:hover::after{ animation:shimmer 1.15s infinite; }
+.ticket.is-flashing{ background:var(--red); }
+.ticket.is-flashing::after{ animation:shimmer 1.15s 1; }
+/* Off the mark immediately — no ease-in creep — then overshoots and rocks
+   back once before leaving. The bounce is the pull-back keyframe at 62%,
+   not an easing curve, which is what reads as spring rather than lag. */
 @keyframes shimmer{
-  0%   { transform:translateX(-135%); animation-timing-function:cubic-bezier(.7,0,.84,0); }
-  58%  { transform:translateX(96%);   animation-timing-function:cubic-bezier(.16,1,.3,1); }
-  74%  { transform:translateX(74%);   animation-timing-function:cubic-bezier(.5,0,.75,0); }
+  0%   { transform:translateX(-130%); animation-timing-function:cubic-bezier(.16,.8,.3,1); }
+  48%  { transform:translateX(84%);   animation-timing-function:cubic-bezier(.4,0,.55,1); }
+  62%  { transform:translateX(62%);   animation-timing-function:cubic-bezier(.2,1,.3,1); }
   100% { transform:translateX(140%); }
 }
 
-/* Headline, not a label — the CTA gets the same typographic weight as
-   an event name. */
-.ticket__head{
-  font-family:var(--f-display);
-  font-size:clamp(28px,3.1vw,50px);
-  line-height:.95; letter-spacing:-.04em;
-  margin:0 0 clamp(16px,1.8vw,24px);
-}
-
-/* Full-bleed mark down the left edge. It sets the ticket's height, which
-   is what widens the whole object. */
-.ticket__mark{
+/* Rail. Full-bleed mark with a hairline against the body, the way a real
+   ticket separates its sections. */
+.ticket__rail{
   position:relative; z-index:1;
   flex:none;
-  width:clamp(64px,7vw,96px);
-  align-self:stretch;
-  background:currentColor;
-  -webkit-mask:url(../assets/cherry.svg) center/62% auto no-repeat;
-          mask:url(../assets/cherry.svg) center/62% auto no-repeat;
+  width:clamp(62px,6.4vw,86px);
+  display:grid; place-items:center;
+  border-right:1px solid color-mix(in srgb, currentColor 22%, transparent);
 }
+.ticket__mark{
+  width:58%; aspect-ratio:549/633;
+  background:currentColor;
+  -webkit-mask:url(../assets/cherry.svg) center/contain no-repeat;
+          mask:url(../assets/cherry.svg) center/contain no-repeat;
+}
+
+/* Body. Eyebrow, booking, particulars — small, large, small. */
 .ticket__main{
   position:relative; z-index:1;
   flex:1; min-width:0;
-  display:flex; flex-direction:column; justify-content:center; gap:7px;
-  padding:18px 18px 18px 4px;
+  display:flex; flex-direction:column; justify-content:center; gap:8px;
+  padding:18px clamp(14px,1.5vw,20px);
 }
+.ticket__eyebrow,
+.ticket__meta{
+  font-size:9px; font-weight:500;
+  letter-spacing:.18em; text-transform:uppercase;
+}
+.ticket__eyebrow{ opacity:.52; }
+.ticket__meta{ opacity:.66; }
 .ticket__label{
   font-family:var(--f-display);
-  font-size:clamp(15px,1.3vw,19px); font-weight:400; letter-spacing:-.025em;
+  font-size:clamp(16px,1.4vw,21px);
+  font-weight:400; line-height:1; letter-spacing:-.025em;
 }
-.ticket__meta{
-  font-size:9.5px; font-weight:500; letter-spacing:.14em; text-transform:uppercase;
-  opacity:.62;
-}
-/* Perforation. Dashed, and sitting exactly between the two notches. */
+
+/* Stub. Perforation drawn as actual holes rather than a dashed rule. */
 .ticket__stub{
   position:relative; z-index:1;
   width:calc(100% - var(--perf));
-  display:grid; place-items:center;
-  /* Perforation runs exactly between the two notches. */
-  border-left:1.5px dashed rgba(255,255,167,.45);
-  padding:16px 14px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px;
+  padding:16px 12px;
+}
+.ticket__stub::before{
+  content:'';
+  position:absolute; left:-1px;
+  top:calc(var(--notch) + 5px); bottom:calc(var(--notch) + 5px);
+  width:2px;
+  background-image:radial-gradient(circle at 1px 1px, currentColor 1px, transparent 1.15px);
+  background-size:2px 6.5px;
+  background-repeat:repeat-y;
+  opacity:.6;
 }
 .ticket__code{
-  display:block; width:100%; height:36px;
+  display:block; width:100%; height:46px;
   /* Two periods overlaid so the bars read as irregular, not as a grid. */
   background-image:
     repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 4px),
     repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 9px);
-  opacity:.9;
+  opacity:.92;
 }
 
 /* ═══════════════ CALENDAR ═══════════════ */
@@ -844,8 +948,8 @@ body.is-gated{ overflow:hidden; }
   border-top:1px solid var(--rule);
 }
 @media (min-width:900px){
-  .give__label{ grid-column:1 / span 4; }
-  .give__cap  { grid-column:7 / -1; }
+  .give__label{ grid-column:1 / span 5; }
+  .give__cap  { grid-column:1 / span 5; }
   .give__num  { grid-column:1 / -1; }
 }
 
@@ -931,8 +1035,8 @@ body.is-gated{ overflow:hidden; }
 
 @media (max-width:620px){
   .dock{ left:var(--m); right:var(--m); transform:none; justify-content:space-between; padding:5px; gap:2px; }
-  .dock__group a{ padding:10px 8px; font-size:11px; }
-  .dock__cta{ padding:10px 13px; font-size:11px; }
+  .dock__group a{ padding:6px 8px; font-size:11px; }
+  .dock__cta{ padding:6px 13px; font-size:11px; }
   .dock__group a.is-active::before{ display:none; }
   .clock b{ font-size:23px; }
   .foot{ padding-bottom:calc(clamp(14px,2vw,26px) + 74px); }
@@ -944,6 +1048,4 @@ body.is-gated{ overflow:hidden; }
   .rv{ opacity:1; transform:none; }
   .flip i{ animation:none !important; transition:none !important; }
   .ticket::after{ animation:none; }
-  .h1__blur{ display:none; }
-  .hero.has-smoke .h1__sharp{ -webkit-mask-image:none; mask-image:none; }
 }
