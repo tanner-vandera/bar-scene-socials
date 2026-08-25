@@ -7,10 +7,10 @@
    page is coloured at all.
 
      RED    the brand speaking, and the transaction.
-            Brand: the cherry (lockup + hero field), the two Shrikhand
-            words in the headline. Transaction: the nav dot, the
-            countdown, the ticket, the dock CTA.
-     BUTTER the N.001 panel. One section, edge to edge, nowhere else.
+            Brand: the cherry, wherever the mark appears.
+            Transaction: the countdown, the release chip, the ticket on
+            hover, the "Get tickets" link, the dock CTA.
+     BUTTER the Upcoming panel. One section, edge to edge, nowhere else.
      VOLT   the amount returned to the city. One figure, forever.
 
    Before adding a fourth colour — or a red that isn't brand or
@@ -31,7 +31,7 @@
   --rule:     rgba(17,17,17,.15);
   --rule-soft:rgba(17,17,17,.09);
   --red:      #CE1919;
-  --butter:   #FFFFA7;   /* one section only — N.001 */
+  --butter:   #FFFFA7;   /* one section only — Upcoming */
   /* One figure only — the amount returned. Electric, but pulled back
      from #00C24E, which measured 2.02:1 on paper. This is 3.10:1, which
      clears the large-text minimum while still reading as voltage. */
@@ -104,6 +104,112 @@ h1,h2,h3{
   margin:14px 0 0;
   letter-spacing:.01em;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   CURSOR
+   ───────────────────────────────────────────────────────────────────
+   Three states, one element:
+
+     default      a hairline ring — the same drawing language as every
+                  rule on the page, just closed into a circle
+     event zone   the ring recedes and that crawl's mark takes over,
+                  angled like a cursor rather than sitting upright
+     interactive  whichever is showing grows and leans further
+
+   The native cursor is hidden by a class JS adds to <html>, never by the
+   stylesheet alone — if the script fails you keep the system cursor
+   instead of losing the pointer entirely.
+   ═══════════════════════════════════════════════════════════════════ */
+.cur{
+  position:fixed; top:0; left:0; z-index:300;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .25s var(--ease);
+  will-change:transform;
+}
+.cur.is-live{ opacity:1; }
+html.has-cur, html.has-cur *{ cursor:none !important; }
+
+.cur__ring,
+.cur__dot,
+.cur__art{
+  position:absolute; top:0; left:0;
+  transform-origin:50% 50%;
+}
+
+/* Ring + dot. difference blending means one drawing reads on paper,
+   butter, ink and photography without a single per-section override. */
+.cur__ring{
+  width:32px; height:32px; margin:-16px 0 0 -16px;
+  border:1.25px solid #fff;
+  border-radius:50%;
+  mix-blend-mode:difference;
+  transition:width .32s var(--ease), height .32s var(--ease),
+             margin .32s var(--ease), opacity .28s var(--ease),
+             border-width .28s var(--ease);
+}
+.cur__dot{
+  width:4px; height:4px; margin:-2px 0 0 -2px;
+  border-radius:50%;
+  background:#fff;
+  mix-blend-mode:difference;
+  transition:opacity .22s var(--ease), transform .3s var(--ease);
+}
+
+/* Interactive: the ring opens up and the dot gets out of its way, so the
+   pointer reads as reaching for something rather than resting. */
+.cur.is-hot .cur__ring{
+  width:58px; height:58px; margin:-29px 0 0 -29px;
+  border-width:1px;
+}
+.cur.is-hot .cur__dot{ opacity:0; transform:scale(.4); }
+
+/* ── Event marks ──
+   Rotated anticlockwise and hung down-right of the hotspot so the mark
+   sits where a cursor's blade would, not centred on the point like a
+   sticker. */
+.cur__art{
+  width:46px; height:46px;
+  margin:-4px 0 0 -6px;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-size:contain;
+  opacity:0;
+  transform:rotate(-20deg) scale(.7);
+  transform-origin:14% 14%;
+  transition:opacity .26s var(--ease), transform .38s var(--ease);
+}
+.cur[data-cursor] .cur__art{ opacity:1; transform:rotate(-20deg) scale(1); }
+/* The ring steps aside when a mark is showing — two cursors at once is
+   just clutter — but the dot stays as the actual point of contact. */
+.cur[data-cursor] .cur__ring{ opacity:0; }
+.cur[data-cursor].is-hot .cur__art{ transform:rotate(-30deg) scale(1.22); }
+.cur[data-cursor].is-hot .cur__dot{ opacity:1; transform:none; }
+
+.cur[data-cursor="bats"]       .cur__art{ background-image:url(../assets/cur-bats.png); }
+.cur[data-cursor="candy-cane"] .cur__art{ background-image:url(../assets/cur-candy-cane.png); }
+.cur[data-cursor="clover"]     .cur__art{ background-image:url(../assets/cur-clover.png); }
+
+/* No custom cursor on touch — there is no pointer to replace. */
+@media (pointer:coarse){
+  .cur{ display:none; }
+  html.has-cur, html.has-cur *{ cursor:auto !important; }
+}
+
+/* ═══════════════ FOCUS ═══════════════ */
+:focus-visible{
+  outline:2px solid currentColor;
+  outline-offset:3px;
+  border-radius:2px;
+}
+/* On the two dark chrome elements the ring needs to be light rather than
+   inherit the link's own colour. */
+.top :focus-visible,
+.dock :focus-visible{ outline-color:#fff; }
+.dock__cta:focus-visible{ outline-color:#fff; outline-offset:4px; }
+/* The gate panel is focused programmatically to move the reader into the
+   dialog; it is not tab-reachable, so it should not draw a ring. */
+.gate__panel:focus-visible{ outline:none; }
 
 /* ═══════════════ AGE GATE ═══════════════ */
 .gate{
@@ -189,11 +295,6 @@ body.is-gated{ overflow:hidden; }
 
 /* Live section readout. Reports position; doesn't navigate. */
 .readout{ display:flex; align-items:center; gap:10px; margin:0; }
-.readout__n{
-  font-family:var(--f-ui); font-size:10.5px; font-weight:500;
-  letter-spacing:.1em; color:#fff;
-  font-variant-numeric:tabular-nums;
-}
 .readout__rule{ width:26px; height:1px; background:rgba(255,255,255,.42); }
 .readout__label{
   font-size:10.5px; font-weight:500; letter-spacing:.1em;
@@ -250,12 +351,6 @@ body.is-gated{ overflow:hidden; }
 }
 .dock__group a:hover{ color:#fff; }
 .dock__group a.is-active{ color:#fff; }
-/* The dot only exists on the active item — the single piece of colour
-   the navigation is allowed. */
-.dock__group a.is-active::before{
-  content:''; width:5px; height:5px; border-radius:50%;
-  background:var(--red);                       /* ← red 2 of 4 */
-}
 
 .dock__cta{
   position:relative; overflow:hidden;
@@ -273,7 +368,9 @@ body.is-gated{ overflow:hidden; }
   background:#000; opacity:0;
   transition:opacity .3s var(--ease);
 }
-.dock__cta:hover::after{ opacity:.18; }
+@media (hover: hover) and (pointer: fine){
+  .dock__cta:hover::after{ opacity:.18; }
+}
 
 /* ── Flip-up label ──
    Two stacked copies of the word inside a 1em window; hover slides the
@@ -291,12 +388,15 @@ body.is-gated{ overflow:hidden; }
 /* Section links flip once and settle. Only the ticket CTA keeps
    cycling — it's the one thing on the bar asking to be clicked. */
 .dock__group a .flip i{ transition:transform .38s cubic-bezier(.76,0,.24,1); }
-.dock__group a:hover .flip i,
 .dock__group a:focus-visible .flip i{ transform:translateY(-100%); }
-
-.dock__cta:hover .flip i,
 .dock__cta:focus-visible .flip i{
   animation:flipcycle 1.6s cubic-bezier(.76,0,.24,1) infinite;
+}
+@media (hover: hover) and (pointer: fine){
+  .dock__group a:hover .flip i{ transform:translateY(-100%); }
+  .dock__cta:hover .flip i{
+    animation:flipcycle 1.6s cubic-bezier(.76,0,.24,1) infinite;
+  }
 }
 @keyframes flipcycle{
   0%,  22%  { transform:translateY(0); }
@@ -349,7 +449,9 @@ body.is-gated{ overflow:hidden; }
   position:relative; z-index:1;
   flex:1;
   display:flex; flex-direction:column;
-  padding:calc(var(--top-h) + clamp(26px,4vh,54px)) var(--m) clamp(18px,2.4vw,26px);
+  /* Bottom padding carries the type off the edge now that the caption
+     row is gone — at the old 18–26px the headline sat on the trim. */
+  padding:calc(var(--top-h) + clamp(26px,4vh,54px)) var(--m) clamp(44px,7vh,96px);
 }
 /* Bottom-left at every size. Stacked, the type is the composition; on a
    wide screen it drops to a single line along the foot so the footage
@@ -384,20 +486,6 @@ body.is-gated{ overflow:hidden; }
     max-width:none;
   }
 }
-
-/* Caption row — the same pattern as the poster's, so a photograph is
-   labelled the same way wherever it appears on the site. */
-.hero__foot{
-  display:flex; justify-content:space-between; gap:16px;
-  padding-top:clamp(12px,1.4vw,18px);
-  border-top:1px solid rgba(239,236,231,.32);
-}
-.hero__cap{
-  font-size:10.5px; font-weight:500;
-  letter-spacing:.14em; text-transform:uppercase;
-  color:rgba(239,236,231,.74);
-}
-.hero__cap--end{ text-align:right; }
 
 /* ── The brand face in the headline ──
    Measured, not guessed: at the same font-size Inter Tight caps stand at
@@ -521,8 +609,7 @@ body.is-gated{ overflow:hidden; }
   margin-bottom:clamp(0px,1vw,10px);
 }
 .sec__head{ row-gap:clamp(14px,2vw,22px); align-items:start; }
-.sec__n{ grid-column:1 / -1; color:var(--ink); }
-.sec__kicker{ grid-column:1 / -1; margin-top:-8px; }
+.sec__kicker{ grid-column:1 / -1; }
 .sec__rule{
   grid-column:1 / -1;
   height:1px;
@@ -574,8 +661,7 @@ body.is-gated{ overflow:hidden; }
   max-width:30ch;
 }
 @media (min-width:900px){
-  .sec__n{ grid-column:1 / span 2; }
-  .sec__kicker{ grid-column:3 / span 3; margin-top:0; }
+  .sec__kicker{ grid-column:1 / span 4; }
   .sec__title{ grid-column:1 / -1; }
 }
 
@@ -598,6 +684,11 @@ body.is-gated{ overflow:hidden; }
   font-family:var(--f-display);
   font-size:clamp(15px,1.35vw,21px);
   letter-spacing:-.02em;
+  /* An email address is one unbreakable token. Without these it pushed
+     the document 27px wider than a 320px viewport — a flex child will not
+     shrink below its content unless it is told it may. */
+  min-width:0;
+  overflow-wrap:anywhere;
 }
 .spec a{ border-bottom:1px solid var(--ink-42); transition:border-color .3s; }
 .spec a:hover{ border-color:var(--ink); }
@@ -648,40 +739,6 @@ body.is-gated{ overflow:hidden; }
   letter-spacing:.1em; color:var(--ink-42);
   font-variant-numeric:tabular-nums;
 }
-
-/* ── Buttons ──────────────────────────────────────────────────────
-   Squared, hairline-bordered, with the fill wiping up from the bottom
-   and the arrow stepping diagonally. Kept visually distinct from the
-   nav capsules: rounded = navigate, squared = act. */
-.btn{
-  display:inline-flex; align-items:center; justify-content:space-between;
-  gap:34px;
-  position:relative; overflow:hidden;
-  padding:16px 20px;
-  border:1px solid var(--ink);
-  border-radius:3px;
-  font-family:var(--f-ui); font-size:13px; font-weight:500;
-  letter-spacing:.01em;
-  color:var(--ink);
-  cursor:pointer;
-}
-.btn > *{ position:relative; z-index:1; }
-.btn::before{
-  content:''; position:absolute; inset:0; z-index:0;
-  background:var(--ink);
-  transform:translateY(101%);
-  transition:transform .5s var(--ease);
-}
-.btn:hover{ color:var(--paper); }
-.btn:hover::before{ transform:translateY(0); }
-.btn svg{
-  width:15px; height:15px; flex:none;
-  fill:none; stroke:currentColor; stroke-width:1.4;
-  stroke-linecap:square;
-  transition:transform .5s var(--ease);
-}
-.btn:hover svg{ transform:translate(3px,-3px); }
-.btn--fill{ width:100%; max-width:340px; }
 
 /* Heading and release chip share a baseline row, and that row is the
    anchor the nav's ticket CTA lands on — it's an action, so it should
@@ -756,7 +813,10 @@ body.is-gated{ overflow:hidden; }
      easing toward it. */
   transition:background-color .22s cubic-bezier(.2,0,0,1);
 }
-.ticket:hover{ background:var(--red); }
+@media (hover: hover) and (pointer: fine){
+  .ticket:hover{ background:var(--red); }
+  .ticket:hover::after{ animation:shimmer 1.15s infinite; }
+}
 
 /* Shimmer — butter, so the highlight reads as the section's own light
    rather than a generic gloss. Creeps in, sweeps, overshoots the far
@@ -771,9 +831,18 @@ body.is-gated{ overflow:hidden; }
     transparent 64%);
   transform:translateX(-135%);
 }
-.ticket:hover::after{ animation:shimmer 1.15s infinite; }
-.ticket.is-flashing{ background:var(--red); }
-.ticket.is-flashing::after{ animation:shimmer 1.15s 1; }
+/* Arrival cue. The ticket stays black and takes a single white pass —
+   the red fill belongs to hover, where it answers a pointer; firing it on
+   arrival made the ticket look pressed by something the visitor did not
+   do. A light passing over it reads as "look here" without claiming an
+   interaction happened. */
+.ticket.is-flashing::after{
+  background:linear-gradient(104deg,
+    transparent 36%,
+    rgba(255,255,255,.6) 50%,
+    transparent 64%);
+  animation:shimmer 1.15s 1;
+}
 /* Off the mark immediately — no ease-in creep — then overshoots and rocks
    back once before leaving. The bounce is the pull-back keyframe at 62%,
    not an easing curve, which is what reads as spring rather than lag. */
@@ -851,19 +920,22 @@ body.is-gated{ overflow:hidden; }
   list-style:none; margin:clamp(34px,5vw,64px) 0 0; padding:0 var(--m);
   border-top:1px solid var(--rule);
 }
+/* Date and status sit together as one eyebrow above the name — the same
+   small-label-then-headline order every other section uses. */
 .cal li{
-  display:grid;
-  grid-template-columns:auto 1fr auto;
-  grid-template-areas:'n date state' 'name name name';
-  align-items:center; gap:6px clamp(14px,2vw,32px);
+  display:block;
   padding:clamp(22px,2.6vw,34px) 0;
   border-bottom:1px solid var(--rule);
   transition:padding-left .5s var(--ease);
 }
 .cal li:hover{ padding-left:clamp(10px,1.4vw,22px); }
-.cal__n{ grid-area:n; }
+.cal__eyebrow{
+  display:flex; align-items:center; flex-wrap:wrap;
+  gap:6px clamp(14px,1.8vw,26px);
+  margin-bottom:clamp(10px,1.2vw,16px);
+}
 .cal__name{
-  grid-area:name;
+  display:block;
   position:relative;
   font-family:var(--f-display);
   font-size:clamp(30px,5.2vw,88px);
@@ -882,11 +954,10 @@ body.is-gated{ overflow:hidden; }
 }
 .cal li:hover .cal__name{ -webkit-text-stroke-color:var(--ink-42); }
 .cal li:hover .cal__name::after{ clip-path:inset(0 0 0 0); }
-.cal__date{ grid-area:date; text-align:right; }
+.cal__date{ color:var(--ink-58); }
 /* Live "coming soon" chip — a slow pulse, so the row reads as pending
    rather than broken. */
 .cal__state{
-  grid-area:state;
   display:inline-flex; align-items:center; gap:8px;
   font-size:10.5px; font-weight:500; letter-spacing:.1em;
   text-transform:uppercase; color:var(--ink-58);
@@ -905,13 +976,7 @@ body.is-gated{ overflow:hidden; }
    provisional. */
 .cal{ border-top-style:dashed; }
 .cal li{ border-bottom-style:dashed; }
-@media (min-width:900px){
-  .cal li{
-    grid-template-columns:7rem 1fr 10rem 8rem;
-    grid-template-areas:'n name date state';
-  }
-  .cal__date{ text-align:left; }
-}
+
 
 /* ═══════════════ RECORD ═══════════════ */
 .figs{
@@ -1022,22 +1087,27 @@ body.is-gated{ overflow:hidden; }
    ═══════════════════════════════════════════════════════════════════ */
 @media (max-width:900px){
   :root{ --top-h:58px; }
-  .readout__label{ display:none; }
-  .readout__rule{ width:16px; }
+  /* The label IS the readout now that the numeral is gone — hiding it
+     here left an orphaned dash. Drop the rule instead. */
+  .readout__rule{ display:none; }
+  .readout__label{ min-width:0; }
   .strip{ grid-template-columns:1fr 1fr; }
   .strip > div:nth-child(2n){ border-right:0; }
   .strip > div:nth-child(-n+2){ border-bottom:1px solid var(--rule-soft); }
   .figs{ grid-template-columns:1fr 1fr; }
   .figs > div:nth-child(2n){ border-right:0; }
   .figs > div:nth-child(-n+2){ border-bottom:1px solid var(--rule-soft); }
-  .btn--fill{ max-width:none; }
+}
+
+@media (max-width:420px){
+  .spec > div{ flex-direction:column; align-items:flex-start; gap:7px; }
+  .spec dd{ text-align:left; }
 }
 
 @media (max-width:620px){
   .dock{ left:var(--m); right:var(--m); transform:none; justify-content:space-between; padding:5px; gap:2px; }
   .dock__group a{ padding:6px 8px; font-size:11px; }
   .dock__cta{ padding:6px 13px; font-size:11px; }
-  .dock__group a.is-active::before{ display:none; }
   .clock b{ font-size:23px; }
   .foot{ padding-bottom:calc(clamp(14px,2vw,26px) + 74px); }
 }
@@ -1046,6 +1116,9 @@ body.is-gated{ overflow:hidden; }
   html{ scroll-behavior:auto; }
   *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
   .rv{ opacity:1; transform:none; }
+  .cur__ring,.cur__dot,.cur__art{ transition:none; }
+  .cur__art{ transform:rotate(-20deg) scale(1); }
+  .cur[data-cursor].is-hot .cur__art{ transform:rotate(-20deg) scale(1.1); }
   .flip i{ animation:none !important; transition:none !important; }
   .ticket::after{ animation:none; }
 }

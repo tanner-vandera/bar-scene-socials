@@ -25,6 +25,17 @@
      (Wis. Stat. ch. 125). Copy is deliberately declarative — playful
      phrasing here defeats the point.
      ══════════════════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════ CURSOR ══════════════════════════
+     A ring by default; over an event zone the ring recedes and that
+     event's mark takes its place. Only mounted on fine pointers, and the
+     native cursor is only hidden once JS has taken over — if the script
+     never runs you keep the system cursor. -->
+<div class="cur" id="cur" aria-hidden="true">
+  <span class="cur__ring"></span>
+  <span class="cur__dot"></span>
+  <span class="cur__art"></span>
+</div>
+
 <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle" hidden>
   <div class="gate__panel" id="gatePanel" tabindex="-1">
     <span class="gate__cherry" aria-hidden="true"></span>
@@ -50,8 +61,8 @@
 <!-- ══════════════════════════════════════════════════════════════════
      TOP BAR
      Lockup left, live section readout right. The readout is a nav
-     component that reports rather than navigates — it names where you
-     are (N.001 / NEXT) so the floating capsule below can stay short.
+     component that reports rather than navigates — it names which
+     section you are in, so the floating capsule below can stay short.
      ══════════════════════════════════════════════════════════════════ -->
 <header class="top">
   <a class="lockup" href="#top" aria-label="Bar Scene Socials — top">
@@ -59,7 +70,6 @@
     <span class="lockup__word" role="img" aria-label="Bar Scene Socials"></span>
   </a>
   <p class="readout" aria-live="polite">
-    <span class="readout__n" id="readoutN">N.000</span>
     <span class="readout__rule" aria-hidden="true"></span>
     <span class="readout__label" id="readoutLabel">Index</span>
   </p>
@@ -106,18 +116,12 @@
         <span class="line">with a crowd.</span>
       </h1>
     </div>
-
-    <div class="hero__foot">
-      <span class="hero__cap">Brady Street, Milwaukee</span>
-      <span class="hero__cap hero__cap--end">Three crawls a year</span>
-    </div>
   </div>
 </section>
 
-<!-- ══════════════════════════ N.001 — NEXT ══════════════════════════ -->
-<section class="sec sec--feature" id="next" data-sec="N.001" data-label="Upcoming">
+<!-- ══════════════════════════ UPCOMING ══════════════════════════ -->
+<section class="sec sec--feature" id="next" data-label="Upcoming" data-cursor="bats">
   <header class="sec__head sec__head--split grid">
-    <p class="label sec__n">N.001</p>
     <p class="label sec__kicker">Upcoming</p>
     <span class="sec__rule" aria-hidden="true"></span>
     <h2 class="sec__title">Haunted<br />Bar Hop</h2>
@@ -216,10 +220,9 @@
   </div>
 </section>
 
-<!-- ══════════════════════════ N.002 — CALENDAR ══════════════════════════ -->
-<section class="sec" id="calendar" data-sec="N.002" data-label="Calendar">
+<!-- ══════════════════════════ CALENDAR ══════════════════════════ -->
+<section class="sec" id="calendar" data-label="Calendar">
   <header class="sec__head grid">
-    <p class="label sec__n">N.002</p>
     <p class="label sec__kicker">Calendar</p>
     <span class="sec__rule" aria-hidden="true"></span>
     <h2 class="sec__title">Also<br />announced</h2>
@@ -228,25 +231,26 @@
   <!-- Announced-but-undetailed crawls. One row each: nothing to sell yet,
        so nothing beyond the fact that it exists and when. -->
   <ol class="cal">
-    <li>
-      <span class="cal__n label">002 / A</span>
+    <li data-cursor="candy-cane">
+      <span class="cal__eyebrow">
+        <span class="cal__date label">12 Dec 2026</span>
+        <span class="cal__state"><i aria-hidden="true"></i>Coming soon</span>
+      </span>
       <span class="cal__name" data-text="12 Bars of Christmas">12 Bars of Christmas</span>
-      <span class="cal__date label">12 Dec 2026</span>
-      <span class="cal__state"><i aria-hidden="true"></i>Coming soon</span>
     </li>
-    <li>
-      <span class="cal__n label">002 / B</span>
+    <li data-cursor="clover">
+      <span class="cal__eyebrow">
+        <span class="cal__date label">17 Mar 2027</span>
+        <span class="cal__state"><i aria-hidden="true"></i>Coming soon</span>
+      </span>
       <span class="cal__name" data-text="Shamrock Shuffle">Shamrock Shuffle</span>
-      <span class="cal__date label">17 Mar 2027</span>
-      <span class="cal__state"><i aria-hidden="true"></i>Coming soon</span>
     </li>
   </ol>
 </section>
 
-<!-- ══════════════════════════ N.003 — RECORD ══════════════════════════ -->
-<section class="sec" id="history" data-sec="N.003" data-label="History">
+<!-- ══════════════════════════ RECORD ══════════════════════════ -->
+<section class="sec" id="history" data-label="History">
   <header class="sec__head grid">
-    <p class="label sec__n">N.003</p>
     <p class="label sec__kicker">History</p>
     <span class="sec__rule" aria-hidden="true"></span>
     <h2 class="sec__title">Eight years<br />on the route</h2>
@@ -266,10 +270,9 @@
   </div>
 </section>
 
-<!-- ══════════════════════════ N.004 — CONTACT ══════════════════════════ -->
-<section class="sec" id="contact" data-sec="N.004" data-label="Contact">
+<!-- ══════════════════════════ CONTACT ══════════════════════════ -->
+<section class="sec" id="contact" data-label="Contact">
   <header class="sec__head grid">
-    <p class="label sec__n">N.004</p>
     <p class="label sec__kicker">Contact</p>
     <span class="sec__rule" aria-hidden="true"></span>
     <h2 class="sec__title">Get in<br />touch</h2>

@@ -21,7 +21,7 @@ function initReveals() {
     ...$$('.hero__h1 .line'),
     ...$$('.strip > div'),
     ...$$('.poster'),
-    ...$$('.sec__n, .sec__kicker, .sec__title'),
+    ...$$('.sec__kicker, .sec__title'),
     ...$$('.spec > div'),
     ...$$('.next__side > *'),
     ...$$('.cal li'),
@@ -193,11 +193,10 @@ function initFlip() {
    of state: which section you're in. Both are driven from a single
    observer, so they can never disagree. */
 function initNav() {
-  const sections = $$('[data-sec]');
+  const sections = $$('[data-label]');
   const group    = $('#dockGroup');
   const links    = $$('[data-nav]');
   const ind      = $('.dock__ind');
-  const outN     = $('#readoutN');
   const outLabel = $('#readoutLabel');
   if (!sections.length || !group) return;
 
@@ -220,7 +219,6 @@ function initNav() {
     else group.classList.remove('is-live');   /* above the first section */
 
     const sec = id ? document.getElementById(id) : null;
-    outN.textContent     = sec ? sec.dataset.sec : 'N.000';
     outLabel.textContent = sec ? sec.dataset.label : 'Index';
   };
 
@@ -252,6 +250,79 @@ function initNav() {
   }, { passive: true });
 
   sync();
+}
+
+/* ══════════════════ 5. CURSOR ══════════════════
+   One element, three states. Position is lerped so the mark trails the
+   pointer slightly — that lag is what makes it feel like an object being
+   carried rather than a graphic pinned to the mouse.
+
+   Zone and interactivity are read from the DOM on pointermove via
+   closest(), so nothing needs registering: mark a section
+   data-cursor="…" and it just works, including on elements added later. */
+/* Genuinely clickable things only. The calendar rows were in here and
+   should not be — they are announced-only, and a cursor promising a click
+   on something inert is worse than no cue at all. Their own fill-wipe
+   already says the row is alive. */
+const HOT = 'a, button, input, summary, [role="button"]';
+
+function initCursor() {
+  const cur = $('#cur');
+  if (!cur) return;
+  /* Touch and pen get the native pointer; there is nothing to replace. */
+  if (!matchMedia('(pointer: fine)').matches) { cur.remove(); return; }
+
+  document.documentElement.classList.add('has-cur');
+
+  let tx = innerWidth / 2, ty = innerHeight / 2, cx = tx, cy = ty;
+  let running = false, zone = null, hot = null;
+
+  const paint = () => {
+    cx += (tx - cx) * (REDUCED ? 1 : .22);
+    cy += (ty - cy) * (REDUCED ? 1 : .22);
+    cur.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
+    if (!REDUCED && (Math.abs(tx - cx) > .3 || Math.abs(ty - cy) > .3)) {
+      requestAnimationFrame(paint);
+    } else {
+      running = false;
+    }
+  };
+
+  addEventListener('pointermove', e => {
+    tx = e.clientX; ty = e.clientY;
+    cur.classList.add('is-live');
+
+    /* Which crawl's ground are we on, and is this thing clickable? */
+    const el = e.target instanceof Element ? e.target : null;
+    const nextZone = el?.closest('[data-cursor]')?.dataset.cursor || null;
+    const nextHot  = !!el?.closest(HOT);
+
+    if (nextZone !== zone) {
+      zone = nextZone;
+      if (zone) cur.dataset.cursor = zone; else delete cur.dataset.cursor;
+    }
+    if (nextHot !== hot) {
+      hot = nextHot;
+      cur.classList.toggle('is-hot', hot);
+    }
+
+    if (!running) { running = true; requestAnimationFrame(paint); }
+  }, { passive: true });
+
+  /* Browsers stop servicing rAF in a backgrounded tab. The loop parks
+     itself with running=true and a frame that never arrives, so without
+     this the cursor stays frozen even after you come back — the flag can
+     only be cleared by a frame that will never run. Clearing it on
+     re-show lets the next pointer move re-arm the loop. */
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') running = false;
+  });
+
+  /* Leaving the window, or a tab switch, should not strand the cursor. */
+  addEventListener('pointerleave', () => cur.classList.remove('is-live'));
+  addEventListener('blur', () => cur.classList.remove('is-live'));
+  /* Chrome keeps no pointer during a drag-out; catch the return too. */
+  addEventListener('pointerenter', () => cur.classList.add('is-live'));
 }
 
 /* ══════════════════ 6. ANCHORS ══════════════════
@@ -330,7 +401,7 @@ function init() {
   initCountdown();
   initFigures();
   initNav();
-
+  initCursor();
   initAnchors();
 }
 

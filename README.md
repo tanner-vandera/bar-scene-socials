@@ -30,7 +30,7 @@ Three colours, each with one job. Nothing else on the page is coloured.
 
 | | |
 |---|---|
-| **Red** `#CE1919` | The brand speaking, and the transaction. Brand: the cherry (lockup + hero field), the two Shrikhand words in the headline. Transaction: the nav dot, the countdown, the ticket, the dock CTA. |
+| **Red** `#CE1919` | The brand speaking, and the transaction. Brand: the cherry, wherever the mark appears. Transaction: the countdown, the release chip, the ticket on hover, the "Get tickets" link, the dock CTA. |
 | **Butter** `#FFFFA7` | The N.001 panel. One section, edge to edge, nowhere else. |
 | **Volt** `#009B3E` | The amount returned to the city. One figure, forever. |
 
@@ -76,7 +76,7 @@ background, and no shadow anywhere.
 
 ## Layout
 
-**N.001's head is split on the same columns as its body.** The event name
+**The Upcoming head is split on the same columns as its body.** The event name
 takes `1 / span 5` and the pitch plus the ticket link take `7 / -1` —
 exactly the tracks the poster and the detail rail use underneath, so the
 head sits *on* the structure it introduces rather than near it. The other
@@ -84,8 +84,15 @@ three heads have nothing to put on the right and stay full-width.
 
 > The rule above each section title is its own element (`.sec__rule`),
 > not a `border-top` on the title. A border only spans the full grid while
-> the title does; once N.001's title narrowed to five columns it would
+> the title does; once the Upcoming title narrowed to five columns it would
 > have dragged the section divider in with it.
+
+**Calendar rows** lead with an eyebrow pairing the date and the status —
+`12 DEC 2026 · COMING SOON` — over the outlined name, which is the same
+small-label-then-headline order every other section uses. They were a
+four-column row (index / name / date / status) before, which made them the
+only piece of content on the site reading left-to-right instead of
+top-to-bottom.
 
 A 12-column grid (`.grid`) with a fluid page margin (`--m`) and gutter
 (`--gap`). Headlines run large and tight (`-.045em`); the small tracked
@@ -95,11 +102,18 @@ uppercase labels (`+.1em`) are the counterweight that lets them.
 |---|---|
 | Age gate | 21+ self-declaration, shown once per session |
 | Hero | Full-bleed photograph, headline set in the bottom-left corner |
-| N.001 · Upcoming | Haunted Bar Hop — butter panel, facts, poster, ticket |
-| N.002 · Calendar | The two announced crawls, one hairline row each |
-| N.003 · History | Figures, and the amount returned to the city |
-| N.004 · Contact | Addresses and a ticket-drop signup |
+| Upcoming | Haunted Bar Hop — butter panel, facts, poster, ticket |
+| Calendar | The two announced crawls, one hairline row each |
+| History | Figures, and the amount returned to the city |
+| Contact | Addresses and a ticket-drop signup |
 | Footer | The stacked lockup and colophon |
+
+> Sections were numbered `N.001`–`N.004` for a while and no longer are.
+> The top-bar readout lost its numeral with them — with nothing on the page
+> numbered, `N.001` there pointed at something that did not exist. The
+> readout is now just the section name, and on narrow screens it shows that
+> name rather than the hairline, which was the half that survived when the
+> numeral went and left an orphaned dash.
 
 Copy is deliberately terse. Facts, dates, counts — no atmosphere-setting.
 Where the old site said *"One wristband, sixteen haunted watering holes,
@@ -128,6 +142,49 @@ declaration per session, not a permanent cookie.
 
 If this ever becomes a real ticketing flow, the gate is not enough on its
 own — it needs a verified ID check at purchase or handoff.
+
+---
+
+## The cursor
+
+Three states, one element (`.cur`):
+
+| State | Cursor |
+|---|---|
+| Default | A hairline ring with a centre dot — the same drawing language as every rule on the page, closed into a circle |
+| Over an event | The ring recedes and that crawl's mark takes its place, angled like a cursor rather than sitting upright |
+| Over something clickable | Whichever is showing grows and leans further |
+
+Zones are declared in the markup, not registered in code — `data-cursor="bats"`
+on the N.001 section, `candy-cane` and `clover` on the two calendar rows.
+`app.js` reads them with `closest()` on pointer move, so tagging a new
+section is the whole integration.
+
+**The ring and dot use `mix-blend-mode: difference`**, which is what lets
+one drawing read on paper, butter, ink and photography without a single
+per-section override. The event marks are images and blend normally.
+
+> **The native cursor is hidden by a class JS adds to `<html>`**, never by
+> the stylesheet alone. If the script fails you keep the system cursor
+> instead of losing the pointer entirely.
+
+> **Only genuinely clickable things get the interactive state.** The
+> calendar rows were briefly in that selector and shouldn't have been —
+> they're announced-only, and a cursor promising a click on something inert
+> is worse than no cue. Their own fill-wipe already says the row is alive.
+
+Position is lerped, so the mark trails the pointer slightly — that lag is
+what makes it feel like an object being carried rather than a graphic
+pinned to the mouse. The loop parks itself when the pointer settles.
+
+> Browsers stop servicing `requestAnimationFrame` in a backgrounded tab,
+> which leaves the loop parked with its "running" flag set and a frame that
+> will never arrive — so the cursor stays frozen even after you return. A
+> `visibilitychange` handler clears the flag on re-show so the next pointer
+> move can re-arm it.
+
+Suppressed entirely on `(pointer: coarse)`; under `prefers-reduced-motion`
+the cursor stays but the lerp and the lean are dropped.
 
 ---
 
@@ -191,14 +248,33 @@ toward it. The notch mask clips the light, so it never spills past the trim.
 anchor scrolls differently from every other: it parks the **foot of the
 butter panel on the foot of the viewport**, so the whole offer — ticket,
 prices, terms — arrives in one frame instead of at the top of a section you
-then have to scroll through. On arrival the ticket runs its hover state
-once. Same fill, same sweep, so the cue that draws the eye and the
-affordance that invites the click are one gesture rather than two ideas.
+then have to scroll through.
+
+On arrival the ticket takes a single **white** pass and stays black. The
+red fill belongs to hover, where it answers a pointer; firing it on arrival
+made the ticket look pressed by something the visitor never did. A light
+passing over it reads as "look here" without claiming an interaction
+happened.
 
 > Smooth scrolling has no completion callback, so arrival is detected by
 > watching the page go still. That check has to distinguish "hasn't started
 > moving yet" from "arrived" — smooth scroll takes several frames to start,
 > and without that distinction the flash fires before the scroll does.
+
+### Sticky hover
+
+Every **animated** hover state sits inside
+`@media (hover: hover) and (pointer: fine)`.
+
+> A tap leaves `:hover` applied on touch until you tap something else. The
+> dock's ticket CTA runs an *infinite* animation on hover, so tapping it on
+> a phone left the button cycling forever and looking broken. Gating the
+> rule means it does not exist on hardware that cannot un-hover — there is
+> nothing left to get stuck. `:focus-visible` keeps the same behaviour for
+> keyboard users, outside the guard.
+
+Static colour hovers are deliberately left ungated: a sticky colour change
+reads as a selected state, not a fault.
 
 **The hero** is full-bleed media with the site's own furniture laid over
 it — hairline rule, tracked caption labels, the same page margin as every
@@ -352,6 +428,20 @@ per the new brief. The **16 bars** figure is carried over from the previous
 copy — the new brief says "map to participating bars" without a count, so
 it is unconfirmed.
 
+## Focus
+
+The site hides the native cursor and its header, dock and ticket are all
+dark surfaces, so the UA default focus ring was easy to lose. `:focus-visible`
+now draws a 2px `currentColor` outline at 3px offset — `currentColor` keeps
+it legible on paper, butter, ink and photography without a per-surface
+override, and the two dark chrome elements force it to white.
+
+The gate panel is deliberately exempt: it's `tabindex="-1"` and focused
+programmatically to move a reader into the dialog, so it should not draw a
+ring it never earned by tabbing.
+
+---
+
 ## Known gaps
 
 - Every CTA is `href="#"` with `onclick="return false;"`. No ticketing
@@ -366,4 +456,10 @@ it is unconfirmed.
   hard-reload or append `?v=2` — CSS and JS cache separately from the HTML.
 - `_dev-viewport.html` is a local harness that iframes the site at a fixed
   size, because the in-app browser pane won't shrink below ~617px. Not part
-  of the site.
+  of the site, and not deployed.
+- The in-app browser pane intermittently stops servicing
+  `requestAnimationFrame`. When it does, `scroll-behavior: smooth` and CSS
+  animations stop with it — same frame loop — even though instant
+  `scrollTop` assignment still works. Click-scroll-animate chains can't be
+  verified in that state; probe the CSSOM instead and retest when frames
+  are alive.
