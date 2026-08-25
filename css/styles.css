@@ -937,23 +937,29 @@ body.is-gated{ overflow:hidden; }
 .tstat[data-stage="out"] .tstat__dot{ animation:none; opacity:.4; }
 
 /* ── Buy row ──────────────────────────────────────────────────────
-   Ticket and prices side by side when the column can hold both, prices
-   underneath when it cannot. The wrap is flexbox reading the real box —
-   the basis widths below are the narrowest each part stays honest at —
-   rather than a viewport breakpoint, which would be measuring the window
-   when the question is about a column that is 6/12 wide on a large
-   screen and 12/12 on a small one. */
+   Ticket and prices side by side when the column can hold both, stacked
+   when it cannot — and the question is asked of the COLUMN, not the
+   window. `.next__side` is 6 of 12 on a large screen and 12 of 12 on a
+   small one, so a 620px phone in landscape has a wider column than a
+   1024px laptop; a viewport query would be measuring the wrong box.
+
+   Stated as one container threshold rather than left to emerge from
+   flex-wrap. Two states, one number, and each state sets everything it
+   needs — which is what stops a rule tuned for one from leaking into the
+   other. (It did: the prices' max-width is right beside the ticket and
+   wrong underneath it, where it left them stopping short of the ticket's
+   right edge.)
+
+   Without container query support the stacked state stands on its own,
+   which is the safe way round to fail. */
+.next__side{ container-type:inline-size; }
+
 .buy{
-  display:flex; flex-wrap:wrap; align-items:stretch;
+  display:flex; flex-direction:column; align-items:stretch;
   gap:clamp(18px,2.2vw,30px);
 }
-/* Bases tuned against the narrowest column this row actually lands in —
-   6 of 12 on a 1024 laptop, which measures ~469px — so the prices stay
-   beside the ticket there rather than dropping under it on a screen wide
-   enough to hold both. */
-.buy > .ticket{ flex:1 1 288px; }
+.buy > .ticket{ max-width:480px; }
 .price{
-  flex:1 1 146px; max-width:270px;
   margin:0;
   /* space-between, not center: the buy row stretches this to the ticket's
      height, and spreading puts the block's first and last hairlines on the
@@ -962,6 +968,15 @@ body.is-gated{ overflow:hidden; }
      wrap underneath there is no stretch and this has no effect. */
   display:flex; flex-direction:column; justify-content:space-between;
 }
+
+/* 460px is the ticket's honest minimum (288) plus the prices' (146) plus
+   the gap. Below it they stack, at or above it they sit side by side. */
+@container (min-width:460px){
+  .buy{ flex-direction:row; }
+  .buy > .ticket{ flex:1 1 288px; }
+  .price{ flex:1 1 146px; max-width:270px; }
+}
+
 /* Each entry is one line: plan left, price right, on the hairline that
    already organises every other fact on the site. The only thing that
    changes from .spec is the plan name, which is set in the display face at
@@ -996,11 +1011,12 @@ body.is-gated{ overflow:hidden; }
   --notch: 9px;
   position:relative; display:flex; align-items:stretch;
   width:100%; max-width:480px;
-  /* Level with the two price rows beside it: the buy row stretches both
-     children to the taller, so this floor only has to keep the ticket
-     honest when the prices are underneath instead. The rail's width is
-     derived from the height, not typed. */
-  min-height:108px;
+  /* The ticket's floor, and the number the poster rail is cut from — see
+     .ticket__rail. The buy row stretches both children to the taller of
+     the two, and the prices come out at almost exactly this, so the two
+     objects sit level without either being told the other's height. */
+  --tk-h:108px;
+  min-height:var(--tk-h);
   color:var(--butter);
   background:var(--ink);
   border-radius:5px;
@@ -1062,13 +1078,20 @@ body.is-gated{ overflow:hidden; }
 
 /* Rail. The poster at the series trim, so the ticket carries the object
    it admits you to instead of the mark you have already seen five times
-   on this screen. Width is DERIVED: the rail stretches to the ticket's
-   height and 2:3 gives it its width, so the poster is never cropped and
-   there is no number here to keep in sync with the sheet above. */
+   on this screen.
+
+   Its width is 2:3 of --tk-h, which is also the ticket's own floor — one
+   number, written once, so the artwork keeps its trim.
+
+   It was `aspect-ratio:2/3` on a stretched flex item, deriving width from
+   height. Blink resolves that; WebKit does not — it sizes the flex item
+   from its content first, and this element is empty, so on iOS the whole
+   rail collapsed to a sliver and the poster disappeared. An explicit
+   flex-basis sidesteps the disagreement entirely. Do not put the ratio
+   back on a flex item whose cross size comes from stretch. */
 .ticket__rail{
   position:relative; z-index:1;
-  flex:none;
-  aspect-ratio:2/3;
+  flex:0 0 calc(var(--tk-h) * 2 / 3);
   align-self:stretch;
   background:url(../assets/poster-halloween.jpg) center/cover no-repeat;
   border-right:1px solid color-mix(in srgb, currentColor 22%, transparent);
@@ -1081,15 +1104,26 @@ body.is-gated{ overflow:hidden; }
   display:flex; flex-direction:column; justify-content:center; gap:8px;
   padding:18px clamp(14px,1.5vw,20px);
 }
+/* The poster on the rail leaves the body narrower than it was, so on a
+   small ticket these two facts no longer share a line — and a typed
+   separator broke as "31 OCT 2026 · BRADY / STREET". Each fact is now its
+   own unbreakable element and the GAP does the separating, so the break
+   lands between them and nothing is left dangling at the end of a line. */
 .ticket__meta{
+  display:flex; flex-wrap:wrap;
+  gap:0 1.15em;
   font-size:9px; font-weight:500;
   letter-spacing:.18em; text-transform:uppercase;
   opacity:.66;
 }
+.ticket__meta > span{ white-space:nowrap; }
 .ticket__label{
   font-family:var(--f-display);
   font-size:clamp(16px,1.4vw,21px);
   font-weight:400; line-height:1; letter-spacing:-.025em;
+  /* At the narrowest ticket the name needs two lines; balanced it breaks
+     "Haunted / Bar Hop" rather than "Haunted Bar / Hop". */
+  text-wrap:balance;
 }
 
 /* Stub. Perforation drawn as actual holes rather than a dashed rule. */

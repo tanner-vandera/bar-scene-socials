@@ -258,7 +258,14 @@ the two so they cannot drift apart.
 **The ticket** (`.ticket`) is the Upcoming CTA, built in three parts like
 the real object: a **rail** carrying the poster, a **body** carrying the
 booking (event name, particulars), and a tear-off **stub** with a barcode
-and a serial. The perforation is drawn as actual round holes rather than a
+and a serial.
+
+The body's two particulars are **separate unbreakable elements with a gap
+between them**, not one string with a typed separator. The poster left the
+body narrower than it was, and on a small ticket the old string broke as
+"31 OCT 2026 · BRADY / STREET" — splitting a street name and stranding the
+separator. Now the break lands between the two facts and the gap does the
+separating, so there is nothing left to dangle. The perforation is drawn as actual round holes rather than a
 dashed rule, and the notches are cut as real holes via `mask-composite` so
 the butter panel shows through them. Hover fills it red.
 
@@ -269,10 +276,16 @@ the butter panel shows through them. Hover fills it red.
 
 **The rail carries the poster at the series 2:3 trim**, so the ticket shows
 the object it admits you to rather than the mark you have already seen five
-times on that screen. Its width is *derived*, not typed: the rail stretches
-to the ticket's height and `aspect-ratio: 2/3` gives it its width, so the
-artwork is never cropped and there is no number here to keep in sync with
-the poster sheet above.
+times on that screen. Its width is `calc(var(--tk-h) * 2 / 3)` — the same
+number as the ticket's own floor, written once, so the artwork keeps its
+trim without a second value to keep in sync.
+
+> It was `aspect-ratio: 2/3` on a stretched flex item, deriving the width
+> from the height. **Blink resolves that; WebKit does not** — WebKit sizes
+> the flex item from its content first, and the rail is an empty element,
+> so on iOS the whole rail collapsed to a sliver and the poster vanished.
+> An explicit `flex-basis` sidesteps the disagreement. Don't put the ratio
+> back on a flex item whose cross size comes from `stretch`.
 
 **The ticket and the prices size each other.** `.buy` is a flex row with
 `align-items: stretch`, so the two are always exactly level — and because
@@ -280,13 +293,22 @@ the prices are the taller of the two, *their* leading is what sets the
 ticket's proportions and therefore the rail's width. Shorten a price row
 and the ticket gets shorter with it.
 
-> The row wraps by **measurement, not breakpoint**. `.next__side` is 6 of
-> 12 columns on a large screen and 12 of 12 on a small one, so a viewport
-> query would be asking about the wrong box entirely — a 620px phone in
-> landscape has a *wider* column than a 1024px laptop. The flex bases
-> (`288px` / `146px`) are tuned against the narrowest column the row
-> actually lands in, which is ~469px at 1024. Prices drop underneath below
-> that, which is the mobile case.
+> The row switches by **measurement, not breakpoint** — a
+> `@container (min-width: 460px)` query on `.next__side`. That column is 6
+> of 12 on a large screen and 12 of 12 on a small one, so a viewport query
+> would be asking about the wrong box entirely: a 620px phone in landscape
+> has a *wider* column than a 1024px laptop. 460px is the ticket's honest
+> minimum (288) plus the prices' (146) plus the gap.
+>
+> Two explicit states, one number, and **each state sets everything it
+> needs** — which is what stops a value tuned for one leaking into the
+> other. It did leak: the prices carry a `max-width` so they don't sprawl
+> beside the ticket, and left in place underneath it that cap became a stub
+> stopping well short of the ticket's right edge. Stacked, the prices are
+> uncapped and the two objects are exactly the same width.
+>
+> Without container query support the stacked state stands alone, which is
+> the safe way round to fail.
 
 A butter-coloured raking highlight sweeps the sheet as the fill turns red,
 and keeps sweeping while the pointer stays. It leaves the mark immediately,

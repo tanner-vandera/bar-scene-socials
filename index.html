@@ -248,7 +248,12 @@
           <span class="ticket__rail" aria-hidden="true"></span>
           <span class="ticket__main">
             <span class="ticket__label">Haunted Bar Hop</span>
-            <span class="ticket__meta">31 Oct 2026 · Brady Street</span>
+            <!-- Two facts, each its own element, so a narrow ticket breaks
+                 between them rather than through the middle of one. -->
+            <span class="ticket__meta">
+              <span>31 Oct 2026</span>
+              <span>Brady Street</span>
+            </span>
           </span>
           <span class="ticket__stub" aria-hidden="true">
             <span class="ticket__code"></span>
