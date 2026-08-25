@@ -38,7 +38,10 @@
 
 <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle" hidden>
   <div class="gate__panel" id="gatePanel" tabindex="-1">
-    <span class="gate__cherry" aria-hidden="true"></span>
+    <!-- The full stacked lockup rather than the cherry alone. This is the
+         first thing anyone sees, and the mark on its own asks the visitor
+         to already know whose site they are being stopped at. -->
+    <img class="gate__lockup" src="assets/lockup-stacked.svg" alt="Bar Scene Socials" width="1158" height="633" />
 
     <div class="gate__ask" id="gateAsk">
       <h2 class="gate__title" id="gateTitle">Are you 21 or older?</h2>
@@ -121,6 +124,41 @@
 
 <!-- ══════════════════════════ UPCOMING ══════════════════════════ -->
 <section class="sec sec--feature" id="next" data-label="Upcoming" data-cursor="bats">
+
+  <!-- Weather. Two strikes, each a pair: a wash anchored on that bolt's
+       head, and the bolt itself, drawn as a stroke in the same language as
+       every rule on the page rather than as a filled cartoon. White on
+       butter only moves one channel, so a bolt without its wash reads as a
+       glitch — the wash is what gives the light a source.
+
+       A leans right and short, B leans left and long, so the pair never
+       reads as one drawing mirrored. B fires 180ms after A: close enough
+       to be the same storm, far enough apart to be two strikes.
+
+       Everything sits behind the content and animates opacity only, and
+       the cycle is started by the section entering view so a strike is
+       never something you scrolled past. -->
+  <div class="storm" aria-hidden="true">
+    <span class="storm__wash storm__wash--a"></span>
+    <!-- Head and tail run past the viewBox so each strike is cut by the
+         box rather than starting and stopping in mid-air. -->
+    <svg class="storm__bolt storm__bolt--a" viewBox="0 0 150 330" fill="none" stroke="#fff"
+         stroke-linejoin="miter" stroke-linecap="square" aria-hidden="true">
+      <path d="M112 -6 L34 128 L86 128 L26 336" stroke-width="7"   vector-effect="non-scaling-stroke" />
+      <path d="M70 208 L126 264"                stroke-width="3.2" vector-effect="non-scaling-stroke" />
+    </svg>
+
+    <span class="storm__wash storm__wash--b"></span>
+    <!-- B runs down the left side to about where the poster starts, with
+         three kinks instead of one so the two strikes read as different
+         weather rather than the same asset flipped. -->
+    <svg class="storm__bolt storm__bolt--b" viewBox="0 0 130 520" fill="none" stroke="#fff"
+         stroke-linejoin="miter" stroke-linecap="square" aria-hidden="true">
+      <path d="M16 -10 L74 176 L34 176 L96 400 L58 400 L106 530" stroke-width="8"   vector-effect="non-scaling-stroke" />
+      <path d="M52 300 L10 358"                                  stroke-width="3.4" vector-effect="non-scaling-stroke" />
+    </svg>
+  </div>
+
   <header class="sec__head sec__head--split grid">
     <p class="label sec__kicker">Upcoming</p>
     <span class="sec__rule" aria-hidden="true"></span>
@@ -185,7 +223,7 @@
       <!-- The nav's ticket CTA lands here rather than at the top of the
            section — it's an action, so it should arrive at the action. -->
       <div class="ticket__head-row" id="tickets">
-        <h3 class="ticket__head">Tickets</h3>
+        <h3 class="subhead">Tickets</h3>
 
         <!-- Release stage is derived from what's left, not hard-coded:
              800 or fewer → going fast, 300 or fewer → last chance, 0 → out.
@@ -197,25 +235,31 @@
         </p>
       </div>
 
-      <a class="ticket" href="#" onclick="return false;">
-        <span class="ticket__rail" aria-hidden="true">
-          <span class="ticket__mark"></span>
-        </span>
-        <span class="ticket__main">
-          <span class="ticket__eyebrow">Admit one</span>
-          <span class="ticket__label">Haunted Bar Hop</span>
-          <span class="ticket__meta">31 Oct 2026 · Brady Street</span>
-        </span>
-        <span class="ticket__stub" aria-hidden="true">
-          <span class="ticket__code"></span>
-        </span>
-      </a>
+      <!-- Ticket and prices sit side by side wherever the column is wide
+           enough to hold both, and the prices drop underneath when it is
+           not. Flexbox decides that from the real measurements rather
+           than a viewport breakpoint — this column is 6 of 12 on a wide
+           screen and 12 of 12 on a narrow one, so a width query would be
+           asking about the wrong box. -->
+      <div class="buy">
+        <a class="ticket" href="#" onclick="return false;">
+          <!-- The rail carries the poster at the series trim, so the
+               ticket shows the object it admits you to. -->
+          <span class="ticket__rail" aria-hidden="true"></span>
+          <span class="ticket__main">
+            <span class="ticket__label">Haunted Bar Hop</span>
+            <span class="ticket__meta">31 Oct 2026 · Brady Street</span>
+          </span>
+          <span class="ticket__stub" aria-hidden="true">
+            <span class="ticket__code"></span>
+          </span>
+        </a>
 
-      <dl class="spec price">
-        <div><dt>Single</dt><dd>$14.95</dd></div>
-        <div><dt>Group of 5</dt><dd>$11.95 <i>each</i></dd></div>
-      </dl>
-      <p class="note">Placeholder — ticketing not connected.</p>
+        <dl class="spec price">
+          <div><dt>Single</dt><dd>$14.95</dd></div>
+          <div><dt>Group of 5</dt><dd>$11.95 <i>each</i></dd></div>
+        </dl>
+      </div>
     </div>
   </div>
 </section>
@@ -225,20 +269,42 @@
   <header class="sec__head grid">
     <p class="label sec__kicker">Calendar</p>
     <span class="sec__rule" aria-hidden="true"></span>
-    <h2 class="sec__title">Also<br />announced</h2>
+    <h2 class="sec__title">The 2026&ndash;27<br />season</h2>
   </header>
 
-  <!-- Announced-but-undetailed crawls. One row each: nothing to sell yet,
-       so nothing beyond the fact that it exists and when. -->
+  <!-- The season, drawn. Only the months that carry a crawl are printed —
+       three of them out of eighteen — because a full run of months would
+       be almost entirely empty squares, and empty squares are the thing a
+       three-event calendar has too many of.
+
+       Built in JS from one list (SEASON, in js/app.js): add a crawl and
+       its month appears, correctly aligned, with no dates to type. The
+       announced list below is the same information in plain markup, so
+       nothing is lost if the script never runs. -->
+  <div class="months" id="months"></div>
+
+  <!-- Every crawl in the season, in order. One row each: these are
+       announcements, not offers — the only one with anything to sell has a
+       whole section of its own above, and these rows stay deliberately
+       inert rather than pretending to be links. The state chip is the only
+       thing that separates them. -->
+  <h3 class="subhead cal__over">All events</h3>
   <ol class="cal">
-    <li data-cursor="candy-cane">
+    <li id="e-haunted" data-cursor="bats">
+      <span class="cal__eyebrow">
+        <span class="cal__date label">31 Oct 2026</span>
+        <span class="cal__state cal__state--live"><i aria-hidden="true"></i>On sale</span>
+      </span>
+      <span class="cal__name" data-text="Haunted Bar Hop">Haunted Bar Hop</span>
+    </li>
+    <li id="e-christmas" data-cursor="candy-cane">
       <span class="cal__eyebrow">
         <span class="cal__date label">12 Dec 2026</span>
         <span class="cal__state"><i aria-hidden="true"></i>Coming soon</span>
       </span>
       <span class="cal__name" data-text="12 Bars of Christmas">12 Bars of Christmas</span>
     </li>
-    <li data-cursor="clover">
+    <li id="e-shamrock" data-cursor="clover">
       <span class="cal__eyebrow">
         <span class="cal__date label">17 Mar 2027</span>
         <span class="cal__state"><i aria-hidden="true"></i>Coming soon</span>

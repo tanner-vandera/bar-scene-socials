@@ -1,10 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════════
    BAR SCENE SOCIALS
    ───────────────────────────────────────────────────────────────────
-   Five small modules. Native scrolling, no scroll hijack, no rAF loop —
-   this design has one motion idea (lift and fade) and two things that
-   track scroll position, and IntersectionObserver handles both without
-   running code every frame.
+   A handful of small, independent modules. Native scrolling, no scroll
+   hijack. Everything that depends on scroll position — the reveals, the
+   nav readout, the counting figures, the weather — is driven by
+   IntersectionObserver rather than by work on every frame.
+
+   The one rAF loop is the cursor, and it parks itself the moment the
+   pointer stops moving.
+
+   Modules are listed in the order they must boot; see init() at the foot
+   of the file, which is the only place that order is stated.
    ═══════════════════════════════════════════════════════════════════ */
 (() => {
 'use strict';
@@ -13,7 +19,7 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
-/* ══════════════════ 1. REVEALS ══════════════════
+/* ══════════════════ REVEALS ══════════════════
    Targets are tagged here rather than in the markup: the HTML stays a
    clean document, and what animates is a presentation decision. */
 function initReveals() {
@@ -24,6 +30,7 @@ function initReveals() {
     ...$$('.sec__kicker, .sec__title'),
     ...$$('.spec > div'),
     ...$$('.next__side > *'),
+    ...$$('.mo__block'),
     ...$$('.cal li'),
     ...$$('.figs > div'),
     ...$$('.give > *'),
@@ -54,7 +61,7 @@ function initReveals() {
   targets.forEach(t => io.observe(t));
 }
 
-/* ══════════════════ 2. COUNTDOWN ══════════════════ */
+/* ══════════════════ COUNTDOWN ══════════════════ */
 function initCountdown() {
   const nodes = $$('[data-countdown]').map(el => ({
     when: new Date(el.dataset.countdown).getTime(),
@@ -77,7 +84,7 @@ function initCountdown() {
   setInterval(tick, 1000);
 }
 
-/* ══════════════════ 3. FIGURES ══════════════════ */
+/* ══════════════════ FIGURES ══════════════════ */
 function initFigures() {
   const nodes = $$('[data-count-to]');
   if (!nodes.length) return;
@@ -103,7 +110,7 @@ function initFigures() {
   nodes.forEach(n => io.observe(n));
 }
 
-/* ══════════════════ 0. AGE GATE ══════════════════
+/* ══════════════════ AGE GATE ══════════════════
    Self-declaration, not verification. It exists because the industry
    codes (Beer Institute, Brewers Association, Wine Institute, DISCUS)
    and the FTC's self-regulation reports treat it as required practice —
@@ -140,7 +147,138 @@ function initGate() {
   });
 }
 
-/* ══════════════════ 3a. TICKET RELEASE STAGE ══════════════════
+/* ══════════════════ THE SEASON ══════════════════
+   The single source of truth for the calendar. Add a crawl here and its
+   month appears, aligned to the real calendar, with the square marked and
+   the name printed underneath — there are no dates typed into the markup
+   and no day-of-week to work out by hand.
+
+     date  ISO, parsed as plain numbers so it can never shift a day
+           across a timezone
+     mark  the sticker on the square; matches the cursor art in
+           assets/cur-<mark>.png, so the calendar and the pointer agree
+     href  where the square sends you
+
+   Only the months named here are printed. Three crawls across eighteen
+   months would otherwise be about five hundred empty squares. */
+const SEASON = [
+  { date: '2026-10-31', name: 'Haunted Bar Hop',      mark: 'bats',       href: '#next'         },
+  { date: '2026-12-12', name: '12 Bars of Christmas', mark: 'candy-cane', href: '#e-christmas'  },
+  { date: '2027-03-17', name: 'Shamrock Shuffle',     mark: 'clover',     href: '#e-shamrock'   }
+];
+
+const MONTH_NAMES = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+const DAY_INITIAL = ['S','M','T','W','T','F','S'];
+const DAY_NAMES   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function initCalendar() {
+  const host = $('#months');
+  if (!host) return;
+
+  const pad = n => String(n).padStart(2, '0');
+  /* Split the string rather than letting Date parse it: 'YYYY-MM-DD' is
+     read as UTC and then printed in local time, which lands the whole
+     season one day early for anyone west of Greenwich. */
+  const parts = iso => iso.split('-').map(Number);
+  /* UTC throughout for the same reason — these are calendar facts, not
+     moments, and they must not move with the reader's clock. */
+  const firstDay = (y, m) => new Date(Date.UTC(y, m, 1)).getUTCDay();
+  const monthLen = (y, m) => new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+
+  const now = new Date();
+  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+  /* Group the season by month, keeping the order it was written in. */
+  const months = [];
+  SEASON.forEach(ev => {
+    const [y, m] = parts(ev.date);
+    let bucket = months.find(b => b.y === y && b.m === m - 1);
+    if (!bucket) months.push(bucket = { y, m: m - 1, events: [] });
+    bucket.events.push(ev);
+  });
+
+  const esc = str => String(str).replace(/[&<>"]/g,
+    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  const html = months.map(({ y, m, events }) => {
+    const lead  = firstDay(y, m);
+    const total = monthLen(y, m);
+    const cells = [];
+
+    for (let i = 0; i < lead; i++) cells.push('<td></td>');
+
+    for (let d = 1; d <= total; d++) {
+      const iso = `${y}-${pad(m + 1)}-${pad(d)}`;
+      const ev  = events.find(e => e.date === iso);
+      const cls = ['d'];
+      if (iso === today) cls.push('d--today');
+
+      if (!ev) {
+        cells.push(`<td><span class="${cls.join(' ')}">${d}</span></td>`);
+        continue;
+      }
+      cls.push('d--hit');
+      const dow = DAY_NAMES[(lead + d - 1) % 7];
+      /* data-cursor is read on pointermove via closest(), so tagging the
+         square is the whole integration — hover the date and the pointer
+         becomes that crawl's mark. */
+      cells.push(
+        `<td class="is-ev"><a class="${cls.join(' ')}" href="${esc(ev.href)}"` +
+        ` data-cursor="${esc(ev.mark)}"` +
+        ` aria-label="${esc(`${dow} ${d} ${MONTH_NAMES[m]} ${y} — ${ev.name}`)}">` +
+        `<span aria-hidden="true">${d}</span>` +
+        `<i class="d__mark" style="background-image:url(assets/cur-${esc(ev.mark)}.png)" aria-hidden="true"></i>` +
+        `</a></td>`
+      );
+    }
+
+    /* Close the final week so the last rule runs the full width. */
+    while (cells.length % 7) cells.push('<td></td>');
+
+    const rows = [];
+    for (let i = 0; i < cells.length; i += 7) {
+      rows.push('<tr>' + cells.slice(i, i + 7).join('') + '</tr>');
+    }
+
+    const head = DAY_INITIAL.map((ltr, i) =>
+      `<th scope="col" abbr="${DAY_NAMES[i]}"><span aria-hidden="true">${ltr}</span>` +
+      `<span class="vh">${DAY_NAMES[i]}</span></th>`).join('');
+
+    return '<div class="mo__block">' +
+      `<table class="mo">` +
+        `<caption class="mo__cap"><b>${MONTH_NAMES[m]}</b> ${y}</caption>` +
+        `<thead><tr>${head}</tr></thead>` +
+        `<tbody>${rows.join('')}</tbody>` +
+      `</table>` +
+    '</div>';
+  }).join('');
+
+  host.innerHTML = html;
+}
+
+/* ══════════════════ WEATHER ══════════════════
+   The butter panel gets lightning. Everything about the strike itself is
+   in CSS — two elements, opacity only, one shared duration — and all this
+   does is decide when the cycle is allowed to run.
+
+   Tying it to the section being on screen does two jobs: nothing animates
+   while you are elsewhere on the page, and because the class lands as the
+   panel arrives, the first strike is always about a second after you get
+   there rather than up to five seconds into a cycle you did not see. */
+function initStorm() {
+  const storm = $('.storm');
+  if (!storm || REDUCED) return;
+
+  const panel = storm.parentElement;
+  if (!('IntersectionObserver' in window)) { storm.classList.add('is-live'); return; }
+
+  new IntersectionObserver(entries => {
+    entries.forEach(e => storm.classList.toggle('is-live', e.isIntersecting));
+  }, { threshold: 0 }).observe(panel);
+}
+
+/* ══════════════════ TICKET RELEASE STAGE ══════════════════
    The stage is derived from the remaining allocation rather than typed
    in, so the chip can never disagree with the number beside it. */
 function initTicketStage() {
@@ -161,7 +299,7 @@ function initTicketStage() {
   $('.tstat__count', el).textContent = left > 0 ? left.toLocaleString('en-US') + ' left' : '';
 }
 
-/* ══════════════════ 3b. FLIP LABELS ══════════════════
+/* ══════════════════ FLIP LABELS ══════════════════
    Duplicates the text of every [data-flip] into a two-line stack the CSS
    can slide. Built here so the markup stays one plain word per link —
    the second copy is presentation, and it must never reach the
@@ -188,7 +326,7 @@ function initFlip() {
   });
 }
 
-/* ══════════════════ 4. NAVIGATION ══════════════════
+/* ══════════════════ NAVIGATION ══════════════════
    The dock indicator and the top-bar readout are two views of one piece
    of state: which section you're in. Both are driven from a single
    observer, so they can never disagree. */
@@ -252,7 +390,7 @@ function initNav() {
   sync();
 }
 
-/* ══════════════════ 5. CURSOR ══════════════════
+/* ══════════════════ CURSOR ══════════════════
    One element, three states. Position is lerped so the mark trails the
    pointer slightly — that lag is what makes it feel like an object being
    carried rather than a graphic pinned to the mouse.
@@ -325,7 +463,7 @@ function initCursor() {
   addEventListener('pointerenter', () => cur.classList.add('is-live'));
 }
 
-/* ══════════════════ 6. ANCHORS ══════════════════
+/* ══════════════════ ANCHORS ══════════════════
    Most links land just below the fixed bar. #tickets is different: it
    parks the FOOT of the butter panel on the foot of the viewport, so the
    whole offer — ticket, prices, terms — arrives in one frame instead of
@@ -363,6 +501,20 @@ function initAnchors() {
     requestAnimationFrame(tick);
   };
 
+  /* Layout position, walked from offsetTop rather than read off a
+     bounding rect. A rect includes transforms, and every reveal target
+     sits translated 14px down until it animates in — measuring one
+     mid-reveal lands the scroll short and parks the target under the
+     fixed bar. offsetTop and offsetHeight ignore transforms, so the
+     landing is the same whether or not the target has revealed yet.
+     This matters now that the calendar squares link straight at the
+     announced rows, which are reveal targets. */
+  const docTop = el => {
+    let y = 0;
+    for (let n = el; n; n = n.offsetParent) y += n.offsetTop;
+    return y;
+  };
+
   $$('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const id = a.getAttribute('href').slice(1);
@@ -371,8 +523,8 @@ function initAnchors() {
       e.preventDefault();
 
       const off = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--top-h')) || 68;
-      const underBar = target.getBoundingClientRect().top + scrollY - off - 8;
-      let top = id === 'top' ? target.getBoundingClientRect().top + scrollY : underBar;
+      const underBar = docTop(target) - off - 8;
+      let top = id === 'top' ? docTop(target) : underBar;
 
       if (id === 'tickets') {
         const panel = $('.sec--feature');
@@ -381,7 +533,7 @@ function initAnchors() {
              is the smaller scroll: if the tail is taller than the screen,
              that lands the heading under the bar instead of pushing it
              off the top. */
-          const foot = panel.getBoundingClientRect().bottom + scrollY - innerHeight;
+          const foot = docTop(panel) + panel.offsetHeight - innerHeight;
           top = Math.min(foot, underBar);
         }
       }
@@ -395,6 +547,9 @@ function initAnchors() {
 /* ══════════════════ BOOT ══════════════════ */
 function init() {
   initGate();
+  /* Before initReveals and initAnchors: the month squares are links and
+     reveal targets, and both of those walk the DOM once at boot. */
+  initCalendar();
   initReveals();
   initFlip();
   initTicketStage();
@@ -402,6 +557,7 @@ function init() {
   initFigures();
   initNav();
   initCursor();
+  initStorm();
   initAnchors();
 }
 

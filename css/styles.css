@@ -13,8 +13,19 @@
      BUTTER the Upcoming panel. One section, edge to edge, nowhere else.
      VOLT   the amount returned to the city. One figure, forever.
 
-   Before adding a fourth colour — or a red that isn't brand or
-   transaction — check whether an existing one already carries the idea.
+   Two things sit outside that budget on purpose, and both are declared
+   here rather than discovered later:
+
+     WHITE  the lightning over the Upcoming panel. Light, not pigment —
+            it exists for about a third of a second at a time and paints
+            nothing that is still there afterwards.
+     MARKS  the three event stickers on the calendar's marked days, which
+            are the cursor art reused. Deliberately small: an accent on a
+            monochrome grid, not a palette. If they ever start reading as
+            colour on the page, they are the first thing to cut.
+
+   Before adding anything else — or a red that isn't brand or transaction
+   — check whether an existing colour already carries the idea.
 
    BRAND FACE — Shrikhand is set on two words of the hero headline and
    nowhere else as live text. The lockup SVGs carry the same face, so the
@@ -98,6 +109,16 @@ h1,h2,h3{
   text-wrap:balance;
 }
 
+/* One step down from .sec__title, for the parts of a section that are
+   their own thing rather than the section itself — the ticket offer, the
+   full event list. Shared so the two can never drift apart. */
+.subhead{
+  font-family:var(--f-display); font-weight:400;
+  font-size:clamp(28px,3.1vw,50px);
+  line-height:.95; letter-spacing:-.04em;
+  margin:0;
+}
+
 .note{
   font-size:11px;
   color:var(--ink-42);
@@ -137,22 +158,30 @@ html.has-cur, html.has-cur *{ cursor:none !important; }
   transform-origin:50% 50%;
 }
 
-/* Ring + dot. difference blending means one drawing reads on paper,
-   butter, ink and photography without a single per-section override. */
+/* Ring + dot, drawn in ink with a light halo on both sides of the stroke.
+   That sandwich is what lets ONE drawing read on paper, butter, ink and
+   photography with no per-section override.
+
+   It replaces mix-blend-mode:difference, which was doing nothing here: the
+   cursor is positioned with a transform and carries will-change, both of
+   which make it a stacking context, and a stacking context isolates its
+   descendants' blending — so the ring was compositing against the
+   cursor's own empty box and staying pure white on pale paper. */
 .cur__ring{
-  width:32px; height:32px; margin:-16px 0 0 -16px;
-  border:1.25px solid #fff;
+  width:30px; height:30px; margin:-15px 0 0 -15px;
+  border:2px solid var(--ink);
   border-radius:50%;
-  mix-blend-mode:difference;
+  box-shadow:0 0 0 1.25px rgba(255,255,255,.62),
+             inset 0 0 0 1.25px rgba(255,255,255,.62);
   transition:width .32s var(--ease), height .32s var(--ease),
              margin .32s var(--ease), opacity .28s var(--ease),
              border-width .28s var(--ease);
 }
 .cur__dot{
-  width:4px; height:4px; margin:-2px 0 0 -2px;
+  width:7px; height:7px; margin:-3.5px 0 0 -3.5px;
   border-radius:50%;
-  background:#fff;
-  mix-blend-mode:difference;
+  background:var(--ink);
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.7);
   transition:opacity .22s var(--ease), transform .3s var(--ease);
 }
 
@@ -160,7 +189,7 @@ html.has-cur, html.has-cur *{ cursor:none !important; }
    pointer reads as reaching for something rather than resting. */
 .cur.is-hot .cur__ring{
   width:58px; height:58px; margin:-29px 0 0 -29px;
-  border-width:1px;
+  border-width:1.5px;
 }
 .cur.is-hot .cur__dot{ opacity:0; transform:scale(.4); }
 
@@ -196,17 +225,37 @@ html.has-cur, html.has-cur *{ cursor:none !important; }
   html.has-cur, html.has-cur *{ cursor:auto !important; }
 }
 
+/* ═══════════════ VISUALLY HIDDEN ═══════════════
+   For text that has to reach a screen reader but would be noise on the
+   page — the calendar's weekday columns are drawn as single letters, and
+   "S S" is not a column heading anyone can use. */
+.vh{
+  position:absolute; width:1px; height:1px;
+  margin:-1px; padding:0; border:0;
+  clip-path:inset(50%);
+  overflow:hidden; white-space:nowrap;
+}
+
 /* ═══════════════ FOCUS ═══════════════ */
 :focus-visible{
   outline:2px solid currentColor;
   outline-offset:3px;
   border-radius:2px;
 }
-/* On the two dark chrome elements the ring needs to be light rather than
-   inherit the link's own colour. */
+/* currentColor is the right default only where the element's own text
+   already contrasts with the page. Anything that carries LIGHT text on a
+   dark fill inherits a light outline, which then lands on the pale ground
+   around it and disappears — so every one of those is named here.
+
+   Light rings, because the element sits on dark chrome: */
 .top :focus-visible,
 .dock :focus-visible{ outline-color:#fff; }
 .dock__cta:focus-visible{ outline-color:#fff; outline-offset:4px; }
+/* Ink rings, because the element is a dark object on a pale ground and
+   the ring has to be read against that ground, not against the object: */
+.gate__btn:focus-visible,
+.ticket:focus-visible,
+.d--hit:focus-visible{ outline-color:var(--ink); }
 /* The gate panel is focused programmatically to move the reader into the
    dialog; it is not tab-reachable, so it should not draw a ring. */
 .gate__panel:focus-visible{ outline:none; }
@@ -221,13 +270,14 @@ html.has-cur, html.has-cur *{ cursor:none !important; }
 .gate[hidden]{ display:none; }
 body.is-gated{ overflow:hidden; }
 .gate__panel{ max-width:44ch; text-align:left; outline:none; }
-.gate__cherry{
+/* The full lockup, shipped as an <img> rather than a mask, so it keeps
+   the brand's own two colours — ink wordmark, red cherry — instead of
+   being flattened into one. Same treatment as the footer mark. */
+.gate__lockup{
   display:block;
-  width:clamp(34px,4vw,52px); aspect-ratio:549/633;
-  margin-bottom:clamp(26px,3.4vw,42px);
-  background:var(--red);
-  -webkit-mask:url(../assets/cherry.svg) center/contain no-repeat;
-          mask:url(../assets/cherry.svg) center/contain no-repeat;
+  width:clamp(122px,15vw,188px);
+  height:auto;
+  margin-bottom:clamp(28px,3.6vw,46px);
 }
 .gate__title{
   font-family:var(--f-display); font-weight:400;
@@ -604,9 +654,119 @@ body.is-gated{ overflow:hidden; }
 /* The one coloured panel on the site. Full-bleed butter, so the next
    crawl is unmistakably the thing being sold. */
 .sec--feature{
+  position:relative;
+  overflow:hidden;                 /* the bolt is cut by the panel edge */
   background:var(--butter);
   padding-bottom:clamp(74px,12vh,168px);
   margin-bottom:clamp(0px,1vw,10px);
+}
+/* The panel's real content sits above the weather. Stated once here
+   rather than on each block, so anything added to the panel later lands
+   in front of the storm by default. */
+.sec--feature > .sec__head,
+.sec--feature > .strip,
+.sec--feature > .next__body{ position:relative; z-index:1; }
+
+/* ── Weather ──────────────────────────────────────────────────────
+   White on butter is a narrow gap — only the blue channel moves — so the
+   strike is carried by TWO layers rather than by the bolt alone: a wash
+   that lifts the whole panel for a moment, and the bolt drawn over it.
+   Either one alone reads as a glitch; together they read as light.
+
+   The bolt is a STROKE, not a filled shape, at a weight that does not
+   scale with the drawing — the same hairline language as every rule on
+   the page, bent into a bolt. Only opacity animates, on two elements
+   that share a duration and start together, so they cannot drift apart.
+
+   Nothing runs until the section is on screen (see initStorm), which
+   both keeps it off the main thread while you're elsewhere on the page
+   and guarantees the first strike lands just after you arrive. */
+.storm{
+  position:absolute; inset:0; z-index:0;
+  pointer-events:none;
+}
+.storm__wash,
+.storm__bolt{ opacity:0; }
+/* will-change only while the storm is actually running. The washes are
+   inset:0 on a panel that is over 1600px tall, so promoting all four of
+   these for the life of the page holds four full-panel compositor layers
+   open for a section you are usually nowhere near. */
+.storm.is-live .storm__wash,
+.storm.is-live .storm__bolt{ will-change:opacity; }
+
+/* Each wash is anchored on its own bolt's head rather than on the top of
+   the panel: the light has a source, and the bolt is it. A flat
+   top-to-bottom wash was brightest exactly where the bolt was and
+   swallowed it whole. */
+.storm__wash{ position:absolute; inset:0; }
+.storm__wash--a{
+  background:radial-gradient(112% 74% at 79% -10%,
+    rgba(255,255,255,.98) 0%,
+    rgba(255,255,255,.32) 40%,
+    rgba(255,255,255,0)   70%);
+}
+.storm__wash--b{
+  background:radial-gradient(96% 62% at 13% -8%,
+    rgba(255,255,255,.92) 0%,
+    rgba(255,255,255,.26) 42%,
+    rgba(255,255,255,0)   72%);
+}
+
+.storm__bolt{
+  position:absolute;
+  height:auto;
+  /* The glow is what makes white legible on butter. It is a light source,
+     not a card shadow — the one place on the site with a soft edge. */
+  filter:drop-shadow(0 0 34px rgba(255,255,255,1))
+         drop-shadow(0 0 10px rgba(255,255,255,1));
+}
+.storm__bolt--a{
+  top:0; right:clamp(4%,7vw,13%);
+  width:clamp(112px,13vw,205px);
+}
+/* B is narrow and long — its own aspect carries it down to roughly where
+   the poster starts, so the height needs no number of its own. */
+.storm__bolt--b{
+  top:0; left:clamp(2px,1.4vw,30px);
+  width:clamp(96px,11vw,172px);
+}
+
+/* One double-strike every five and a half seconds. Each bolt and its wash
+   share a delay, so a pair can never drift apart; B fires 400ms after A —
+   long enough that A's strike is over and its wash has decayed, so B
+   arrives on clean butter rather than on a sky A already lit. */
+.storm.is-live .storm__wash--a{ animation:washflash 5.5s  .90s var(--ease)   infinite; }
+.storm.is-live .storm__bolt--a{ animation:boltflash 5.5s  .90s steps(1,end)  infinite; }
+.storm.is-live .storm__wash--b{ animation:washflash 5.5s 1.30s var(--ease)   infinite; }
+.storm.is-live .storm__bolt--b{ animation:boltflash 5.5s 1.30s steps(1,end)  infinite; }
+
+/* THE BOLT LEADS AND THE SKY FOLLOWS, and that order is load-bearing, not
+   styling. White is the ceiling on butter, so a white bolt is only legible
+   while the ground under it is still yellow — fire the wash with the bolt
+   and the wash wins, which is what made the second strike invisible even
+   at full opacity. So the wash is held at zero through the bolt's first
+   hit, blooms once the bolt has dimmed, drops back out of the way of the
+   second hit, then blooms again as the bolt leaves.
+
+   It is also the more truthful sequence: you see the strike, then the sky
+   catches up. Percentages are of the 5.5s cycle; milliseconds in comments.
+
+   The bolt steps between values (a flash has no in-between); the wash
+   eases (a sky does). */
+@keyframes boltflash{
+  0%,100%{ opacity:0 }
+  .4%    { opacity:1 }       /*  22ms — lands on butter, full contrast */
+  2.1%   { opacity:.12 }     /* 115ms — the flicker between hits */
+  2.8%   { opacity:.92 }     /* 154ms — second hit */
+  4%     { opacity:0 }       /* 220ms */
+}
+@keyframes washflash{
+  0%,100%{ opacity:0 }
+  .5%    { opacity:0 }       /*  27ms — held down; the bolt gets there first */
+  1.7%   { opacity:.62 }     /*  94ms — sky catches up */
+  2.7%   { opacity:.06 }     /* 148ms — clears out for the second hit */
+  4.3%   { opacity:.5 }      /* 236ms */
+  7.6%   { opacity:0 }       /* 418ms */
 }
 .sec__head{ row-gap:clamp(14px,2vw,22px); align-items:start; }
 .sec__kicker{ grid-column:1 / -1; }
@@ -651,7 +811,9 @@ body.is-gated{ overflow:hidden; }
   fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:square;
   transition:transform .4s var(--ease);
 }
-.jump:hover svg{ transform:translateY(3px); }
+@media (hover: hover) and (pointer: fine){
+  .jump:hover svg{ transform:translateY(3px); }
+}
 
 .sec__lead{
   margin:0;
@@ -743,19 +905,15 @@ body.is-gated{ overflow:hidden; }
 /* Heading and release chip share a baseline row, and that row is the
    anchor the nav's ticket CTA lands on — it's an action, so it should
    arrive at the action rather than at the top of the section. */
+/* The chip belongs TO the headline — it reports on what the headline is
+   offering — so it sits directly beside it and centres on it. Pushed to
+   the far edge it read as a second, unrelated element. */
 .ticket__head-row{
-  display:flex; align-items:baseline; justify-content:space-between;
-  flex-wrap:wrap; gap:12px 20px;
+  display:flex; align-items:center; justify-content:flex-start;
+  flex-wrap:wrap; gap:12px clamp(14px,1.6vw,22px);
   margin:0 0 clamp(18px,2vw,26px);
   scroll-margin-top:calc(var(--top-h) + 24px);
 }
-.ticket__head{
-  font-family:var(--f-display);
-  font-size:clamp(28px,3.1vw,50px);
-  line-height:.95; letter-spacing:-.04em;
-  margin:0;
-}
-
 /* Release stage. Colour is earned here — this is the only thing on the
    page reporting a live condition, and it goes red only when the
    allocation is genuinely nearly gone. */
@@ -778,7 +936,51 @@ body.is-gated{ overflow:hidden; }
 .tstat[data-stage="out"]  { color:var(--ink-58); border-color:var(--rule); }
 .tstat[data-stage="out"] .tstat__dot{ animation:none; opacity:.4; }
 
-.price{ margin-top:clamp(20px,2.4vw,30px); }
+/* ── Buy row ──────────────────────────────────────────────────────
+   Ticket and prices side by side when the column can hold both, prices
+   underneath when it cannot. The wrap is flexbox reading the real box —
+   the basis widths below are the narrowest each part stays honest at —
+   rather than a viewport breakpoint, which would be measuring the window
+   when the question is about a column that is 6/12 wide on a large
+   screen and 12/12 on a small one. */
+.buy{
+  display:flex; flex-wrap:wrap; align-items:stretch;
+  gap:clamp(18px,2.2vw,30px);
+}
+/* Bases tuned against the narrowest column this row actually lands in —
+   6 of 12 on a 1024 laptop, which measures ~469px — so the prices stay
+   beside the ticket there rather than dropping under it on a screen wide
+   enough to hold both. */
+.buy > .ticket{ flex:1 1 288px; }
+.price{
+  flex:1 1 146px; max-width:270px;
+  margin:0;
+  /* space-between, not center: the buy row stretches this to the ticket's
+     height, and spreading puts the block's first and last hairlines on the
+     ticket's own top and bottom edges. Centred, they floated a few pixels
+     inside it and the two objects read as almost-aligned. When the prices
+     wrap underneath there is no stretch and this has no effect. */
+  display:flex; flex-direction:column; justify-content:space-between;
+}
+/* Each entry is one line: plan left, price right, on the hairline that
+   already organises every other fact on the site. The only thing that
+   changes from .spec is the plan name, which is set in the display face at
+   the price's own size so the pair reads as one statement rather than as a
+   label pointing at a number.
+
+   A step smaller than .spec elsewhere, because both halves have to hold
+   one line inside a column that is only ~470px wide on a 1024 laptop. */
+.price > div{ padding:14px 0 15px; gap:clamp(10px,1.2vw,18px); }
+.price dt,
+.price dd{
+  font-size:clamp(14px,1.12vw,18px);
+  line-height:1.2;
+}
+.price dt{
+  font-family:var(--f-display); font-weight:400;
+  letter-spacing:-.02em; text-transform:none;
+  color:var(--ink);
+}
 .price dd i{ font-style:normal; font-size:.66em; letter-spacing:0; opacity:.55; }
 
 /* ── Ticket ──────────────────────────────────────────────────────────
@@ -794,7 +996,11 @@ body.is-gated{ overflow:hidden; }
   --notch: 9px;
   position:relative; display:flex; align-items:stretch;
   width:100%; max-width:480px;
-  min-height:118px;
+  /* Level with the two price rows beside it: the buy row stretches both
+     children to the taller, so this floor only has to keep the ticket
+     honest when the prices are underneath instead. The rail's width is
+     derived from the height, not typed. */
+  min-height:108px;
   color:var(--butter);
   background:var(--ink);
   border-radius:5px;
@@ -831,15 +1037,16 @@ body.is-gated{ overflow:hidden; }
     transparent 64%);
   transform:translateX(-135%);
 }
-/* Arrival cue. The ticket stays black and takes a single white pass —
+/* Arrival cue. The ticket stays black and takes a single butter pass —
    the red fill belongs to hover, where it answers a pointer; firing it on
    arrival made the ticket look pressed by something the visitor did not
-   do. A light passing over it reads as "look here" without claiming an
-   interaction happened. */
+   do. Butter rather than white so the light reads as the panel's own,
+   the same as the hover sweep: one gesture at two intensities, not two
+   different ideas. */
 .ticket.is-flashing::after{
   background:linear-gradient(104deg,
     transparent 36%,
-    rgba(255,255,255,.6) 50%,
+    rgba(255,255,167,.72) 50%,
     transparent 64%);
   animation:shimmer 1.15s 1;
 }
@@ -853,20 +1060,18 @@ body.is-gated{ overflow:hidden; }
   100% { transform:translateX(140%); }
 }
 
-/* Rail. Full-bleed mark with a hairline against the body, the way a real
-   ticket separates its sections. */
+/* Rail. The poster at the series trim, so the ticket carries the object
+   it admits you to instead of the mark you have already seen five times
+   on this screen. Width is DERIVED: the rail stretches to the ticket's
+   height and 2:3 gives it its width, so the poster is never cropped and
+   there is no number here to keep in sync with the sheet above. */
 .ticket__rail{
   position:relative; z-index:1;
   flex:none;
-  width:clamp(62px,6.4vw,86px);
-  display:grid; place-items:center;
+  aspect-ratio:2/3;
+  align-self:stretch;
+  background:url(../assets/poster-halloween.jpg) center/cover no-repeat;
   border-right:1px solid color-mix(in srgb, currentColor 22%, transparent);
-}
-.ticket__mark{
-  width:58%; aspect-ratio:549/633;
-  background:currentColor;
-  -webkit-mask:url(../assets/cherry.svg) center/contain no-repeat;
-          mask:url(../assets/cherry.svg) center/contain no-repeat;
 }
 
 /* Body. Eyebrow, booking, particulars — small, large, small. */
@@ -876,13 +1081,11 @@ body.is-gated{ overflow:hidden; }
   display:flex; flex-direction:column; justify-content:center; gap:8px;
   padding:18px clamp(14px,1.5vw,20px);
 }
-.ticket__eyebrow,
 .ticket__meta{
   font-size:9px; font-weight:500;
   letter-spacing:.18em; text-transform:uppercase;
+  opacity:.66;
 }
-.ticket__eyebrow{ opacity:.52; }
-.ticket__meta{ opacity:.66; }
 .ticket__label{
   font-family:var(--f-display);
   font-size:clamp(16px,1.4vw,21px);
@@ -916,8 +1119,131 @@ body.is-gated{ overflow:hidden; }
 }
 
 /* ═══════════════ CALENDAR ═══════════════ */
+
+/* ── The season, drawn ─────────────────────────────────────────────
+   Three crawls across eighteen months. Printing eighteen months would
+   be printing about five hundred empty squares to mark three of them,
+   so only the months that carry a crawl are drawn — the calendar shows
+   the season, not the wait.
+
+   Structure is the site's own: a rule, a label, then the content. Rules
+   run horizontally between weeks and nowhere else — a fully ruled grid
+   would turn every day into a box, which is the one thing this design
+   does not do. What makes it a calendar is the alignment, not the cage.
+
+   Marked days are where the brand face is spent: Shrikhand on three
+   numerals in the whole section. That is deliberate rationing — set on
+   all ninety days it would be wallpaper, and the marked days would stop
+   being marked.
+
+   Months are laid out by track width, not by breakpoint: as many 240px
+   columns as fit, so it reads three-up on a laptop, two-up on a tablet
+   and one-up on a phone with nothing to keep in sync.
+
+   The whole block is generated from SEASON in js/app.js. */
+.months{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(240px,1fr));
+  gap:clamp(34px,4.4vw,60px) clamp(22px,2.8vw,48px);
+  padding-inline:var(--m);
+  margin:clamp(34px,5vw,64px) 0 clamp(56px,7.4vw,104px);
+}
+/* Nothing to show before the script runs — an empty ruled shell would
+   read as a loading failure. */
+.months:empty{ display:none; }
+
+.mo{
+  width:100%;
+  table-layout:fixed;
+  border-collapse:collapse;
+  caption-side:top;
+}
+/* No rule above the month name. The weekday row already carries one, and
+   two hairlines that close to each other read as a box forming. */
+.mo__cap{
+  text-align:left;
+  padding:0 0 clamp(11px,1.3vw,16px);
+  font-family:var(--f-ui);
+  font-size:10.5px; font-weight:500; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-58);
+}
+.mo__cap b{ font-weight:500; color:var(--ink); }
+
+.mo thead th{
+  padding:0 0 10px;
+  font-family:var(--f-ui);
+  font-size:9px; font-weight:500; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-42);
+  text-align:center;
+  border-bottom:1px solid var(--rule);
+}
+.mo td{
+  padding:0;
+  text-align:center;
+  border-bottom:1px solid var(--rule-soft);
+  /* The marked days carry a sticker that hangs off the square; the cell
+     has to be a positioning context and must not clip it. */
+  position:relative;
+}
+
+/* Every day is the same square whether or not anything happens on it, so
+   the marked ones differ by fill alone rather than by size. */
+.d{
+  display:grid; place-items:center;
+  width:100%; max-width:54px; aspect-ratio:1;
+  margin:5px auto;
+  font-family:var(--f-display); font-weight:400;
+  font-size:clamp(12px,1.05vw,15px);
+  letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;
+  color:var(--ink-42);
+  border-radius:2px;
+}
+/* Today, if it happens to fall in a printed month. A ring, not a fill —
+   the fill means "a crawl is here" and can only mean that. */
+.d--today{ outline:1px solid var(--ink-42); outline-offset:-1px; color:var(--ink-58); }
+
+.d--hit{
+  position:relative;
+  background:var(--ink);
+  color:var(--paper);
+  font-family:var(--f-brand);
+  /* Shrikhand runs optically smaller than Inter Tight at the same size —
+     the measured match is 1.09x — and its tracking is built in, so the
+     display face's negative letter-spacing has to be given back. */
+  font-size:clamp(13px,1.14vw,16.3px);
+  letter-spacing:0;
+  transition:transform .32s var(--ease), background-color .25s var(--ease);
+}
+/* The sticker. The event's own mark, stuck on the date at an angle and
+   overhanging the square — the one bit of the page that is pinned rather
+   than set. Small on purpose: at this size it is an accent on a
+   monochrome grid, not a fourth colour in the budget. */
+.d__mark{
+  position:absolute;
+  top:-30%; right:-28%;
+  width:56%; aspect-ratio:1;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-size:contain;
+  transform:rotate(13deg);
+  pointer-events:none;
+  transition:transform .38s var(--ease);
+}
+/* Animated hover states are gated: a tap leaves :hover applied on touch
+   until you tap elsewhere, which parks the lift permanently. */
+@media (hover: hover) and (pointer: fine){
+  .d--hit:hover{ background:var(--red); transform:translateY(-3px) rotate(-2.5deg); }
+  .d--hit:hover .d__mark{ transform:rotate(24deg) scale(1.14); }
+}
+.d--hit:focus-visible{ outline-offset:3px; }   /* colour set with the other dark objects, above */
+
+/* The event list under the grid heads itself, on the same spacing the
+   ticket heading uses above its ticket — heading, a short gap, the thing. */
+.cal__over{ padding-inline:var(--m); margin-bottom:clamp(18px,2.1vw,28px); }
+
 .cal{
-  list-style:none; margin:clamp(34px,5vw,64px) 0 0; padding:0 var(--m);
+  list-style:none; margin:0; padding:0 var(--m);
   border-top:1px solid var(--rule);
 }
 /* Date and status sit together as one eyebrow above the name — the same
@@ -928,7 +1254,7 @@ body.is-gated{ overflow:hidden; }
   border-bottom:1px solid var(--rule);
   transition:padding-left .5s var(--ease);
 }
-.cal li:hover{ padding-left:clamp(10px,1.4vw,22px); }
+
 .cal__eyebrow{
   display:flex; align-items:center; flex-wrap:wrap;
   gap:6px clamp(14px,1.8vw,26px);
@@ -952,8 +1278,15 @@ body.is-gated{ overflow:hidden; }
   clip-path:inset(0 100% 0 0);
   transition:clip-path .65s var(--ease);
 }
-.cal li:hover .cal__name{ -webkit-text-stroke-color:var(--ink-42); }
-.cal li:hover .cal__name::after{ clip-path:inset(0 0 0 0); }
+/* Gated with the rest of the animated hovers: a tap leaves :hover applied
+   on touch until you tap elsewhere, and these rows are announcements with
+   nothing to tap through to — a permanently indented row reads as a fault
+   rather than as a selection. */
+@media (hover: hover) and (pointer: fine){
+  .cal li:hover{ padding-left:clamp(10px,1.4vw,22px); }
+  .cal li:hover .cal__name{ -webkit-text-stroke-color:var(--ink-42); }
+  .cal li:hover .cal__name::after{ clip-path:inset(0 0 0 0); }
+}
 .cal__date{ color:var(--ink-58); }
 /* Live "coming soon" chip — a slow pulse, so the row reads as pending
    rather than broken. */
@@ -968,6 +1301,10 @@ body.is-gated{ overflow:hidden; }
   background:var(--ink-42);
   animation:soonpulse 2.4s var(--ease) infinite;
 }
+/* The one crawl actually selling. Red because it is a transaction, which
+   is the same job the release chip and the ticket already give it. */
+.cal__state--live{ color:var(--red); }
+.cal__state--live i{ background:var(--red); }
 @keyframes soonpulse{
   0%,100%{ opacity:.28; transform:scale(.82); }
   50%    { opacity:1;   transform:scale(1); }
@@ -1053,7 +1390,9 @@ body.is-gated{ overflow:hidden; }
   fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:square;
   transition:transform .45s var(--ease);
 }
-.sub__field button:hover svg{ transform:translateX(4px); }
+@media (hover: hover) and (pointer: fine){
+  .sub__field button:hover svg{ transform:translateX(4px); }
+}
 
 /* ═══════════════ FOOTER ═══════════════ */
 .foot{
@@ -1100,8 +1439,11 @@ body.is-gated{ overflow:hidden; }
 }
 
 @media (max-width:420px){
-  .spec > div{ flex-direction:column; align-items:flex-start; gap:7px; }
-  .spec dd{ text-align:left; }
+  /* Contact only. An email address is one unbreakable token and genuinely
+     needs its own line here; the price rows are two short words and must
+     not be stacked with it. */
+  .contact__body .spec > div{ flex-direction:column; align-items:flex-start; gap:7px; }
+  .contact__body .spec dd{ text-align:left; }
 }
 
 @media (max-width:620px){
@@ -1114,6 +1456,17 @@ body.is-gated{ overflow:hidden; }
 
 @media (prefers-reduced-motion:reduce){
   html{ scroll-behavior:auto; }
+  /* The blanket duration override below squeezes every animation to
+     .001ms, which STOPS a one-shot but makes an INFINITE one run thousands
+     of cycles per frame — it samples an arbitrary value each repaint and
+     flickers, which is the opposite of what was asked for. So: cap every
+     animation at one iteration, and give the two infinite ones an explicit
+     resting state rather than whatever their last keyframe happens to be.
+     The weather is removed outright — it is nothing but motion. */
+  *,*::before,*::after{ animation-iteration-count:1 !important; }
+  .storm{ display:none; }
+  .tstat__dot,
+  .cal__state i{ animation:none; opacity:1; transform:none; }
   *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
   .rv{ opacity:1; transform:none; }
   .cur__ring,.cur__dot,.cur__art{ transition:none; }
