@@ -1,545 +1,308 @@
-/* =========================================================================
-   BAR SCENE SOCIALS — router + choreography
-   Four routes on one page: #/ , #/halloween , #/christmas , #/shamrock
-   The URL is the single source of truth. Every navigation — click, arrow,
-   keyboard, back button — just changes the hash; one pump() loop plays the
-   matching transition. That keeps view and URL from ever disagreeing.
-   ========================================================================= */
+/* ═══════════════════════════════════════════════════════════════════
+   BAR SCENE SOCIALS
+   ───────────────────────────────────────────────────────────────────
+   Five small modules. Native scrolling, no scroll hijack, no rAF loop —
+   this design has one motion idea (lift and fade) and two things that
+   track scroll position, and IntersectionObserver handles both without
+   running code every frame.
+   ═══════════════════════════════════════════════════════════════════ */
+(() => {
+'use strict';
 
-// This is a single-page app with real scrollable content now — stop the
-// browser from restoring a stale scroll position on reload/back-forward.
-if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
-const EVENTS = {
-  halloween: { color: '#F48515', logo: 'assets/halloween-lockup.png', name: 'Halloween Bar Crawl' },
-  christmas: { color: '#D01E21', logo: 'assets/christmas-lockup.png', name: '12 Bars of Christmas' },
-  shamrock:  { color: '#11A156', logo: 'assets/shamrock-lockup.png',  name: 'Shamrock Shuffle' },
-};
-const ORDER = ['halloween', 'christmas', 'shamrock'];
+/* ══════════════════ 1. REVEALS ══════════════════
+   Targets are tagged here rather than in the markup: the HTML stays a
+   clean document, and what animates is a presentation decision. */
+function initReveals() {
+  const targets = [
+    ...$$('.hero__h1'),
+    ...$$('.strip > div'),
+    ...$$('.poster'),
+    ...$$('.sec__n, .sec__kicker, .sec__title'),
+    ...$$('.spec > div'),
+    ...$$('.next__side > *'),
+    ...$$('.cal li'),
+    ...$$('.figs > div'),
+    ...$$('.give > *'),
+    ...$$('.sub > *'),
+    ...$$('.foot__mark, .foot__meta')
+  ];
 
-const body      = document.body;
-const homeView  = document.querySelector('[data-view="home"]');
-const eventView = document.querySelector('[data-view="event"]');
-const panel     = document.querySelector('.event__panel');
-const wipe      = document.querySelector('.event__wipe');
-const logo      = document.querySelector('.event__logo');
-const prevArrow = document.querySelector('.arrow--prev');
-const nextArrow = document.querySelector('.arrow--next');
-const header    = document.querySelector('.site-header');
-const wordmark  = document.querySelector('.site-header .wordmark');
-const cardGrid  = document.querySelector('.grid');
+  targets.forEach((el, i) => {
+    el.classList.add('rv');
+    /* Stagger only within a run of siblings, so a group cascades but a
+       new group never inherits the previous group's delay. */
+    const idx = el.parentElement
+      ? Array.from(el.parentElement.children).indexOf(el) : 0;
+    if (idx > 0 && idx < 4) el.classList.add('rv-d' + idx);
+  });
 
-/* ---- Motion vocabulary -------------------------------------------------- */
-const REDUCED   = matchMedia('(prefers-reduced-motion: reduce)');
-const t         = ms => (REDUCED.matches ? 1 : ms);
-const EASE      = 'cubic-bezier(.62,.03,.16,1)';   // the house curve
-const EASE_IN   = 'cubic-bezier(.55,0,.85,.2)';    // exits: accelerate away
-const EASE_BACK = 'cubic-bezier(.22,1.15,.36,1)';  // entrances: land w/ overshoot
-
-const DROP_OUT = [{ transform: 'translateY(0)', opacity: 1 },
-                  { transform: 'translateY(46px)', opacity: 0 }];
-const DROP_IN  = [{ transform: 'translateY(-72px)', opacity: 0 },
-                  { transform: 'translateY(0)', opacity: 1 }];
-
-/* Warm the image cache for all three lockups up front, so the drop-in
-   animation never has to wait on a first-time network fetch mid-flight
-   (that wait is what makes a transition look glitchy/janky on a real
-   network — localhost never shows it, which is why it hid during dev). */
-Object.values(EVENTS).forEach(cfg => { new Image().src = cfg.logo; });
-
-/* Every animation is tracked so a new one always supersedes the old, and so
-   cancel() can hand an element back to its plain CSS state. */
-const tracked = new WeakMap();
-function anim(el, frames, opts) {
-  (tracked.get(el) || []).forEach(a => a.cancel());
-  const a = el.animate(frames, { fill: 'both', ...opts });
-  tracked.set(el, [a]);
-  return a;
-}
-function reset(el) {
-  (tracked.get(el) || []).forEach(a => a.cancel());
-  tracked.delete(el);
-}
-/* cancel() rejects .finished — swallow it so a sequence never stalls. */
-const settle = list => Promise.all(list.map(a => a.finished.catch(() => {})));
-
-/* ---- Route helpers ------------------------------------------------------ */
-const routeOf = () => {
-  const k = location.hash.replace(/^#\/?/, '');
-  return EVENTS[k] ? k : 'home';
-};
-const cardFor = k => document.querySelector(`.card[data-event="${k}"]`);
-const siblings = k => ORDER.filter(x => x !== k).map(cardFor);
-
-/* The card's exact on-screen rect. Kept as a plain rectangular clip-path with
-   the rounding animated separately via border-radius — Safari interpolates
-   a bare `inset()` and a `border-radius` far more reliably than the combined
-   `inset(... round Xpx)` shorthand, which can stutter mid-animation. */
-function cardRect(card) {
-  const r = card.getBoundingClientRect();
-  return {
-    clip: `inset(${r.top}px ${innerWidth - r.right}px ${innerHeight - r.bottom}px ${r.left}px)`,
-    radius: getComputedStyle(card).borderTopLeftRadius || '0px',
-  };
-}
-const FULL_BLEED = { clip: 'inset(0px 0px 0px 0px)', radius: '0px' };
-
-/* Which top-level view (home grid vs. event) is on screen. Event pages now
-   scroll, so — unlike a pure viewport overlay — home has to be fully taken
-   out of flow (display:none) whenever an event is showing, or both would be
-   stacked in the document at once. */
-function showEvent(show) {
-  eventView.classList.toggle('is-active', show);
-  homeView.classList.toggle('is-hidden', show);
-  // Hiding the grid mid-hover means its pointerleave never fires, so the
-  // active card would still be expanded when you came back. Clear it here.
-  if (show && cardGrid) delete cardGrid.dataset.active;
-}
-/* Which event's content section (countdown/CTA/details/bars) is showing —
-   independent of the hero, which is one shared set of elements reused
-   across all three routes. */
-function showBody(key) {
-  document.querySelectorAll('.event__body').forEach(b => b.classList.toggle('is-shown', b.dataset.for === key));
-}
-/* =========================================================================
-   HERO SCROLL EFFECT — side arrows fade, and the big hero logo shrinks and
-   docks down into a small mark centered in the header, both mapped 1:1 to
-   scroll position rather than toggled at a threshold. The whole event page
-   is one continuous color field now (hero and content match), so there's
-   nothing left to "reveal" by wiping the panel away — only the logo needs
-   to go somewhere, and a direct scroll-linked transform is what fixes the
-   earlier version's biggest complaint: a threshold trigger either needs a
-   full screen of scroll to fire, or re-fires the instant you nudge back
-   up past it. A continuous mapping has no trigger point to get wrong.
-   On narrow viewports there's no room to dock a logo into the header
-   alongside the wordmark, so it just fades there instead.
-   ========================================================================= */
-const DOCK_DISTANCE = 260;                             // px of scroll the effect completes over
-const DOCK_MEDIA = matchMedia('(min-width: 721px)');   // dock on desktop/tablet; fade-only below that
-let logoRestHeight = 0, logoRestCenterY = 0, dockHeight = 0;
-
-/* Measure the logo at rest: its natural height, its vertical center on
-   screen (it's no longer viewport-centered — it lives in the upper band),
-   and the wordmark's height as the dock target so the docked mark matches
-   the wordmark's scale. The transform is cleared for the measurement so a
-   mid-scroll resize reads the true rest position, not a shrunken frame. */
-function measureDockGeometry() {
-  const prev = logo.style.transform;
-  logo.style.transform = 'none';
-  const r = logo.getBoundingClientRect();
-  logo.style.transform = prev;
-  logoRestHeight = r.height || 1;
-  logoRestCenterY = r.top + r.height / 2;
-  dockHeight = wordmark.getBoundingClientRect().height || 1;
-}
-
-function applyHeroScroll() {
-  if (!EVENTS[routeOf()]) return;
-  const p = REDUCED.matches ? 0 : Math.min(1, Math.max(0, scrollY / DOCK_DISTANCE));
-
-  const arrowStyle = el => { el.style.opacity = String(1 - p); el.style.pointerEvents = p > 0.85 ? 'none' : ''; };
-  arrowStyle(prevArrow);
-  arrowStyle(nextArrow);
-
-  if (DOCK_MEDIA.matches && logoRestHeight) {
-    const scale = 1 - p * (1 - dockHeight / logoRestHeight);
-    // Move the logo's center from its resting spot to the header's center.
-    const dockTranslate = (header.getBoundingClientRect().height / 2) - logoRestCenterY;
-    logo.style.transform = `translateY(${p * dockTranslate}px) scale(${scale})`;
-    logo.style.opacity = '';
-  } else {
-    logo.style.transform = '';
-    logo.style.opacity = String(1 - p);
+  if (!('IntersectionObserver' in window) || REDUCED) {
+    targets.forEach(t => t.classList.add('in'));
+    return;
   }
-}
-
-/* Header backdrop toggles in only after a few px of scroll — transparent
-   over the hero (so the wipe shows through it), solid under content. */
-function syncHeader() { header.classList.toggle('is-scrolled', scrollY > 8); }
-
-/* Single owner of the event color, set on html + body so iOS Safari paints
-   it reliably everywhere — including the overscroll/toolbar zones a fixed,
-   clip-path-animated panel mis-composited (the leftover-color artifact).
-   '' hands the color back to the CSS route rules (home = ink). */
-function setPageColor(key) {
-  const c = EVENTS[key] ? EVENTS[key].color : '';
-  document.documentElement.style.backgroundColor = c;
-  body.style.backgroundColor = c;
-}
-
-let scrollTicking = false;
-function queueHeroScroll() {
-  if (scrollTicking) return;
-  scrollTicking = true;
-  requestAnimationFrame(() => { syncHeader(); applyHeroScroll(); scrollTicking = false; });
-}
-addEventListener('scroll', queueHeroScroll, { passive: true });
-addEventListener('resize', () => { measureDockGeometry(); applyHeroScroll(); });
-
-/* Instant reset for the moments a transition already places panel/logo
-   itself — clears any inline transform/opacity this scroll effect left
-   behind (a WAAPI animation's own keyframes override a plain style write
-   like this while it's actively running, so calling it early, before the
-   entrance/exit animation claims these properties, is what makes this
-   safe rather than a fight over the same CSS properties). */
-function clearHeroScrollStyles() {
-  logo.style.transform = '';
-  logo.style.opacity = '';
-  [prevArrow, nextArrow].forEach(el => { el.style.opacity = ''; el.style.pointerEvents = ''; });
-}
-
-/* =========================================================================
-   HOME → EVENT   (three beats: logo drops out, color consumes, logo drops in)
-   ========================================================================= */
-async function toEvent(key) {
-  const cfg = EVENTS[key];
-  const card = cardFor(key);
-  const cardLogo = card.querySelector('.card__logo');
-
-  // Every card + its logo starts from a known-clean baseline, no matter what
-  // earlier navigation did. Safe to snap instantly — nothing is visible yet.
-  ORDER.forEach(k => { reset(cardFor(k)); reset(cardFor(k).querySelector('.card__logo')); });
-  const from = cardRect(card);              // measured only once truly at rest
-
-  body.dataset.route = key;                 // wordmark starts its color shift
-  body.classList.add('is-transitioning');   // no scrolling mid-animation
-
-  // Beat 1 — the event's logo drops away, its neighbours recede.
-  await settle([
-    anim(cardLogo, DROP_OUT, { duration: t(170), easing: EASE_IN }),
-    ...siblings(key).map(c => anim(c,
-      [{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.96)' }],
-      { duration: t(190), easing: 'ease' })),
-  ]);
-
-  // Beat 2 + 3 — the card consumes the screen, then the logo drops in.
-  panel.style.background = cfg.color;
-  logo.src = cfg.logo;
-  logo.alt = cfg.name;
-  showBody(key);
-  showEvent(true);
-  scrollTo(0, 0);   // always land on the hero, never mid-scroll from home
-  clearHeroScrollStyles();
-
-  await settle([
-    anim(panel, [{ clipPath: from.clip, borderRadius: from.radius }, { clipPath: FULL_BLEED.clip, borderRadius: FULL_BLEED.radius }],
-      { duration: t(360), easing: EASE }),
-    anim(logo, DROP_IN, { duration: t(300), delay: t(190), easing: EASE_BACK }),
-  ]);
-
-  // Hand transform/opacity back to plain styles (the scroll effect can't
-  // touch them while this finished-but-uncancelled animation still holds
-  // them), then measure the now-settled, now-correct logo for docking.
-  reset(panel);
-  reset(logo);
-  // Commit the color to html/body only now, once the panel has finished
-  // consuming the screen — set any earlier and the whole viewport would be
-  // the event color before the panel got there, spoiling the grow.
-  setPageColor(key);
-  syncHeader();
-  measureDockGeometry();
-  applyHeroScroll();
-
-  homeView.inert = true;
-  eventView.inert = false;
-  body.classList.remove('is-transitioning');   // intro fades in
-}
-
-/* =========================================================================
-   EVENT → HOME   (the same three beats, mirrored)
-   ========================================================================= */
-async function toHome(from) {
-  const card = cardFor(from);
-  const cardLogo = card.querySelector('.card__logo');
-
-  // Same defensive baseline as toEvent(). This is the fix for cards coming
-  // back with a missing logo: previously only the two cards adjacent to
-  // `from` got cleaned up here, so a card you'd clicked earlier and then
-  // arrowed away from — its logo animation was never reset by anyone and
-  // stayed invisible forever. Resetting all three, every time, closes that
-  // gap regardless of how many arrow-hops happened in between.
-  ORDER.forEach(k => { reset(cardFor(k)); reset(cardFor(k).querySelector('.card__logo')); });
-  const to = cardRect(card);
-
-  body.dataset.route = 'home';
-  body.classList.add('is-transitioning');
-  homeView.inert = false;
-  eventView.inert = true;
-  // Hand the page color back to home (black) now, so the un-covered area
-  // behind the shrinking panel is black — the home we're contracting into.
-  setPageColor('home');
-  // The logo may currently be scrolled-down/docked if the user was reading
-  // content further down. Clear that back to plain styles and jump to the
-  // top *before* the drop-out plays — otherwise a docked (small, tucked in
-  // the header) logo would visibly snap to full size against whatever was
-  // scrolled into view, instead of against the hero it actually belongs to.
-  clearHeroScrollStyles();
-  scrollTo(0, 0);
-  syncHeader();
-
-  await settle([anim(logo, DROP_OUT, { duration: t(160), easing: EASE_IN })]);
-
-  await settle([
-    anim(panel, [{ clipPath: FULL_BLEED.clip, borderRadius: FULL_BLEED.radius }, { clipPath: to.clip, borderRadius: to.radius }],
-      { duration: t(330), easing: EASE }),
-    ...siblings(from).map(c => anim(c,
-      [{ opacity: 0, transform: 'scale(.96)' }, { opacity: 1, transform: 'scale(1)' }],
-      { duration: t(300), easing: 'ease' })),
-  ]);
-
-  showEvent(false);
-  reset(panel);
-  reset(logo);
-
-  await settle([anim(cardLogo,
-    [{ transform: 'translateY(-56px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
-    { duration: t(280), easing: EASE_BACK })]);
-
-  reset(cardLogo);
-  siblings(from).forEach(reset);
-  body.classList.remove('is-transitioning');
-}
-
-/* =========================================================================
-   EVENT → EVENT   (arrow navigation: the next color wipes across)
-   ========================================================================= */
-async function toSibling(key, dir) {
-  const cfg = EVENTS[key];
-  body.classList.add('is-transitioning');
-  // Arrow-key navigation can fire from anywhere on the page (it doesn't
-  // need the visible, hover-only arrow buttons) — including while the logo
-  // is currently docked small. Same fix as toHome: clear + jump to the top
-  // before the drop-out plays, so it snaps against the hero, not wherever
-  // the page happened to be scrolled.
-  clearHeroScrollStyles();
-  scrollTo(0, 0);
-  syncHeader();   // back at the top → header transparent → the wipe shows through it
-
-  await settle([anim(logo, DROP_OUT, { duration: t(150), easing: EASE_IN })]);
-
-  wipe.style.background = cfg.color;
-  wipe.classList.add('is-live');
-  const from = dir === 'prev' ? 'inset(0px 100% 0px 0px)' : 'inset(0px 0px 0px 100%)';
-
-  logo.src = cfg.logo;
-  logo.alt = cfg.name;
-  showBody(key);
-  body.dataset.route = key;   // only matters for the (currently transparent) header + arrow targets
-
-  // No separate header animation anymore: the header is transparent at the
-  // top, so the wipe passing behind it recolors it for free — one motion,
-  // nothing to keep in sync.
-  await settle([
-    anim(wipe, [{ clipPath: from }, { clipPath: 'inset(0px 0px 0px 0px)' }],
-      { duration: t(280), easing: EASE }),
-    anim(logo, DROP_IN, { duration: t(290), delay: t(190), easing: EASE_BACK }),
-  ]);
-
-  // Commit the new color to the whole field at the moment the wipe lands.
-  panel.style.background = cfg.color;
-  setPageColor(key);
-  wipe.classList.remove('is-live');
-  reset(wipe);
-  reset(logo);
-  measureDockGeometry();
-  applyHeroScroll();
-  body.classList.remove('is-transitioning');   // intro fades in
-}
-
-/* =========================================================================
-   Router
-   ========================================================================= */
-let current = 'home';
-let busy = false;
-let dirHint = null;
-
-function syncArrows() {
-  const k = routeOf();
-  if (!EVENTS[k]) return;
-  const i = ORDER.indexOf(k);
-  const prev = ORDER[(i + ORDER.length - 1) % ORDER.length];
-  const next = ORDER[(i + 1) % ORDER.length];
-  prevArrow.setAttribute('href', '#/' + prev);
-  nextArrow.setAttribute('href', '#/' + next);
-  prevArrow.setAttribute('aria-label', 'Previous event: ' + EVENTS[prev].name);
-  nextArrow.setAttribute('aria-label', 'Next event: ' + EVENTS[next].name);
-}
-
-/* One transition at a time. If the hash moved again mid-flight (fast clicks,
-   held-down arrow key), the loop simply keeps going until view === URL. */
-async function pump() {
-  if (busy) return;
-  busy = true;
-  try {
-    let guard = 0;
-    while (routeOf() !== current && guard++ < 8) {
-      const next = routeOf();
-      const dir = dirHint ||
-        (ORDER.indexOf(next) > ORDER.indexOf(current) ? 'next' : 'prev');
-      dirHint = null;
-
-      if (current === 'home')      await toEvent(next);
-      else if (next === 'home')    await toHome(current);
-      else                         await toSibling(next, dir);
-
-      current = next;
-      syncArrows();
-    }
-  } finally {
-    busy = false;
-  }
-}
-
-/* ---- Wiring ------------------------------------------------------------- */
-addEventListener('hashchange', pump);
-
-prevArrow.addEventListener('click', () => { dirHint = 'prev'; });
-nextArrow.addEventListener('click', () => { dirHint = 'next'; });
-
-addEventListener('keydown', e => {
-  const k = routeOf();
-  if (e.key === 'Escape' && k !== 'home') { location.hash = '/'; return; }
-  if (!EVENTS[k]) return;
-  const i = ORDER.indexOf(k);
-  if (e.key === 'ArrowRight') { dirHint = 'next'; location.hash = '/' + ORDER[(i + 1) % ORDER.length]; }
-  if (e.key === 'ArrowLeft')  { dirHint = 'prev'; location.hash = '/' + ORDER[(i + ORDER.length - 1) % ORDER.length]; }
-});
-
-/* ---- First paint: land directly on whatever the URL says, no animation --- */
-(function boot() {
-  const k = routeOf();
-  body.dataset.route = k;
-  if (EVENTS[k]) {
-    const cfg = EVENTS[k];
-    panel.style.background = cfg.color;
-    logo.src = cfg.logo;
-    logo.alt = cfg.name;
-    showBody(k);
-    showEvent(true);
-    setPageColor(k);
-    scrollTo(0, 0);   // a saved scroll position (bfcache, extensions) shouldn't land mid-page
-    clearHeroScrollStyles();
-    syncHeader();
-    // No entrance animation to wait for on a direct/deep-link boot — but
-    // defer a frame anyway so the just-set logo image has definitely
-    // completed layout before its resting height is measured.
-    requestAnimationFrame(() => { measureDockGeometry(); applyHeroScroll(); });
-    homeView.inert = true;
-    current = k;
-  } else {
-    eventView.inert = true;
-  }
-  syncArrows();
-})();
-
-/* =========================================================================
-   SITE CHROME — header backdrop, hamburger menu, in-page smooth scroll
-   (homepage only; event pages keep their existing arrow/back nav)
-   ========================================================================= */
-/* ---- Event-card hover expand -------------------------------------------
-   Which card is "active" is tracked here rather than with CSS :hover,
-   because the grid's gaps belong to no card. A :hover-driven version had a
-   dead strip between every pair of cards: sweeping across, the row would
-   start springing back to even and then re-expand, once per gap. Here the
-   active card only changes when the pointer is genuinely over a different
-   card, and only clears on pointerleave of the whole grid — so moving
-   across all three reads as one continuous motion, and it still collapses
-   the moment you leave.
-
-   pointerover (not pointerenter) because it bubbles, so one listener on the
-   grid covers all three cards and their children. */
-if (cardGrid && matchMedia('(hover: hover) and (pointer: fine)').matches) {
-  cardGrid.addEventListener('pointerover', e => {
-    const card = e.target.closest('.card');
-    if (!card || !cardGrid.contains(card)) return;   // over a gap → hold current
-    cardGrid.dataset.active = String([...cardGrid.children].indexOf(card) + 1);
-  });
-  cardGrid.addEventListener('pointerleave', () => { delete cardGrid.dataset.active; });
-}
-
-const menuToggle = document.querySelector('.menu-toggle');
-const siteMenu   = document.querySelector('.site-menu');
-if (menuToggle && siteMenu) {
-  const setMenu = open => {
-    menuToggle.setAttribute('aria-expanded', String(open));
-    siteMenu.classList.toggle('is-open', open);
-    siteMenu.inert = !open;
-    body.classList.toggle('menu-open', open);
-  };
-  menuToggle.addEventListener('click', () => setMenu(!siteMenu.classList.contains('is-open')));
-  siteMenu.addEventListener('click', e => {
-    if (e.target === siteMenu || e.target.closest('a')) setMenu(false);
-  });
-  addEventListener('keydown', e => {
-    if (e.key === 'Escape' && siteMenu.classList.contains('is-open')) setMenu(false);
-  });
-}
-
-/* Smooth-scroll same-page anchors (nav menu + footer links). Router links
-   (#/halloween etc.) are left alone — only bare #id anchors are intercepted. */
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-  const id = a.getAttribute('href');
-  if (!id || id.length < 2 || id.startsWith('#/')) return;
-  a.addEventListener('click', e => {
-    const target = document.querySelector(id);
-    if (!target) return;
-    e.preventDefault();
-    target.scrollIntoView({ behavior: REDUCED.matches ? 'auto' : 'smooth', block: 'start' });
-  });
-});
-
-/* =========================================================================
-   DELIGHT — reveal-on-scroll + number count-up (homepage), shared by
-   whatever sections happen to use them.
-   ========================================================================= */
-if ('IntersectionObserver' in window) {
-  const revealIO = new IntersectionObserver(entries => {
-    entries.forEach(en => {
-      if (en.isIntersecting) { en.target.classList.add('is-visible'); revealIO.unobserve(en.target); }
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      io.unobserve(e.target);
     });
-  }, { threshold: 0.2 });
-  document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
-
-  function animateCount(el) {
-    const target = parseInt(el.dataset.countTo, 10) || 0;
-    const suffix = el.dataset.countSuffix || '';
-    const dur = t(1200);
-    const start = performance.now();
-    (function tick(now) {
-      const p = Math.min(1, (now - start) / dur);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(eased * target).toLocaleString() + suffix;
-      if (p < 1) requestAnimationFrame(tick);
-    })(start);
-  }
-  const countIO = new IntersectionObserver(entries => {
-    entries.forEach(en => {
-      if (en.isIntersecting) { animateCount(en.target); countIO.unobserve(en.target); }
-    });
-  }, { threshold: 0.6 });
-  document.querySelectorAll('[data-count-to]').forEach(el => countIO.observe(el));
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
+  targets.forEach(t => io.observe(t));
 }
 
-/* =========================================================================
-   COUNTDOWNS — data-countdown="<ISO date>" on any element containing
-   .cd__d / .cd__h / .cd__m / .cd__s spans. Placeholder dates; see README.
-   ========================================================================= */
-(function countdowns() {
-  const els = document.querySelectorAll('[data-countdown]');
-  if (!els.length) return;
-  const DAY = 86400000, HOUR = 3600000, MIN = 60000;
-  function tick() {
+/* ══════════════════ 2. COUNTDOWN ══════════════════ */
+function initCountdown() {
+  const nodes = $$('[data-countdown]').map(el => ({
+    when: new Date(el.dataset.countdown).getTime(),
+    d: $('.cd__d', el), h: $('.cd__h', el), m: $('.cd__m', el), s: $('.cd__s', el)
+  })).filter(n => !isNaN(n.when));
+  if (!nodes.length) return;
+
+  const pad = n => String(Math.max(0, n)).padStart(2, '0');
+  const tick = () => {
     const now = Date.now();
-    els.forEach(el => {
-      let diff = Math.max(0, new Date(el.dataset.countdown).getTime() - now);
-      const d = Math.floor(diff / DAY);  diff -= d * DAY;
-      const h = Math.floor(diff / HOUR); diff -= h * HOUR;
-      const m = Math.floor(diff / MIN);  diff -= m * MIN;
-      const s = Math.floor(diff / 1000);
-      const set = (cls, v) => { const n = el.querySelector(cls); if (n) n.textContent = String(v).padStart(2, '0'); };
-      set('.cd__d', d); set('.cd__h', h); set('.cd__m', m); set('.cd__s', s);
+    nodes.forEach(n => {
+      const sec = Math.floor(Math.max(0, n.when - now) / 1000);
+      if (n.d) n.d.textContent = pad(Math.floor(sec / 86400));
+      if (n.h) n.h.textContent = pad(Math.floor(sec / 3600) % 24);
+      if (n.m) n.m.textContent = pad(Math.floor(sec / 60) % 60);
+      if (n.s) n.s.textContent = pad(sec % 60);
     });
-  }
+  };
   tick();
   setInterval(tick, 1000);
+}
+
+/* ══════════════════ 3. FIGURES ══════════════════ */
+function initFigures() {
+  const nodes = $$('[data-count-to]');
+  if (!nodes.length) return;
+  const fmt = n => n.toLocaleString('en-US');
+
+  const run = el => {
+    const to = Number(el.dataset.countTo) || 0;
+    const suffix = el.dataset.countSuffix || '';
+    if (REDUCED) { el.textContent = fmt(to) + suffix; return; }
+    const dur = 1400, t0 = performance.now();
+    const step = now => {
+      const p = Math.min(1, (now - t0) / dur);
+      el.textContent = fmt(Math.round(to * (1 - Math.pow(1 - p, 4)))) + (p === 1 ? suffix : '');
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+
+  if (!('IntersectionObserver' in window)) { nodes.forEach(run); return; }
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { run(e.target); io.unobserve(e.target); } });
+  }, { threshold: 0.5 });
+  nodes.forEach(n => io.observe(n));
+}
+
+/* ══════════════════ 0. AGE GATE ══════════════════
+   Self-declaration, not verification. It exists because the industry
+   codes (Beer Institute, Brewers Association, Wine Institute, DISCUS)
+   and the FTC's self-regulation reports treat it as required practice —
+   it is not a legal control, and the fine print says where the real
+   check happens. Wisconsin's legal drinking age is 21.
+
+   Runs first and synchronously so the page is never briefly readable
+   behind it. The answer is remembered for the session only. */
+function initGate() {
+  const gate = $('#gate');
+  if (!gate) return;
+
+  let passed = false;
+  try { passed = sessionStorage.getItem('bss-age') === 'ok'; } catch (e) { /* private mode */ }
+  if (passed) { gate.remove(); return; }
+
+  gate.hidden = false;
+  document.body.classList.add('is-gated');
+  $('#gatePanel').focus();
+
+  gate.addEventListener('click', e => {
+    const btn = e.target.closest('[data-gate]');
+    if (!btn) return;
+
+    if (btn.dataset.gate === 'yes') {
+      try { sessionStorage.setItem('bss-age', 'ok'); } catch (e) { /* ignore */ }
+      gate.remove();
+      document.body.classList.remove('is-gated');
+    } else {
+      $('#gateAsk').hidden = true;
+      $('#gateDenied').hidden = false;
+      $('#gatePanel').focus();
+    }
+  });
+}
+
+/* ══════════════════ 3a. SMOKE ══════════════════
+   The headline exists twice: a blurred copy behind, and the sharp copy
+   masked so only its centre — plus wherever the pointer is — reads
+   clean. The pointer position is lerped, so the clearing trails the
+   cursor and drifts shut behind it. */
+function initSmoke() {
+  const hero  = $('#hero');
+  const h1    = $('#heroH1');
+  const sharp = $('.h1__sharp');
+  if (!hero || !h1 || !sharp || REDUCED) return;
+
+  /* Clone for the blur layer. initReveals() tags .hero__h1 itself rather
+     than the lines, so there is no reveal state to inherit here — but
+     strip it anyway in case that ever changes. */
+  const blur = sharp.cloneNode(true);
+  blur.className = 'h1__blur';
+  blur.setAttribute('aria-hidden', 'true');
+  blur.querySelectorAll('.rv').forEach(el => el.classList.remove('rv'));
+  h1.insertBefore(blur, sharp);
+
+  hero.classList.add('has-smoke');
+  if (!matchMedia('(pointer: fine)').matches) return;
+
+  let tx = -999, ty = -999, cx = -999, cy = -999, running = false;
+
+  addEventListener('pointermove', e => {
+    const r = sharp.getBoundingClientRect();
+    tx = e.clientX - r.left;
+    ty = e.clientY - r.top;
+    if (cx === -999) { cx = tx; cy = ty; }
+    if (!running) { running = true; requestAnimationFrame(frame); }
+  }, { passive: true });
+
+  const frame = () => {
+    cx += (tx - cx) * .16;
+    cy += (ty - cy) * .16;
+    sharp.style.setProperty('--sx', cx.toFixed(1) + 'px');
+    sharp.style.setProperty('--sy', cy.toFixed(1) + 'px');
+    if (Math.abs(tx - cx) > .4 || Math.abs(ty - cy) > .4) requestAnimationFrame(frame);
+    else running = false;
+  };
+}
+
+/* ══════════════════ 3b. FLIP LABELS ══════════════════
+   Duplicates the text of every [data-flip] into a two-line stack the CSS
+   can slide. Built here so the markup stays one plain word per link —
+   the second copy is presentation, and it must never reach the
+   accessibility tree twice. */
+function initFlip() {
+  $$('[data-flip]').forEach(el => {
+    const text = el.textContent.trim();
+    el.setAttribute('aria-label', text);
+
+    /* Three slots, not two. The animation ends on slot 3 — identical to
+       slot 1 — so restarting is invisible and the cycle can repeat for as
+       long as the pointer stays. With two slots it could only run once.
+
+       data-flip="barcode" swaps the middle slot for a barcode sized to
+       the word's own footprint, so the label morphs to a strip of code
+       and back without the capsule changing width. */
+    const mid = el.dataset.flip === 'barcode'
+      ? '<i><span class="flip__code"></span></i>'
+      : '<i>' + text + '</i>';
+
+    el.innerHTML =
+      '<span class="flip" aria-hidden="true">' +
+      '<i>' + text + '</i>' + mid + '<i>' + text + '</i></span>';
+  });
+}
+
+/* ══════════════════ 4. NAVIGATION ══════════════════
+   The dock indicator and the top-bar readout are two views of one piece
+   of state: which section you're in. Both are driven from a single
+   observer, so they can never disagree. */
+function initNav() {
+  const sections = $$('[data-sec]');
+  const group    = $('#dockGroup');
+  const links    = $$('[data-nav]');
+  const ind      = $('.dock__ind');
+  const outN     = $('#readoutN');
+  const outLabel = $('#readoutLabel');
+  if (!sections.length || !group) return;
+
+  let active = null;
+
+  const moveIndicator = link => {
+    if (!link) return;
+    ind.style.setProperty('--ind-x', link.offsetLeft + 'px');
+    ind.style.setProperty('--ind-w', link.offsetWidth + 'px');
+    group.classList.add('is-live');
+  };
+
+  const setActive = id => {
+    if (id === active) return;
+    active = id;
+    const link = links.find(a => a.getAttribute('href') === '#' + id) || null;
+    links.forEach(a => a.classList.toggle('is-active', a === link));
+
+    if (link) moveIndicator(link);
+    else group.classList.remove('is-live');   /* above the first section */
+
+    const sec = id ? document.getElementById(id) : null;
+    outN.textContent     = sec ? sec.dataset.sec : 'N.000';
+    outLabel.textContent = sec ? sec.dataset.label : 'Index';
+  };
+
+  /* The active section is the LAST one whose top has passed a line a
+     third of the way down the viewport. Written as "has passed" rather
+     than "is crossing" on purpose: a crossing test has no answer once
+     you scroll past the final section's band, which left the nav blank
+     and the readout back at N.000 at the bottom of the page. */
+  const sync = () => {
+    const line = innerHeight * 0.34;
+    let hit = null;
+    for (const s of sections) {
+      if (s.getBoundingClientRect().top <= line) hit = s;
+    }
+    setActive(hit ? hit.id : null);
+  };
+
+  let queued = false;
+  addEventListener('scroll', () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; sync(); });
+  }, { passive: true });
+
+  /* The indicator is positioned in pixels, so it has to be re-measured
+     when the capsule reflows. */
+  addEventListener('resize', () => {
+    moveIndicator(links.find(a => a.classList.contains('is-active')));
+  }, { passive: true });
+
+  sync();
+}
+
+/* ══════════════════ BOOT ══════════════════ */
+function init() {
+  initGate();
+  initReveals();
+  initFlip();
+  initSmoke();
+  initCountdown();
+  initFigures();
+  initNav();
+
+  /* Anchor links land below the fixed top bar. */
+  $$('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href').slice(1);
+      const target = id ? document.getElementById(id) : null;
+      if (!target) return;
+      e.preventDefault();
+      const off = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--top-h')) || 68;
+      scrollTo({
+        top: target.getBoundingClientRect().top + scrollY - (id === 'top' ? 0 : off + 8),
+        behavior: REDUCED ? 'auto' : 'smooth'
+      });
+    });
+  });
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+
 })();

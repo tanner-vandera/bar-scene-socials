@@ -1,340 +1,261 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bar Scene Socials</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Meow+Script&family=Inter:wght@400;500;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Bar Scene Socials — Milwaukee Bar Crawls</title>
+<meta name="description" content="Milwaukee bar crawls. Three a year. One wristband, no cover." />
+<meta name="theme-color" content="#EFECE7" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&family=Inter:wght@400;500&family=Shrikhand&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
 </head>
-<body data-route="home">
 
-  <!-- Persistent header. Never re-rendered across routes — only its
-       backdrop + the wordmark's color animate. Hamburger only shows on the
-       homepage; the "All events" link only shows on event routes, in the
-       same top-right slot — always visible/clickable regardless of scroll,
-       since the header itself never fades. -->
-  <header class="site-header">
-    <a class="wordmark" href="#/" aria-label="Bar Scene Socials — home"></a>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
-    <a class="header-back" href="#/">← All events</a>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     AGE GATE
+     An age gate is SELF-DECLARATION, not verification — it carries no
+     legal weight on its own, and the FTC's self-regulation reports and
+     the Beer Institute / Brewers Association / Wine Institute / DISCUS
+     codes treat it as a required industry practice rather than a legal
+     control. The real check is photo ID at wristband pickup, which the
+     fine print states. Wisconsin's legal drinking age is 21
+     (Wis. Stat. ch. 125). Copy is deliberately declarative — playful
+     phrasing here defeats the point.
+     ══════════════════════════════════════════════════════════════════ -->
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle" hidden>
+  <div class="gate__panel" id="gatePanel" tabindex="-1">
+    <span class="gate__cherry" aria-hidden="true"></span>
+
+    <div class="gate__ask" id="gateAsk">
+      <h2 class="gate__title" id="gateTitle">Are you 21 or older?</h2>
+      <p class="gate__body">You must be 21 or older to enter this site. The legal drinking age in Wisconsin is 21.</p>
+      <div class="gate__actions">
+        <button class="gate__btn gate__btn--yes" type="button" data-gate="yes">Yes, I am 21 or older</button>
+        <button class="gate__btn" type="button" data-gate="no">No</button>
+      </div>
+      <p class="gate__fine">Valid government-issued photo ID is required at wristband pickup. Bar Scene Socials does not sell or serve alcohol. Please drink responsibly.</p>
+    </div>
+
+    <div class="gate__denied" id="gateDenied" hidden>
+      <h2 class="gate__title">Come back when you&rsquo;re 21.</h2>
+      <p class="gate__body">You must be 21 or older to view this site.</p>
+      <p class="gate__fine">If you entered your age incorrectly, reload the page to try again.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TOP BAR
+     Lockup left, live section readout right. The readout is a nav
+     component that reports rather than navigates — it names where you
+     are (N.001 / NEXT) so the floating capsule below can stay short.
+     ══════════════════════════════════════════════════════════════════ -->
+<header class="top">
+  <a class="lockup" href="#top" aria-label="Bar Scene Socials — top">
+    <span class="lockup__cherry" aria-hidden="true"></span>
+    <span class="lockup__word" role="img" aria-label="Bar Scene Socials"></span>
+  </a>
+  <p class="readout" aria-live="polite">
+    <span class="readout__n" id="readoutN">N.000</span>
+    <span class="readout__rule" aria-hidden="true"></span>
+    <span class="readout__label" id="readoutLabel">Index</span>
+  </p>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     FLOATING NAV
+     A capsule with a sliding indicator that animates between items —
+     JS writes --ind-x / --ind-w from the active link's box, so the
+     indicator is one element rather than a per-item background. The
+     ticket CTA is a separate attached capsule: navigation and action
+     are different jobs and shouldn't look identical.
+     ══════════════════════════════════════════════════════════════════ -->
+<nav class="dock" aria-label="Sections">
+  <div class="dock__group" id="dockGroup">
+    <span class="dock__ind" aria-hidden="true"></span>
+    <a href="#next" data-nav data-flip>Upcoming</a>
+    <a href="#calendar" data-nav data-flip>Calendar</a>
+    <a href="#history" data-nav data-flip>History</a>
+    <a href="#contact" data-nav data-flip>Contact</a>
+  </div>
+  <a class="dock__cta" href="#next" data-flip="barcode">Tickets</a>
+</nav>
+
+<main id="top">
+
+<!-- ══════════════════════════ HERO ══════════════════════════
+     Two faces on one line, and the cherry doing the work of the full
+     stop. The mark is a real inline element sized in em and sitting on
+     the baseline, so it holds its position and scale at every width
+     without a single breakpoint. -->
+<section class="hero" id="hero">
+  <div class="hero__wrap">
+    <h1 class="hero__h1" id="heroH1">
+      <span class="h1__sharp">
+        <span class="line line--a"><b>Milwaukee&rsquo;s</b></span>
+        <span class="line line--b">bars are better</span>
+        <span class="line line--c">with a crowd<i class="cherrydot" aria-hidden="true"></i></span>
+      </span>
+    </h1>
+  </div>
+</section>
+
+<!-- ══════════════════════════ N.001 — NEXT ══════════════════════════ -->
+<section class="sec sec--feature" id="next" data-sec="N.001" data-label="Upcoming">
+  <!-- Summary bar, unchanged, now heading the section it describes. -->
+  <dl class="strip">
+    <div><dt>Upcoming</dt><dd>Halloween Bar Crawl</dd></div>
+    <div><dt>Date</dt><dd>31 Oct 2026</dd></div>
+    <div><dt>Route</dt><dd>Historic Third Ward</dd></div>
+    <div><dt>Bars</dt><dd>16</dd></div>
+  </dl>
+
+  <header class="sec__head grid">
+    <p class="label sec__n">N.001</p>
+    <p class="label sec__kicker">Upcoming</p>
+    <h2 class="sec__title">Halloween<br />Bar Crawl</h2>
   </header>
 
-  <nav class="site-menu" id="site-menu" aria-label="Site">
-    <div>
-      <ul class="site-menu__list">
-        <li><a href="#events">Our Events</a></li>
-        <li><a href="#/halloween">Halloween Bar Crawl</a></li>
-        <li><a href="#/christmas">12 Bars of Christmas</a></li>
-        <li><a href="#/shamrock">Shamrock Shuffle</a></li>
-        <li><a href="#about">About Us</a></li>
-        <li><a href="#contact">Contact</a></li>
+  <div class="grid next__body">
+    <!-- The event poster. 2:3, the same trim every crawl will use, so the
+         series reads as a set when they're up around the city. -->
+    <figure class="poster">
+      <div class="poster__sheet">
+        <div class="poster__img"></div>
+        <span class="poster__cherry" aria-hidden="true"></span>
+        <div class="poster__type">
+          <span class="poster__eyebrow">Bar Scene Socials presents</span>
+          <span class="poster__title">Halloween<br />Bar Crawl</span>
+          <span class="poster__meta">31 Oct 2026 · Historic Third Ward · 16 bars</span>
+        </div>
+      </div>
+      <figcaption class="poster__cap">
+        <span>Series poster</span><span>24 × 36 in</span>
+      </figcaption>
+    </figure>
+
+    <div class="next__side">
+      <p class="label">Doors in</p>
+      <div class="clock" data-countdown="2026-10-31T15:00:00">
+        <div><b class="cd__d">00</b><span>Days</span></div>
+        <div><b class="cd__h">00</b><span>Hrs</span></div>
+        <div><b class="cd__m">00</b><span>Min</span></div>
+        <div><b class="cd__s">00</b><span>Sec</span></div>
+      </div>
+
+      <p class="label">Included</p>
+      <ul class="rows">
+        <li><span>Wristband, no cover, all 16 bars</span><i>01</i></li>
+        <li><span>Drink specials, every stop</span><i>02</i></li>
+        <li><span>Collectible cup</span><i>03</i></li>
+        <li><span>Costume contest, $500</span><i>04</i></li>
       </ul>
-      <p class="site-menu__meta">Milwaukee, WI</p>
-    </div>
-  </nav>
 
-  <!-- ============================ HOME ============================
-       Everything from the grid through the footer lives inside this one
-       wrapper so a single toggle hides all of it when an event is active —
-       the marketing sections below are siblings of the grid, not children
-       of it, so they need a shared container to hide as a unit. -->
-  <div data-view="home">
-  <main class="home">
-    <h1 class="home__title">Our Events</h1>
-
-    <nav class="grid" id="events" aria-label="Events">
-      <a class="card card--orange" data-event="halloween" href="#/halloween" aria-label="Halloween Bar Crawl">
-        <span class="card__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" /></svg></span>
-        <img class="card__logo" src="assets/halloween-lockup.png" alt="Halloween Bar Crawl" />
-        <!-- Keep this date in sync with the matching countdown in the event page body below. -->
-        <div class="card__countdown" data-countdown="2026-10-31T15:00:00">
-          <span class="cd__d">00</span><span class="card__countdown-label">Days Away</span>
-        </div>
+      <h3 class="ticket__head">Tickets</h3>
+      <a class="ticket" href="#" onclick="return false;">
+        <span class="ticket__mark" aria-hidden="true"></span>
+        <span class="ticket__main">
+          <span class="ticket__label">Halloween Bar Crawl</span>
+          <span class="ticket__meta">Admit one · 31 Oct 2026</span>
+        </span>
+        <span class="ticket__stub" aria-hidden="true"><span class="ticket__code"></span></span>
       </a>
-      <a class="card card--red" data-event="christmas" href="#/christmas" aria-label="12 Bars of Christmas">
-        <span class="card__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" /></svg></span>
-        <img class="card__logo" src="assets/christmas-lockup.png" alt="12 Bars of Christmas" />
-        <div class="card__countdown" data-countdown="2026-12-12T14:00:00">
-          <span class="cd__d">00</span><span class="card__countdown-label">Days Away</span>
-        </div>
-      </a>
-      <a class="card card--green" data-event="shamrock" href="#/shamrock" aria-label="Shamrock Shuffle">
-        <span class="card__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" /></svg></span>
-        <img class="card__logo" src="assets/shamrock-lockup.png" alt="Shamrock Shuffle" />
-        <div class="card__countdown" data-countdown="2027-03-17T12:00:00">
-          <span class="cd__d">00</span><span class="card__countdown-label">Days Away</span>
-        </div>
-      </a>
-    </nav>
-  </main>
-
-  <!-- ============================ MARKETING BLURB ============================ -->
-  <section class="section blurb reveal">
-    <div class="section__head">
-      <span class="eyebrow">Milwaukee, Wisconsin</span>
-      <h2>Your excuse to get out<br />and go loud.</h2>
-      <p>Three signature bar crawls, one wristband, zero boring nights. We turn Milwaukee's best bars into one unforgettable route — costumes, cheer, and confetti included.</p>
+      <p class="note">Placeholder — ticketing not connected.</p>
     </div>
-  </section>
-
-  <!-- ============================ ABOUT US ============================ -->
-  <section class="section about" id="about">
-    <div class="section__head reveal">
-      <span class="eyebrow">Who We Are</span>
-      <h2>The city's loudest<br />night out, x3 a year.</h2>
-      <p>Bar Scene Socials started in 2019 with one green-soaked St. Paddy's crawl and a simple idea: Milwaukee's best nights happen between bars, not inside them. Today we throw three signature crawls a year, pack thousands of wristbands, and give a cut of every ticket back to the neighborhoods that host us.</p>
-    </div>
-    <div class="stats reveal reveal--stagger">
-      <div class="stat" style="--i:0"><div class="stat__num" data-count-to="50000" data-count-suffix="+">0</div><div class="stat__label">Crawlers &amp; counting</div></div>
-      <div class="stat" style="--i:1"><div class="stat__num" data-count-to="120" data-count-suffix="+">0</div><div class="stat__label">Partner bars</div></div>
-      <div class="stat" style="--i:2"><div class="stat__num" data-count-to="3">0</div><div class="stat__label">Signature crawls</div></div>
-      <div class="stat" style="--i:3"><div class="stat__num" data-count-to="8">0</div><div class="stat__label">Years running</div></div>
-    </div>
-  </section>
-
-  <!-- ============================ EMAIL SIGNUP (placeholder, not wired up) ============================ -->
-  <section class="section signup" id="signup">
-    <div class="section__head reveal">
-      <span class="eyebrow">Stay In The Loop</span>
-      <h2>Don't miss the next crawl.</h2>
-      <p>We'll email you when tickets drop. No spam, just bar crawls.</p>
-    </div>
-    <form class="signup__form reveal" onsubmit="return false;" aria-label="Email signup — placeholder, not yet connected">
-      <input type="email" placeholder="you@email.com" aria-label="Email address" />
-      <button type="submit">Notify Me</button>
-    </form>
-    <p class="signup__note">Placeholder form — not yet connected.</p>
-  </section>
-
-  <!-- ============================ CONTACT ============================ -->
-  <section class="section contact" id="contact">
-    <div class="section__head reveal">
-      <span class="eyebrow">Say Hi</span>
-      <h2>Let's throw a party.</h2>
-      <p>Bar owner who wants in? Sponsor, press, or just here to say the green beer was unforgettable? We're all ears.</p>
-    </div>
-    <div class="contact__actions reveal">
-      <a class="contact__email" href="#" onclick="return false;">hello@barscenesocials.com</a>
-      <div class="footer__social">
-        <a href="#" onclick="return false;" aria-label="Instagram (placeholder)">IG</a>
-        <a href="#" onclick="return false;" aria-label="TikTok (placeholder)">TT</a>
-        <a href="#" onclick="return false;" aria-label="Facebook (placeholder)">FB</a>
-      </div>
-    </div>
-  </section>
-
   </div>
+</section>
 
-  <!-- ============================ EVENT ============================
-       Hero (color field + logo + arrows + back) is the tested transition
-       engine — untouched. Scrollable content below it is new. -->
-  <section class="event" data-view="event" aria-label="Event">
-    <div class="event__panel"></div>
-    <div class="event__wipe"></div>
-    <img class="event__logo" src="" alt="" />
+<!-- ══════════════════════════ N.002 — CALENDAR ══════════════════════════ -->
+<section class="sec" id="calendar" data-sec="N.002" data-label="Calendar">
+  <header class="sec__head grid">
+    <p class="label sec__n">N.002</p>
+    <p class="label sec__kicker">Calendar</p>
+    <h2 class="sec__title">Also<br />announced</h2>
+  </header>
 
-    <a class="arrow arrow--prev" href="#/shamrock" aria-label="Previous event">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8" /></svg>
-    </a>
-    <a class="arrow arrow--next" href="#/christmas" aria-label="Next event">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8" /></svg>
-    </a>
+  <!-- Announced-but-undetailed crawls. One row each: nothing to sell yet,
+       so nothing beyond the fact that it exists and when. -->
+  <ol class="cal">
+    <li>
+      <span class="cal__n label">002 / A</span>
+      <span class="cal__name" data-text="12 Bars of Christmas">12 Bars of Christmas</span>
+      <span class="cal__date label">12 Dec 2026</span>
+      <span class="cal__state"><i aria-hidden="true"></i>Coming soon</span>
+    </li>
+    <li>
+      <span class="cal__n label">002 / B</span>
+      <span class="cal__name" data-text="Shamrock Shuffle">Shamrock Shuffle</span>
+      <span class="cal__date label">17 Mar 2027</span>
+      <span class="cal__state"><i aria-hidden="true"></i>Coming soon</span>
+    </li>
+  </ol>
+</section>
 
-    <div class="event__hero" aria-hidden="true"></div>
+<!-- ══════════════════════════ N.003 — RECORD ══════════════════════════ -->
+<section class="sec" id="history" data-sec="N.003" data-label="History">
+  <header class="sec__head grid">
+    <p class="label sec__n">N.003</p>
+    <p class="label sec__kicker">History</p>
+    <h2 class="sec__title">Eight years<br />on the route</h2>
+  </header>
 
-    <div class="event__content">
+  <dl class="figs">
+    <div><dt data-count-to="50000" data-count-suffix="+">0</dt><dd>Crawlers</dd></div>
+    <div><dt data-count-to="120" data-count-suffix="+">0</dt><dd>Partner bars</dd></div>
+    <div><dt data-count-to="3">0</dt><dd>Crawls a year</dd></div>
+    <div><dt data-count-to="8">0</dt><dd>Years running</dd></div>
+  </dl>
 
-      <!-- ============ HALLOWEEN ============ -->
-      <article class="event__body" data-for="halloween">
+  <div class="grid give">
+    <p class="label give__label">Returned to the city</p>
+    <p class="give__cap">To Milwaukee food banks and youth programs, from a share of every wristband.</p>
+    <p class="give__num">$<span data-count-to="123000">0</span></p>
+  </div>
+</section>
 
-        <!-- PRIMARY -->
-        <section class="tier tier--primary">
-          <div class="event__intro">
-            <span class="eyebrow">Saturday, October 31, 2026</span>
-            <h1 class="event__tagline">Milwaukee's spookiest night out.</h1>
-            <p class="event__blurb">One wristband, sixteen haunted watering holes, and zero survivors before last call. The Halloween Bar Crawl turns the Historic Third Ward into one giant costume party — drink specials at every stop, a contest with real prizes, and a night you'll only half remember.</p>
-            <div class="countdown" data-countdown="2026-10-31T15:00:00"><div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div><div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div><div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div><div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div></div>
-            <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
-            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
-          </div>
-          <dl class="event__details reveal">
-            <div class="detail"><dt>Date</dt><dd>Sat, Oct 31</dd></div>
-            <div class="detail"><dt>Time</dt><dd>3PM – Close</dd></div>
-            <div class="detail"><dt>Location</dt><dd>Historic Third Ward</dd></div>
-          </dl>
-        </section>
+<!-- ══════════════════════════ N.004 — CONTACT ══════════════════════════ -->
+<section class="sec" id="contact" data-sec="N.004" data-label="Contact">
+  <header class="sec__head grid">
+    <p class="label sec__n">N.004</p>
+    <p class="label sec__kicker">Contact</p>
+    <h2 class="sec__title">Get in<br />touch</h2>
+  </header>
 
-        <!-- SECONDARY -->
-        <section class="tier">
-          <div class="event__block reveal">
-            <div class="event__subhead"><span class="eyebrow">What's In It For You</span><h2>What you get</h2></div>
-            <ul class="perks"><li>Wristband into all 16 bars — no cover, no lines</li><li>Exclusive drink &amp; shot specials the whole route</li><li>A collectible glow-in-the-dark cup to take home</li><li>Costume contest — best dressed takes $500</li></ul>
-          </div>
-          <div class="event__bars reveal">
-            <h2 class="event__marquee-title">Participating Bars</h2>
-            <div class="marquee" aria-hidden="true"><div class="marquee__track"><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div></div></div>
-          </div>
-          <div class="tier__cta reveal"><a class="event__cta" href="#" onclick="return false;">Get Tickets</a></div>
-        </section>
+  <div class="grid contact__body">
+    <dl class="spec">
+      <div><dt>Email</dt><dd><a href="#" onclick="return false;">hello@barscenesocials.com</a></dd></div>
+      <div><dt>Bars &amp; sponsors</dt><dd><a href="#" onclick="return false;">partners@barscenesocials.com</a></dd></div>
+      <div><dt>Instagram</dt><dd><a href="#" onclick="return false;">@barscenesocials</a></dd></div>
+      <div><dt>TikTok</dt><dd><a href="#" onclick="return false;">@barscenesocials</a></dd></div>
+    </dl>
 
-        <!-- TERTIARY -->
-        <section class="tier tier--tertiary reveal">
-          <span class="tier__cta-lead">Costumes on. Cover off.</span>
-          <p class="event__blurb event__blurb--center">Costumes strongly encouraged. Regrets optional. This one sells out every October, so grab your wristband before it vanishes into the night.</p>
-          <div class="tier__cta">
-            <a class="event__cta event__cta--lg" href="#" onclick="return false;">Get Tickets</a>
-            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
-          </div>
-        </section>
-
-      </article>
-
-      <!-- ============ CHRISTMAS ============ -->
-      <article class="event__body" data-for="christmas">
-
-        <!-- PRIMARY -->
-        <section class="tier tier--primary">
-          <div class="event__intro">
-            <span class="eyebrow">Saturday, December 12, 2026</span>
-            <h1 class="event__tagline">Deck the bars.</h1>
-            <p class="event__blurb">Twelve bars, twelve drinks, one very festive disaster. Pull on your ugliest sweater and sleigh through downtown Milwaukee's merriest crawl — spiked cocoa, ugly-sweater contests, and carols nobody asked for at every single stop.</p>
-            <div class="countdown" data-countdown="2026-12-12T14:00:00"><div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div><div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div><div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div><div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div></div>
-            <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
-            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
-          </div>
-          <dl class="event__details reveal">
-            <div class="detail"><dt>Date</dt><dd>Sat, Dec 12</dd></div>
-            <div class="detail"><dt>Time</dt><dd>2PM – Close</dd></div>
-            <div class="detail"><dt>Location</dt><dd>Downtown Milwaukee</dd></div>
-          </dl>
-        </section>
-
-        <!-- SECONDARY -->
-        <section class="tier">
-          <div class="event__block reveal">
-            <div class="event__subhead"><span class="eyebrow">What's In It For You</span><h2>What you get</h2></div>
-            <ul class="perks"><li>Wristband to all 12 festive stops</li><li>Signature holiday cocktails &amp; spiked cocoa</li><li>A Santa hat to keep, naturally</li><li>Ugly-sweater contest — the worst one wins big</li></ul>
-          </div>
-          <div class="event__bars reveal">
-            <h2 class="event__marquee-title">Participating Bars</h2>
-            <div class="marquee" aria-hidden="true"><div class="marquee__track"><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div></div></div>
-          </div>
-          <div class="tier__cta reveal"><a class="event__cta" href="#" onclick="return false;">Get Tickets</a></div>
-        </section>
-
-        <!-- TERTIARY -->
-        <section class="tier tier--tertiary reveal">
-          <span class="tier__cta-lead">Grab your sweater.</span>
-          <p class="event__blurb event__blurb--center">Naughty list guaranteed. Wristbands make excellent stocking stuffers — for yourself — so lock in your spot before Santa sells the rest.</p>
-          <div class="tier__cta">
-            <a class="event__cta event__cta--lg" href="#" onclick="return false;">Get Tickets</a>
-            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
-          </div>
-        </section>
-
-      </article>
-
-      <!-- ============ SHAMROCK ============ -->
-      <article class="event__body" data-for="shamrock">
-
-        <!-- PRIMARY -->
-        <section class="tier tier--primary">
-          <div class="event__intro">
-            <span class="eyebrow">Wednesday, March 17, 2027</span>
-            <h1 class="event__tagline">Milwaukee's original St. Paddy's crawl.</h1>
-            <p class="event__blurb">The one that started it all. For eight years the Shamrock Shuffle has turned four Milwaukee neighborhoods green for St. Patrick's Day — green beer, live pipers, and the biggest bar crawl in the city. Wear green or walk the plank.</p>
-            <div class="countdown" data-countdown="2027-03-17T12:00:00"><div class="countdown__unit"><div class="countdown__num cd__d">00</div><div class="countdown__label">Days</div></div><div class="countdown__unit"><div class="countdown__num cd__h">00</div><div class="countdown__label">Hrs</div></div><div class="countdown__unit"><div class="countdown__num cd__m">00</div><div class="countdown__label">Min</div></div><div class="countdown__unit"><div class="countdown__num cd__s">00</div><div class="countdown__label">Sec</div></div></div>
-            <a class="event__cta" href="#" onclick="return false;">Get Tickets</a>
-            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
-          </div>
-          <dl class="event__details reveal">
-            <div class="detail"><dt>Date</dt><dd>Wed, Mar 17</dd></div>
-            <div class="detail"><dt>Time</dt><dd>12PM – Close</dd></div>
-            <div class="detail"><dt>Location</dt><dd>4 neighborhoods</dd></div>
-          </dl>
-        </section>
-
-        <!-- SECONDARY -->
-        <section class="tier">
-          <div class="event__block reveal">
-            <div class="event__subhead"><span class="eyebrow">What's In It For You</span><h2>What you get</h2></div>
-            <ul class="perks"><li>Wristband good across all four routes</li><li>Green beer &amp; Irish specials at every stop</li><li>This year's limited Shuffle tee</li><li>Live bagpipers and a whole lot of green</li></ul>
-          </div>
-          <div class="event__crawls reveal">
-            <div class="event__subhead"><span class="eyebrow">Four Routes, One City</span><h2>Pick your route</h2></div>
-            <div class="crawls">
-              <div class="crawl"><div class="crawl__name">Third Street</div><p class="crawl__desc">MLK Drive. The downtown stretch, and the biggest of the four.</p><a class="crawl__btn" href="#" onclick="return false;">Register</a></div>
-              <div class="crawl"><div class="crawl__name">Walker's Point</div><p class="crawl__desc">Second &amp; National. The south-side crawl.</p><a class="crawl__btn" href="#" onclick="return false;">Register</a></div>
-              <div class="crawl"><div class="crawl__name">Water Street</div><p class="crawl__desc">The classic. Bars shoulder to shoulder, all night long.</p><a class="crawl__btn" href="#" onclick="return false;">Register</a></div>
-              <div class="crawl"><div class="crawl__name">Brady Street</div><p class="crawl__desc">The east side. Milwaukee's most historic mile of bars.</p><a class="crawl__btn" href="#" onclick="return false;">Register</a></div>
-            </div>
-          </div>
-          <div class="event__bars reveal">
-            <h2 class="event__marquee-title">Participating Bars</h2>
-            <div class="marquee" aria-hidden="true"><div class="marquee__track"><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div><div class="logo-chip"><span>LOGO</span></div></div></div>
-          </div>
-          <div class="tier__cta reveal"><a class="event__cta" href="#" onclick="return false;">Get Tickets</a></div>
-        </section>
-
-        <!-- TERTIARY -->
-        <section class="tier tier--tertiary reveal">
-          <div class="moneyraised reveal">
-            <span class="eyebrow">Every Wristband Gives Back</span>
-            <div class="moneyraised__num">$<span data-count-to="123000" data-count-suffix="+">0</span></div>
-            <p class="moneyraised__cap">Since 2019 the Shuffle has raised over $123,000 for Milwaukee food banks and youth programs. Every wristband keeps the city green in more ways than one.</p>
-          </div>
-          <span class="tier__cta-lead">Go on, go green.</span>
-          <p class="event__blurb event__blurb--center">Sláinte. The Shuffle sells out earlier every year — don't be the one stuck sober on the sidewalk. Grab your wristband and go green.</p>
-          <div class="tier__cta">
-            <a class="event__cta event__cta--lg" href="#" onclick="return false;">Get Tickets</a>
-            <p class="event__cta-note">Placeholder — links to our ticketing partner.</p>
-          </div>
-        </section>
-
-      </article>
-
-        </div>
-  </section>
-
-  <!-- ============================ FOOTER ============================ -->
-  <footer class="footer" id="footer">
-    <div class="footer__top">
-      <div class="footer__brand">
-        <a class="wordmark" href="#/" aria-label="Bar Scene Socials — home"></a>
-        <p>Milwaukee's home for themed bar crawls — bold nights, three times a year.</p>
-        <div class="footer__social">
-          <a href="#" onclick="return false;" aria-label="Instagram (placeholder)">IG</a>
-          <a href="#" onclick="return false;" aria-label="TikTok (placeholder)">TT</a>
-          <a href="#" onclick="return false;" aria-label="Facebook (placeholder)">FB</a>
-        </div>
+    <form class="sub" onsubmit="return false;" aria-label="Email signup — placeholder">
+      <p class="label">Ticket drops</p>
+      <div class="sub__field">
+        <input type="email" placeholder="you@email.com" aria-label="Email address" />
+        <button type="submit" aria-label="Subscribe">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </button>
       </div>
-      <div class="footer__col">
-        <h4>Events</h4>
-        <ul>
-          <li><a href="#/halloween">Halloween Bar Crawl</a></li>
-          <li><a href="#/christmas">12 Bars of Christmas</a></li>
-          <li><a href="#/shamrock">Shamrock Shuffle</a></li>
-        </ul>
-      </div>
-      <div class="footer__col">
-        <h4>Company</h4>
-        <ul>
-          <li><a href="#about">About Us</a></li>
-          <li><a href="#contact">Contact</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer__bottom">
-      <span>© 2026 Bar Scene Socials. Milwaukee, WI.</span>
-      <span>Prototype content — not a real business listing.</span>
-    </div>
-  </footer>
+      <p class="note">Placeholder — not connected.</p>
+    </form>
+  </div>
+</section>
 
-  <script src="js/app.js"></script>
+</main>
+
+<!-- ══════════════════════════ FOOTER ══════════════════════════ -->
+<footer class="foot">
+  <img class="foot__mark" src="assets/lockup-stacked.svg" alt="Bar Scene Socials" width="1158" height="633" />
+  <div class="foot__meta">
+    <span class="label">Bar Scene Socials · Milwaukee, WI</span>
+    <span class="label">Prototype — not a real business listing</span>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
 </body>
 </html>
