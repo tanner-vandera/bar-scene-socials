@@ -34,15 +34,54 @@
 
 :root{
   --paper:    #EFECE7;
-  --paper-in: #E7E3DC;              /* recessed panels */
   --ink:      #111111;
   --ink-80:   rgba(17,17,17,.80);
   --ink-58:   rgba(17,17,17,.58);
   --ink-42:   rgba(17,17,17,.42);
   --rule:     rgba(17,17,17,.15);
   --rule-soft:rgba(17,17,17,.09);
+  /* Not-yet-available. Warm rather than neutral so it sits in the paper's
+     own family instead of reading as a grey pasted onto it, and dark
+     enough to clear 3:1 on paper (3.70:1) — a disabled state still has to
+     be readable, or it is a broken state. Carried by the two headlines
+     that are not on sale and by the padlock that says so. */
+  --mute:     #7E7871;
   --red:      #CE1919;
-  --butter:   #FFFFA7;   /* one section only — Upcoming */
+
+  /* ── The Upcoming panel's own palette ────────────────────────────
+     A deep violet ground with a burnt-orange accent. It is the one place
+     on the site that leaves paper, and what it leaves paper for is night.
+
+     The two orange stops are MEASURED, not two shades picked by eye,
+     because the accent has to do two opposite jobs:
+
+       --orange      fill. White type sits ON it, so it has to be dark
+                     enough to hold white — 6.15:1.
+       --orange-hi   the same fill, hovered. The lightest orange that
+                     still holds white at AA (4.52:1).
+
+     THE GAP BETWEEN THOSE TWO IS OPENED FROM BELOW, and it has to be.
+     --orange-hi is at a hard ceiling — any lighter and the white type on
+     it fails AA — so the only way to make the hover read as a bigger
+     change is to start deeper. The base was #C24417 and the hover was a
+     16% lift, which was barely a change; dropping the base to #AE3A10
+     makes it 51% and the ticket visibly lights up. The cost is the fill's
+     own contrast against the plum panel (2.51:1, under the 3:1 for a
+     component boundary) — accepted, because this ticket is identified by
+     a notched silhouette, a poster and 6:1 white type inside it, not by
+     the edge between two colours.
+       --orange-lit  accents drawn ON the plum, where the requirement
+                     inverts: here the orange has to be LIGHT to clear a
+                     dark ground (6.13:1).
+
+     One orange cannot do both — white wants a dark orange and a dark
+     ground wants a light one — so the accent is one hue at two stops
+     rather than one value that fails at one end. Same reasoning as
+     --volt below: the colour is chosen by measurement, then named.       */
+  --plum:       #2F1A47;
+  --orange:     #AE3A10;
+  --orange-hi:  #CE4B19;
+  --orange-lit: #FF7F32;
   /* One figure only — the amount returned. Electric, but pulled back
      from #00C24E, which measured 2.02:1 on paper. This is 3.10:1, which
      clears the large-text minimum while still reading as voltage. */
@@ -353,8 +392,9 @@ body.is-gated{ overflow:hidden; }
 }
 
 /* ═══════════════ FLOATING NAV ═══════════════ */
-/* Dark so it holds its own over paper, butter and photography alike —
-   as a light capsule it kept dissolving into whatever it floated on. */
+/* Dark so it holds its own over paper, the plum panel and photography
+   alike — as a light capsule it kept dissolving into whatever it floated
+   on. */
 .dock{
   position:fixed; z-index:60;
   left:50%; bottom:clamp(14px,2vw,26px);
@@ -366,9 +406,11 @@ body.is-gated{ overflow:hidden; }
      the labels legible over whatever is passing underneath. */
   background:rgba(56,54,52,.58);
   /* saturate(0) desaturates whatever is BEHIND the bar before the tint
-     lands on it. Without it the butter panel bleeds through a translucent
-     grey and the whole capsule turns olive — this keeps it neutral over
-     paper, butter and photography alike while staying genuinely see-through. */
+     lands on it. Without it a strongly coloured panel bleeds through the
+     translucent grey and takes the whole capsule with it — it turned
+     olive over the old butter and would go violet over the plum. This
+     keeps it neutral over paper, panel and photography alike while
+     staying genuinely see-through. */
   backdrop-filter:blur(24px) saturate(0) brightness(1.04);
   -webkit-backdrop-filter:blur(24px) saturate(0) brightness(1.04);
   border:1px solid rgba(255,255,255,.16);
@@ -651,14 +693,54 @@ body.is-gated{ overflow:hidden; }
 /* ═══════════════ SECTIONS ═══════════════ */
 .sec{ padding:clamp(74px,12vh,168px) 0 0; }
 
-/* The one coloured panel on the site. Full-bleed butter, so the next
-   crawl is unmistakably the thing being sold. */
+/* The one coloured panel on the site. Full-bleed deep violet, so the next
+   crawl is unmistakably the thing being sold — and so the storm above it
+   has a night to happen in. */
 .sec--feature{
   position:relative;
   overflow:hidden;                 /* the bolt is cut by the panel edge */
-  background:var(--butter);
+  background:var(--plum);
   padding-bottom:clamp(74px,12vh,168px);
   margin-bottom:clamp(0px,1vw,10px);
+
+  /* ── The panel inverts here, once ──
+     Every rule on the site already draws its text and its hairlines from
+     --ink / --rule, so re-pointing those six tokens at their light-on-dark
+     values flips the entire panel without touching a single component.
+     Anything added to this section later lands in the right colours by
+     default, which is the whole reason to do it here rather than in ten
+     `.sec--feature .thing` overrides.
+
+     The opacities are NOT the mirror of the light ones. White at 58% on a
+     dark ground reads dimmer than black at 58% on a light one, so the
+     secondary steps are lifted: .62 measures 6.65:1 against the plum and
+     .48 measures 4.57:1, both of which clear AA where a straight mirror
+     of the ink values would not have.
+
+     --red is re-pointed too. Red is the site's transaction colour, but on
+     this panel that job belongs to the orange, and everything carrying it
+     — the Get-tickets link, the countdown, the release chip — picks the
+     change up from this one line.
+
+     Two things opt back out below: the poster, which is a printed object
+     rather than part of the panel, and the ticket, which sets its own.    */
+  --ink:      #FFFFFF;
+  --ink-80:   rgba(255,255,255,.80);
+  --ink-58:   rgba(255,255,255,.62);
+  --ink-42:   rgba(255,255,255,.48);
+  --rule:     rgba(255,255,255,.24);
+  --rule-soft:rgba(255,255,255,.14);
+  --red:      var(--orange-lit);
+  color:#fff;
+}
+
+/* The poster is a printed sheet, not part of the panel's colour system —
+   it is the same object whether it is hung on paper or on the plum. So it
+   takes the page's own values back rather than inheriting the inversion,
+   and the cherry on it stays the brand's red. */
+.sec--feature .poster__sheet{
+  --ink: #111111;
+  --red: #CE1919;
 }
 /* The panel's real content sits above the weather. Stated once here
    rather than on each block, so anything added to the panel later lands
@@ -668,10 +750,18 @@ body.is-gated{ overflow:hidden; }
 .sec--feature > .next__body{ position:relative; z-index:1; }
 
 /* ── Weather ──────────────────────────────────────────────────────
-   White on butter is a narrow gap — only the blue channel moves — so the
-   strike is carried by TWO layers rather than by the bolt alone: a wash
-   that lifts the whole panel for a moment, and the bolt drawn over it.
-   Either one alone reads as a glitch; together they read as light.
+   The strike is carried by TWO layers rather than by the bolt alone: a
+   wash that lifts the sky for a moment, and the bolt drawn over it. The
+   bolt alone is a graphic; the bolt with a sky that answers it is
+   weather.
+
+   On the old butter panel the wash was doing legibility work — white on
+   yellow only moves the blue channel, so a bolt without a wash barely
+   registered. On the plum the problem is the exact opposite: white now
+   has enormous headroom, and an unrestrained wash blows the whole panel
+   out. The peaks below are pulled down to roughly half what they were,
+   and the wash is tinted a degree toward violet so it reads as this sky
+   catching the light rather than as a white sheet dropped over it.
 
    The bolt is a STROKE, not a filled shape, at a weight that does not
    scale with the drawing — the same hairline language as every rule on
@@ -701,24 +791,25 @@ body.is-gated{ overflow:hidden; }
 .storm__wash{ position:absolute; inset:0; }
 .storm__wash--a{
   background:radial-gradient(112% 74% at 79% -10%,
-    rgba(255,255,255,.98) 0%,
-    rgba(255,255,255,.32) 40%,
-    rgba(255,255,255,0)   70%);
+    rgba(236,228,255,.95) 0%,
+    rgba(226,214,255,.30) 40%,
+    rgba(226,214,255,0)   70%);
 }
 .storm__wash--b{
   background:radial-gradient(96% 62% at 13% -8%,
-    rgba(255,255,255,.92) 0%,
-    rgba(255,255,255,.26) 42%,
-    rgba(255,255,255,0)   72%);
+    rgba(236,228,255,.90) 0%,
+    rgba(226,214,255,.24) 42%,
+    rgba(226,214,255,0)   72%);
 }
 
 .storm__bolt{
   position:absolute;
   height:auto;
-  /* The glow is what makes white legible on butter. It is a light source,
-     not a card shadow — the one place on the site with a soft edge. */
-  filter:drop-shadow(0 0 34px rgba(255,255,255,1))
-         drop-shadow(0 0 10px rgba(255,255,255,1));
+  /* A light source, not a card shadow — the one place on the site with a
+     soft edge. Pulled back from the butter version, where the glow was
+     compensating for a bolt that had almost no contrast to work with. */
+  filter:drop-shadow(0 0 30px rgba(255,255,255,.85))
+         drop-shadow(0 0 9px  rgba(255,255,255,.95));
 }
 .storm__bolt--a{
   top:0; right:clamp(4%,7vw,13%);
@@ -734,38 +825,42 @@ body.is-gated{ overflow:hidden; }
 /* One double-strike every five and a half seconds. Each bolt and its wash
    share a delay, so a pair can never drift apart; B fires 400ms after A —
    long enough that A's strike is over and its wash has decayed, so B
-   arrives on clean butter rather than on a sky A already lit. */
+   arrives on a clean sky rather than on one A has already lit. */
 .storm.is-live .storm__wash--a{ animation:washflash 5.5s  .90s var(--ease)   infinite; }
 .storm.is-live .storm__bolt--a{ animation:boltflash 5.5s  .90s steps(1,end)  infinite; }
 .storm.is-live .storm__wash--b{ animation:washflash 5.5s 1.30s var(--ease)   infinite; }
 .storm.is-live .storm__bolt--b{ animation:boltflash 5.5s 1.30s steps(1,end)  infinite; }
 
-/* THE BOLT LEADS AND THE SKY FOLLOWS, and that order is load-bearing, not
-   styling. White is the ceiling on butter, so a white bolt is only legible
-   while the ground under it is still yellow — fire the wash with the bolt
-   and the wash wins, which is what made the second strike invisible even
-   at full opacity. So the wash is held at zero through the bolt's first
-   hit, blooms once the bolt has dimmed, drops back out of the way of the
-   second hit, then blooms again as the bolt leaves.
+/* THE BOLT LEADS AND THE SKY FOLLOWS. On butter this order was survival —
+   white was the ceiling, so a bolt fired together with its wash was
+   simply swallowed. On the plum it is no longer load-bearing but it is
+   still the truthful sequence, and it is still what keeps the bolt's edge
+   readable: you see the strike, then the sky catches up. So the wash is
+   held at zero through the first hit, blooms once the bolt has dimmed,
+   drops back out of the way of the second, then blooms again as the bolt
+   leaves.
 
-   It is also the more truthful sequence: you see the strike, then the sky
-   catches up. Percentages are of the 5.5s cycle; milliseconds in comments.
+   Percentages are of the 5.5s cycle; milliseconds in comments.
 
    The bolt steps between values (a flash has no in-between); the wash
    eases (a sky does). */
 @keyframes boltflash{
   0%,100%{ opacity:0 }
-  .4%    { opacity:1 }       /*  22ms — lands on butter, full contrast */
+  .4%    { opacity:1 }       /*  22ms — full contrast on the night */
   2.1%   { opacity:.12 }     /* 115ms — the flicker between hits */
   2.8%   { opacity:.92 }     /* 154ms — second hit */
   4%     { opacity:0 }       /* 220ms */
 }
+/* Peaks are roughly half the butter values. The same numbers on a dark
+   panel do not read as a brighter storm, they read as the section
+   flashing white — and a full-panel white strobe is exactly the thing to
+   be careful with. */
 @keyframes washflash{
   0%,100%{ opacity:0 }
   .5%    { opacity:0 }       /*  27ms — held down; the bolt gets there first */
-  1.7%   { opacity:.62 }     /*  94ms — sky catches up */
-  2.7%   { opacity:.06 }     /* 148ms — clears out for the second hit */
-  4.3%   { opacity:.5 }      /* 236ms */
+  1.7%   { opacity:.34 }     /*  94ms — sky catches up */
+  2.7%   { opacity:.04 }     /* 148ms — clears out for the second hit */
+  4.3%   { opacity:.26 }     /* 236ms */
   7.6%   { opacity:0 }       /* 418ms */
 }
 .sec__head{ row-gap:clamp(14px,2vw,22px); align-items:start; }
@@ -930,7 +1025,12 @@ body.is-gated{ overflow:hidden; }
   background:currentColor;
   animation:soonpulse 2.4s var(--ease) infinite;
 }
-.tstat__count{ opacity:.6; }
+/* Softened, but only as far as it can go. At .6 the count measured
+   2.92:1 on the old butter and 3.06:1 on the plum — it was failing
+   before this panel changed colour, and dimming a 10.5px accent is where
+   that always ends. .85 still reads as secondary to the stage label and
+   measures 4.80:1. */
+.tstat__count{ opacity:.85; }
 .tstat[data-stage="hot"]  { color:var(--red); border-color:color-mix(in srgb, var(--red) 45%, transparent); }
 .tstat[data-stage="last"] { color:var(--red); border-color:var(--red); }
 .tstat[data-stage="out"]  { color:var(--ink-58); border-color:var(--rule); }
@@ -1001,7 +1101,7 @@ body.is-gated{ overflow:hidden; }
 /* ── Ticket ──────────────────────────────────────────────────────────
    Three parts, like the real object: a rail carrying the mark, a body
    carrying the booking, and a tear-off stub. Notches are cut as real
-   holes with mask-composite so the butter panel shows through them.
+   holes with mask-composite so the plum shows through them.
 
    It is FILLED, not outlined, and that isn't a style choice — a masked
    notch cuts the fill AND the border, and a border can't trace the curve
@@ -1017,8 +1117,13 @@ body.is-gated{ overflow:hidden; }
      objects sit level without either being told the other's height. */
   --tk-h:108px;
   min-height:var(--tk-h);
-  color:var(--butter);
-  background:var(--ink);
+  /* The ticket is the one object on the panel that is neither the ground
+     nor drawn on it — it is the transaction, so it gets the accent as a
+     solid, and everything printed on it is white. It sets both explicitly
+     rather than taking the panel's inverted --ink, which would have made
+     the ticket itself white. */
+  color:#fff;
+  background:var(--orange);
   border-radius:5px;
   overflow:hidden;
   cursor:pointer;
@@ -1030,39 +1135,43 @@ body.is-gated{ overflow:hidden; }
     radial-gradient(circle var(--notch) at var(--perf) 100%, transparent var(--notch), #000 calc(var(--notch) + .5px));
   -webkit-mask-composite:source-in;
           mask-composite:intersect;
-  /* Short and front-loaded: the red is most of the way in within about a
-     tenth of a second, so the ticket answers the pointer instead of
+  /* Short and front-loaded: the colour is most of the way in within about
+     a tenth of a second, so the ticket answers the pointer instead of
      easing toward it. */
   transition:background-color .22s cubic-bezier(.2,0,0,1);
 }
+/* Hover lifts the fill by one step rather than recolouring it. That is a
+   ceiling, not a preference: white type is what makes this ticket legible
+   and --orange-hi is the lightest orange that still holds white at AA. So
+   the colour moves a little and the shimmer does the rest — which is the
+   right division anyway, since the sweep is the part that reads as live. */
 @media (hover: hover) and (pointer: fine){
-  .ticket:hover{ background:var(--red); }
+  .ticket:hover{ background:var(--orange-hi); }
   .ticket:hover::after{ animation:shimmer 1.15s infinite; }
 }
 
-/* Shimmer — butter, so the highlight reads as the section's own light
-   rather than a generic gloss. Creeps in, sweeps, overshoots the far
-   edge and rocks back once; the bounce is the pull-back at 74%, not an
-   easing curve. The notch mask clips it, so light never leaves the trim. */
+/* Shimmer — white, the same light as everything else printed on the
+   ticket. Creeps in, sweeps, overshoots the far edge and rocks back once;
+   the bounce is the pull-back at 62%, not an easing curve. The notch mask
+   clips it, so light never leaves the trim. */
 .ticket::after{
   content:''; position:absolute; inset:0; z-index:4;
   pointer-events:none;
   background:linear-gradient(104deg,
     transparent 36%,
-    rgba(255,255,167,.5) 50%,
+    rgba(255,255,255,.42) 50%,
     transparent 64%);
   transform:translateX(-135%);
 }
-/* Arrival cue. The ticket stays black and takes a single butter pass —
-   the red fill belongs to hover, where it answers a pointer; firing it on
-   arrival made the ticket look pressed by something the visitor did not
-   do. Butter rather than white so the light reads as the panel's own,
-   the same as the hover sweep: one gesture at two intensities, not two
-   different ideas. */
+/* Arrival cue. The fill does not change — the hover colour belongs to
+   hover, where it answers a pointer; firing it on arrival made the ticket
+   look pressed by something the visitor did not do. So arrival is the
+   same white sweep, brighter: one gesture at two intensities rather than
+   two different ideas. */
 .ticket.is-flashing::after{
   background:linear-gradient(104deg,
     transparent 36%,
-    rgba(255,255,167,.72) 50%,
+    rgba(255,255,255,.7) 50%,
     transparent 64%);
   animation:shimmer 1.15s 1;
 }
@@ -1109,12 +1218,16 @@ body.is-gated{ overflow:hidden; }
    separator broke as "31 OCT 2026 · BRADY / STREET". Each fact is now its
    own unbreakable element and the GAP does the separating, so the break
    lands between them and nothing is left dangling at the end of a line. */
+/* These run at full white. The .66 that softened them on black could not
+   survive the move to orange — 9px at that opacity measures 3.05:1 on the
+   fill, where solid white measures 5.08:1. Nothing is lost: at 9px
+   against a 21px name, size was always doing the hierarchy work and the
+   opacity was only ever agreeing with it. */
 .ticket__meta{
   display:flex; flex-wrap:wrap;
   gap:0 1.15em;
   font-size:9px; font-weight:500;
   letter-spacing:.18em; text-transform:uppercase;
-  opacity:.66;
 }
 .ticket__meta > span{ white-space:nowrap; }
 .ticket__label{
@@ -1141,15 +1254,16 @@ body.is-gated{ overflow:hidden; }
   background-image:radial-gradient(circle at 1px 1px, currentColor 1px, transparent 1.15px);
   background-size:2px 6.5px;
   background-repeat:repeat-y;
-  opacity:.6;
+  opacity:.72;
 }
 .ticket__code{
   display:block; width:100%; height:46px;
-  /* Two periods overlaid so the bars read as irregular, not as a grid. */
+  /* Two periods overlaid so the bars read as irregular, not as a grid.
+     Solid white — 1px bars have no area to spare, and any opacity on them
+     is thinning a line that is already at its minimum. */
   background-image:
     repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 4px),
     repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 9px);
-  opacity:.92;
 }
 
 /* ═══════════════ CALENDAR ═══════════════ */
@@ -1237,17 +1351,26 @@ body.is-gated{ overflow:hidden; }
    the fill means "a crawl is here" and can only mean that. */
 .d--today{ outline:1px solid var(--ink-42); outline-offset:-1px; color:var(--ink-58); }
 
+/* Marked days wear their event's own colours, from the same [data-fx]
+   blocks that dress the All-events rows — so the square, the row and the
+   eventual event page are one identity rather than three that resemble
+   each other. It costs the colour budget three entries in this section,
+   which is a real spend and a deliberate one: these three squares are the
+   only saturated things in an otherwise monochrome grid, which is exactly
+   what makes them read as marked. */
 .d--hit{
   position:relative;
-  background:var(--ink);
-  color:var(--paper);
+  background:var(--ev-bg);
+  color:var(--ev-fg);
   font-family:var(--f-brand);
   /* Shrikhand runs optically smaller than Inter Tight at the same size —
      the measured match is 1.09x — and its tracking is built in, so the
      display face's negative letter-spacing has to be given back. */
   font-size:clamp(13px,1.14vw,16.3px);
   letter-spacing:0;
-  transition:transform .32s var(--ease), background-color .25s var(--ease);
+  transition:transform .32s var(--ease),
+             background-color .25s var(--ease),
+             color .25s var(--ease);
 }
 /* The sticker. The event's own mark, stuck on the date at an angle and
    overhanging the square — the one bit of the page that is pinned rather
@@ -1266,8 +1389,17 @@ body.is-gated{ overflow:hidden; }
 }
 /* Animated hover states are gated: a tap leaves :hover applied on touch
    until you tap elsewhere, which parks the lift permanently. */
+/* Hover INVERTS rather than recolouring: the square takes the numeral's
+   colour and the numeral takes the square's. It stays inside the event's
+   own two colours, so the measured pair holds in both directions and no
+   third value has to be found that works on all three squares — which is
+   what the old single red was failing to do the moment the squares
+   stopped being ink. */
 @media (hover: hover) and (pointer: fine){
-  .d--hit:hover{ background:var(--red); transform:translateY(-3px) rotate(-2.5deg); }
+  .d--hit:hover{
+    background:var(--ev-fg); color:var(--ev-bg);
+    transform:translateY(-3px) rotate(-2.5deg);
+  }
   .d--hit:hover .d__mark{ transform:rotate(24deg) scale(1.14); }
 }
 .d--hit:focus-visible{ outline-offset:3px; }   /* colour set with the other dark objects, above */
@@ -1294,32 +1426,204 @@ body.is-gated{ overflow:hidden; }
   gap:6px clamp(14px,1.8vw,26px);
   margin-bottom:clamp(10px,1.2vw,16px);
 }
+/* Solid at rest, not outlined. The outline was one idea doing two jobs —
+   saying "not yet" and being the thing the hover fill poured into — and it
+   said the first badly: three hollow headlines read as a rendering fault
+   before they read as a state. Solid says it in one move: the crawl that
+   is selling is set in ink, the two that are not are set in --mute.
+
+   It also frees the weather. With a transparent name a bolt drawn behind
+   it showed THROUGH the letters, which is why both were pushed to the far
+   right; against an opaque headline a bolt is cleanly occluded, so it can
+   now pass behind the words and look like it is behind them. */
 .cal__name{
   display:block;
-  position:relative;
   font-family:var(--f-display);
   font-size:clamp(30px,5.2vw,88px);
   line-height:1; letter-spacing:-.042em;
-  color:transparent;
-  -webkit-text-stroke:1.1px var(--ink-58);
-  transition:-webkit-text-stroke-color .5s var(--ease);
+  color:var(--ev-rest);
+  transition:color .16s var(--ease);
 }
-.cal__name::after{
-  content:attr(data-text);
-  position:absolute; inset:0;
-  color:var(--ink);
-  -webkit-text-stroke:0;
-  clip-path:inset(0 100% 0 0);
-  transition:clip-path .65s var(--ease);
+/* ── Event weather ────────────────────────────────────────────────────
+   Each row carries its event's ground and its own weather, revealed on
+   hover. The idea is that the row is a preview of that event's page
+   arriving in the row's slot — so the ground runs FULL BLEED, past the
+   page margin to the viewport edge, exactly like .sec--feature does. A
+   fill that stopped at the margin would be a card, and this design does
+   not have cards.
+
+   The ground wipes in left to right on the same duration and curve as the
+   name that has always filled that way, so the colour and the word arrive
+   as ONE gesture rather than two things happening at once.
+
+   PERFORMANCE. This is three animated backgrounds on one page, so the
+   rule is: nothing animates until a row is hovered. Every effect below is
+   declared with its animation attached to the :hover selector, not to the
+   element, and will-change goes on at the same moment. At rest these rows
+   cost exactly what they did before — an idle compositor layer each, and
+   no frames. Everything animates transform or opacity only; nothing here
+   touches layout or triggers a repaint.                                  */
+.cal li{ position:relative; }
+/* Content clears the weather. Stated on the children rather than by
+   z-indexing the layer negatively, which would put it behind the row's
+   own background and make it invisible. */
+/* Content clears the weather. The Haunted row wraps these in .cal__lede,
+   which carries the same pair; the other two rows have no wrapper and
+   take it here. */
+.cal__eyebrow,
+.cal__name{ position:relative; z-index:1; }
+
+.cal__fx{
+  position:absolute;
+  /* Out to the viewport edge on both sides — .cal's padding is exactly
+     --m, so pulling back by --m lands on the trim. `bottom:-1px` covers
+     the row's own dashed rule, which would otherwise sit under the field
+     as a stray dash on paper. */
+  top:0; bottom:-1px;
+  left:calc(var(--m) * -1); right:calc(var(--m) * -1);
+  overflow:hidden;                 /* weather is cut by the row edge */
+  pointer-events:none;
+  background:var(--ev-bg);
+  /* The ground and the name change together, quickly, and that is the
+     whole transition. It used to be a .65s clip-path wipe with a second
+     clipped copy of the headline riding along on the same clock — two
+     elements drawing the same word at the same place, and the seam
+     between them showed: at the wipe edge you could catch a sliver of the
+     lightning through the gap where the two glyph rasters disagreed by a
+     subpixel.
+
+     There is nothing to line up now. One element draws the word, one
+     draws the ground, and both just change colour. */
+  opacity:0;
+  transition:opacity .16s var(--ease);
 }
+/* The layer above is transparent at rest, contents included, so nothing
+   in here needs a resting state of its own. */
+.cal__fx > *{ position:absolute; }
+
 /* Gated with the rest of the animated hovers: a tap leaves :hover applied
    on touch until you tap elsewhere, and these rows are announcements with
    nothing to tap through to — a permanently indented row reads as a fault
-   rather than as a selection. */
+   rather than as a selection. On touch the row stays as it was, which is
+   the right thing to fall back to: the weather is a flourish, not
+   information. */
 @media (hover: hover) and (pointer: fine){
   .cal li:hover{ padding-left:clamp(10px,1.4vw,22px); }
-  .cal li:hover .cal__name{ -webkit-text-stroke-color:var(--ink-42); }
-  .cal li:hover .cal__name::after{ clip-path:inset(0 0 0 0); }
+  .cal li:hover .cal__fx{ opacity:1; }
+  .cal li:hover .cal__fx > *{ will-change:transform, opacity; }
+
+  /* The row inverts to its event's palette the same way .sec--feature
+     does — by re-pointing the tokens every component already draws from,
+     rather than by restyling each one. The eyebrow, the date, the status
+     chip, its pulsing dot and the name's outline all follow from these
+     five lines.
+
+     80% / 62% / 26% are one shared set that had to clear AA in both
+     directions, since two of these grounds are dark and one is light.
+     The date at 80% measures 4.57:1 on the pale pistachio — the tightest
+     of the three — and 10.3:1 on the plum. */
+  .cal li:hover{
+    --ink:      var(--ev-txt);
+    --ink-80:   color-mix(in srgb, var(--ev-txt) 88%, transparent);
+    --ink-58:   color-mix(in srgb, var(--ev-txt) 80%, transparent);
+    --ink-42:   color-mix(in srgb, var(--ev-txt) 62%, transparent);
+    --rule:     color-mix(in srgb, var(--ev-txt) 26%, transparent);
+    /* The "On sale" chip is red, which is unreadable on plum. Red is the
+       site's transaction colour but on a row wearing its own palette that
+       job belongs to the event's accent. */
+    --red:      var(--ev-fg);
+  }
+  .cal li:hover .cal__name{ color:var(--ev-fg); }
+  .cal li:hover .cal__lock{ color:var(--ev-fg); }
+}
+
+/* ── Locked events ──
+   The two crawls that are not on sale yet carry a padlock on the name's
+   baseline. Sized in em, so it tracks the headline from 30px to 88px with
+   no second number to keep in sync, and drawn as a mask so one file takes
+   whatever colour the row is currently wearing. */
+.cal__lock{
+  display:inline-block;
+  width:.46em; height:.46em;
+  margin-left:.24em;
+  /* Bottom edge on the baseline — the icon sits on the line the letters
+     stand on rather than floating against their centres. */
+  vertical-align:baseline;
+  background:currentColor;
+  /* The same --mute the two locked headlines are set in, so the padlock
+     and the word it belongs to are one statement rather than an icon
+     placed near some text. */
+  color:var(--mute);
+  -webkit-mask:url(../assets/lock.svg) center/contain no-repeat;
+          mask:url(../assets/lock.svg) center/contain no-repeat;
+  transition:color .65s var(--ease);
+}
+
+/* ══════════════ THE THREE EVENT PALETTES ══════════════
+   Declared on the attribute rather than on the row, because two different
+   parts of the page now wear them: the All-events rows and the marked
+   days in the calendar above. One source, both places, and adding a
+   fourth crawl means adding one block here.
+
+   Ground, the name on hover, and supporting text. Measured against each
+   other: the name is 6.13:1 on plum, 7.80:1 on the crimson and 4.73:1 on
+   the pistachio; supporting text at its 80% clears 4.5:1 on all three.
+   A hover state that is hard to read reads as a mistake.
+
+   The Shamrock green is pulled to the CLOVER's own hue — the sticker art
+   samples at #90CC3C, a yellow-green at 85°, where the old forest green
+   sat at 145° and read as a different plant. This is 90°, punchy, and
+   still 4.73:1. Its supporting text is the same hue held darker, so the
+   two greens read as one family rather than as two decisions. */
+[data-fx="storm"]{ --ev-bg:#2F1A47; --ev-fg:#FF7F32; --ev-txt:#FFFFFF; }
+[data-fx="snow"] { --ev-bg:#A31621; --ev-fg:#FFFFFF; --ev-txt:#FFFFFF; }
+[data-fx="prism"]{ --ev-bg:#CFE6BE; --ev-fg:#3F6B12; --ev-txt:#2C4A12; }
+
+/* Where the row sits when nothing is happening — and it carries real
+   information: ink means this crawl is selling, --mute means it is not.
+   Only one of the three is in ink, and it is the one with the ticket. */
+.cal li[data-fx="storm"]{ --ev-rest:var(--ink); }
+.cal li[data-fx="snow"],
+.cal li[data-fx="prism"]{ --ev-rest:var(--mute); }
+
+/* ── The ticket in the row ──
+   The lede takes its own content width and the ticket is pushed to the
+   far edge by an auto margin, so the space between them is whatever is
+   left — which is also where the lightning strikes. When the two no
+   longer fit, the ticket wraps underneath rather than squeezing the
+   headline. No breakpoint: the measurements decide. */
+.cal li[data-fx="storm"]{
+  display:flex; flex-wrap:wrap; align-items:center;
+  gap:clamp(20px,2.6vw,34px);
+}
+.cal__lede{ position:relative; z-index:1; flex:0 1 auto; min-width:0; }
+/* Takes the row's whole width, up to the same 480px ceiling the panel's
+   ticket has — so the object is one size wherever it appears rather than
+   two that nearly match. On a phone the row is narrower than that ceiling
+   and the ticket simply fills it; it was sitting at a fixed 306 with the
+   rest of the line empty, which read as a leftover rather than a
+   deliberate size.
+
+   The ceiling is not decoration. Past about 480 the ticket stops scaling
+   and starts stretching: the poster rail is cut from --tk-h so it stays
+   put while everything else grows, and the stub is a percentage, so a
+   715px ticket is a sliver of artwork and a slab of barcode. */
+.cal__ticket{
+  position:relative; z-index:1;
+  flex:0 0 auto;
+  width:100%;
+  max-width:480px;
+  /* A step down from the panel's 108. One number: it is the ticket's
+     floor AND what the poster rail's width is cut from. */
+  --tk-h:88px;
+}
+/* Only once there is room for it beside the headline does it move over.
+   Below this it sits on its own line, left-aligned under the name rather
+   than pushed to the far edge with a gap where the headline was. 900px is
+   the site's existing split, and it lands just past the width where the
+   two genuinely stop fitting (~865px). */
+@media (min-width:900px){
+  .cal__ticket{ margin-left:auto; }
 }
 .cal__date{ color:var(--ink-58); }
 /* Live "coming soon" chip — a slow pulse, so the row reads as pending
@@ -1343,6 +1647,236 @@ body.is-gated{ overflow:hidden; }
   0%,100%{ opacity:.28; transform:scale(.82); }
   50%    { opacity:1;   transform:scale(1); }
 }
+/* ══════════════ EVENT WEATHER — the three effects ══════════════
+   FLASH, FALL, SWEEP. Three motion languages on purpose: recolouring one
+   effect three times would have made the rows read as one thing in three
+   costumes, which is the opposite of what a season of distinct events
+   should feel like.
+
+   Every animation below is attached to a :hover selector, never to the
+   element itself, so an unhovered row runs no frames at all. */
+
+/* ── 1. FLASH — Haunted Bar Hop ────────────────────────────────────
+   The Upcoming panel's storm, same drawing and same two-strike rhythm, at
+   row scale: stroked bolts at a non-scaling weight, each with a wash
+   anchored on its own head, sharing one delay so a pair cannot drift, and
+   the bolt leading the sky rather than firing with it. Same bounce light
+   too — the two-stop white drop-shadow, at the panel's exact values.
+
+   THE GROUND STAYS FLAT. Both washes rest at opacity 0 and only the
+   keyframes lift them, so the row is flat plum until a strike actually
+   happens. They were resting at their natural opacity of 1, which parked
+   a permanent gradient over the panel and lit the bolts the instant you
+   hovered — the flash had nothing left to reveal. `backwards` on the
+   animations below does the same job for the delay window. */
+.fx__bolt,
+.fx__wash{ opacity:0; }
+
+.fx__bolt{
+  width:auto;
+  filter:drop-shadow(0 0 30px rgba(255,255,255,.85))
+         drop-shadow(0 0 9px  rgba(255,255,255,.95));
+}
+/* Both strike in the middle of the row: A in the clear space between the
+   headline and the ticket, B far enough left that the headline cuts
+   across it. Percentages rather than clamps, because what they have to
+   sit between is the headline and the ticket, and the headline is sized
+   in vw — so the three track each other instead of drifting apart at the
+   ends of the range.
+
+   B being partly hidden is the point, not a tolerance. The headline is
+   opaque now, so it occludes the stroke cleanly and the bolt reads as
+   being behind the words. That only became available when the resting
+   name stopped being an outline. */
+.fx__bolt--a{ top:-30%; height:166%; right:48%; }
+.fx__bolt--b{ top:-16%; height:196%; right:62%; }
+
+.fx__wash{ inset:0; }
+.fx__wash--a{
+  background:radial-gradient(118% 150% at 52% -22%,
+    rgba(236,228,255,.95) 0%,
+    rgba(226,214,255,.30) 42%,
+    rgba(226,214,255,0)   72%);
+}
+.fx__wash--b{
+  background:radial-gradient(104% 132% at 38% -18%,
+    rgba(236,228,255,.90) 0%,
+    rgba(226,214,255,.24) 44%,
+    rgba(226,214,255,0)   74%);
+}
+/* Percentages are of a 3.2s cycle, chosen so the strike lasts the same
+   number of MILLISECONDS as the panel's does — a flash is an absolute
+   duration, not a proportion of whatever loop it sits in. Reusing the
+   panel's percentages here would have cut the first hit to 13ms, which is
+   one frame, and `steps(1,end)` would then drop it on any frame the
+   browser was late for. */
+@keyframes rowbolt{
+  0%,100%{ opacity:0 }
+  .7%    { opacity:1 }       /*  22ms — the hit */
+  3.6%   { opacity:.12 }     /* 115ms — flicker between hits */
+  4.8%   { opacity:.92 }     /* 154ms — second hit */
+  6.9%   { opacity:0 }       /* 220ms */
+}
+@keyframes rowwash{
+  0%,100%{ opacity:0 }
+  .9%    { opacity:0 }       /*  29ms — held down; the bolt lands first */
+  2.9%   { opacity:.34 }     /*  94ms — sky catches up */
+  4.6%   { opacity:.04 }     /* 148ms — clears for the second hit */
+  7.4%   { opacity:.26 }     /* 236ms */
+ 13.1%   { opacity:0 }       /* 419ms */
+}
+
+/* ── 2. FALL — 12 Bars of Christmas ────────────────────────────────
+   Three parallax layers and not one particle. Each layer is a single
+   element carrying a tiled field of dots, and the entire snowfall is
+   those three elements translating — no per-flake DOM, no JS, no
+   per-frame work beyond three composited transforms.
+
+   The loop is seamless because each layer travels exactly one tile
+   height, so the field lands back on itself. All three share that tile
+   and one wind angle, which is both physically right (wind is wind) and
+   the reason one keyframe can serve all three. Depth comes from flake
+   size, opacity and speed instead. */
+.fx__snow{
+  inset:-40%;                      /* oversized so the rotation cannot expose a corner */
+  background-repeat:repeat;
+  background-size:168px 168px;     /* the fall distance below must match this */
+}
+/* Two flakes per tile now rather than three, on a tile half again as
+   large — a little over a third of the density it started at. It was
+   reading as static rather than as weather. Positions are unrelated
+   between layers so the three never resolve into a lattice. */
+.fx__snow--far{
+  background-image:
+    radial-gradient(circle 1.2px at 31% 14%, #fff 99%, transparent 100%),
+    radial-gradient(circle 1px   at 72% 58%, #fff 99%, transparent 100%);
+  opacity:.38;
+}
+.fx__snow--mid{
+  background-image:
+    radial-gradient(circle 1.9px at 58% 26%, #fff 99%, transparent 100%),
+    radial-gradient(circle 1.6px at 12% 71%, #fff 99%, transparent 100%);
+  opacity:.62;
+}
+.fx__snow--near{
+  background-image:
+    radial-gradient(circle 2.7px at 44% 63%, #fff 99%, transparent 100%),
+    radial-gradient(circle 2.3px at 88% 19%, #fff 99%, transparent 100%);
+  opacity:.88;
+}
+@keyframes snowfall{
+  from{ transform:rotate(-12deg) translate3d(0,0,0); }
+  to  { transform:rotate(-12deg) translate3d(0,168px,0); }
+}
+
+/* ── 3. SWEEP — Shamrock Shuffle ───────────────────────────────────
+   One broad band of refracted light crossing the row, left to right, with
+   a small pull-back as it passes the middle.
+
+   Two more elaborate versions were built and both were worse. A giant
+   ring cropped to an arc: the arc was right, but a box that size has its
+   own edge inside the row and that edge cut a hard horizontal line across
+   the crown — there was no way to keep the shape and lose the box. Then a
+   drawn curve travelled with stroke-dashoffset, which fixed the clipping
+   and lost the plot: at any instant it was a short coloured dash sliding
+   through a green field, and it read as something swimming rather than as
+   light. The band was right the first time. It got a bounce instead of a
+   rewrite.
+
+   A white glint used to run ahead of it. It was competing for the same
+   moment and winning, because a bright neutral band always beats a
+   coloured one — so it is gone, and the rainbow has the row to itself.
+
+   This is the one effect that works BECAUSE its ground is light. A
+   low-alpha spectrum over pale green adds saturation rather than
+   lightness, so it reads as light rather than as paint — which is also
+   why it needs no blur, and blur is the one filter here that would have
+   cost real frames.
+
+   Falling shamrocks were the obvious answer and the wrong one: it would
+   have been the snow again in green.
+
+   The band occupies about a third of this element, which is itself 230%
+   of the row — so roughly 80% of the row width, with clear ground either
+   side. Spread across the whole element it stops being a band passing
+   through and becomes a wash sitting on top, which is a duller idea. */
+.fx__prism{
+  inset:-25% -65%;
+  background:linear-gradient(102deg,
+    rgba(255,196,60,0)   30%,
+    rgba(255,196,60,.46) 37%,
+    rgba(120,205,110,.42) 44%,
+    rgba(64,196,196,.36) 51%,
+    rgba(150,124,228,.32) 58%,
+    rgba(150,124,228,0)  65%);
+}
+/* Left to right, with a pull-back as it passes the middle: it runs a
+   little past centre, rocks back, then carries on out. The bounce is the
+   58% keyframe, NOT an easing curve — the same construction as the
+   ticket's shimmer, and for the same reason. An easing curve can only
+   slow a thing down; to overshoot and come back, the position itself has
+   to reverse. Each leg gets its own timing function so the arrival is
+   soft, the recoil is quick and the exit is smooth.
+
+   The stops are transparent at both shoulders and the travel carries the
+   band fully clear of the row at each end, so the loop restarts where
+   there is nothing to see. */
+@keyframes prismsweep{
+  /* In, decelerating into the turn. */
+  0%   { transform:translate3d(-92%,0,0); animation-timing-function:cubic-bezier(.24,.62,.32,1); }
+  /* The overshoot, and back. Eased at both ends — this leg used to end on
+     a curve that left at speed, and the band shot out of the bounce
+     instead of resuming from it. */
+  44%  { transform:translate3d(  7%,0,0); animation-timing-function:cubic-bezier(.42,0,.58,1); }
+  /* Out. Gathers pace gently rather than taking off. */
+  57%  { transform:translate3d( -2%,0,0); animation-timing-function:cubic-bezier(.38,0,.52,.96); }
+  100% { transform:translate3d( 92%,0,0); }
+}
+
+/* ── Running the weather ──────────────────────────────────────────
+   Two different relationships with time here, because two different
+   things are being asked for.
+
+   AMBIENT weather — the snow — is attached to the element and held
+   PAUSED, then simply resumed on hover. A paused animation keeps its
+   position, so leaving a row and coming back picks the snow up mid-fall
+   instead of dropping every flake back to the top. Moving quickly along
+   the three rows used to snap each one back to frame zero, which is the
+   one thing that gives away that this is a loop. It is also still free:
+   a paused animation produces no frames. This is the honest version of
+   "nothing runs at rest" — the animation exists, the clock does not.
+
+   CHOREOGRAPHED weather — the lightning and the rainbow — is the
+   opposite, and restarts from the top on every hover. Both are a sequence
+   with a beginning: a strike you catch the tail of is not a strike, and a
+   rainbow you join halfway is a stripe. Resuming these mid-cycle would
+   land you in the quiet part and show you nothing at all, so they are
+   declared inside the hover rule, which is what makes them restart.
+
+   `backwards` matters more than it looks: without it, an animation with a
+   delay shows the element's OWN style during the wait, so the bolts stood
+   fully lit for the whole delay and then began to flash. With it, the
+   delay is spent on the first keyframe. */
+.fx__snow--far { animation:snowfall 13s  linear infinite paused; }
+.fx__snow--mid { animation:snowfall 9s   linear infinite paused; }
+.fx__snow--near{ animation:snowfall 6.2s linear infinite paused; }
+
+@media (hover: hover) and (pointer: fine){
+  .cal li:hover .fx__snow{ animation-play-state:running; }
+
+  /* Enough that the row has settled before anything strikes — the flash
+     needs a still frame to interrupt, or there is nothing for it to be
+     sudden against. Both delays came down when the ground stopped taking
+     .65s to arrive. B fires 400ms after A, exactly as in the panel. */
+  .cal li:hover .fx__wash--a{ animation:rowwash 3.2s .45s var(--ease)   infinite backwards; }
+  .cal li:hover .fx__bolt--a{ animation:rowbolt 3.2s .45s steps(1,end)  infinite backwards; }
+  .cal li:hover .fx__wash--b{ animation:rowwash 3.2s .85s var(--ease)   infinite backwards; }
+  .cal li:hover .fx__bolt--b{ animation:rowbolt 3.2s .85s steps(1,end)  infinite backwards; }
+
+  /* Barely a delay — just enough for the ground to land first. */
+  .cal li:hover .fx__prism{ animation:prismsweep 5.6s .24s infinite backwards; }
+}
+
 /* Dashed rules on this list only: the same hairline language, drawn as
    provisional. */
 .cal{ border-top-style:dashed; }
@@ -1499,6 +2033,11 @@ body.is-gated{ overflow:hidden; }
      The weather is removed outright — it is nothing but motion. */
   *,*::before,*::after{ animation-iteration-count:1 !important; }
   .storm{ display:none; }
+  /* Same treatment for the event rows' weather, and for the same reason —
+     all three are infinite. The row still takes its colour on hover: that
+     is a colour change, not motion, and losing it would strip the rows of
+     the thing the hover is actually FOR. Only the weather goes. */
+  .cal__fx > *{ display:none; }
   .tstat__dot,
   .cal__state i{ animation:none; opacity:1; transform:none; }
   *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }

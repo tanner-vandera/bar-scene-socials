@@ -19,10 +19,13 @@ to `main` in about fifteen seconds.
 
 > This is a **full visual reset**. Nothing survives from the earlier
 > iterations except the logo artwork and the factual content. The previous
-> direction — cherry red fields, plum, butter, Shrikhand everywhere, the
-> sticky event deck, film grain, seam bleeds — is gone, not layered over.
-> The first prototype still exists untouched at
-> `prototypes/bar-scene-socials/`.
+> direction — cherry red fields, Shrikhand everywhere, the sticky event
+> deck, film grain, seam bleeds — is gone, not layered over. The first
+> prototype still exists untouched at `prototypes/bar-scene-socials/`.
+>
+> The Upcoming panel's deep violet is **not** the old plum returning. That
+> was a page-wide field colour; this is one full-bleed panel with a
+> measured accent, and it arrived deliberately, after the reset.
 
 ---
 
@@ -32,23 +35,62 @@ Three constraints do most of the design work. They're worth keeping.
 
 ### 1. The colour budget
 
-Three colours, each with one job. Two declared exceptions, below.
+Three colours, each with one job, plus one panel that runs its own local
+palette. Two further exceptions are declared below.
 
 | | |
 |---|---|
-| **Red** `#CE1919` | The brand speaking, and the transaction. Brand: the cherry, wherever the mark appears. Transaction: the countdown, the release chip, the ticket on hover, the "Get tickets" link, the dock CTA. |
-| **Butter** `#FFFFA7` | The Upcoming panel. One section, edge to edge, nowhere else. |
+| **Red** `#CE1919` | The brand speaking, and the transaction — *everywhere except the Upcoming panel*. Brand: the cherry, wherever the mark appears. Transaction: the dock CTA. |
+| **Plum** `#2F1A47` | The Upcoming panel. One section, edge to edge, nowhere else. |
 | **Volt** `#009B3E` | The amount returned to the city. One figure, forever. |
 
 Everything else is `--paper` `#EFECE7`, `--ink` `#111`, and three
 opacities of ink for secondary text and hairlines.
+
+**The Upcoming panel inverts and re-points its accent.** It is the one
+place the site leaves paper, and what it leaves paper for is night. The
+panel redefines six tokens on itself — `--ink` and its opacities,
+`--rule`, `--rule-soft` — so every component inside it flips to
+light-on-dark without a single per-component override, and it re-points
+`--red` at its own orange. Add a block to that section and it lands in the
+right colours by default.
+
+Two things opt back out: the **poster**, which is a printed object rather
+than part of the panel (it keeps the ink sheet and the red cherry), and
+the **ticket**, which sets its own fill and prints in white.
+
+The orange has **two stops of one hue**, because the accent does two
+opposite jobs and no single value survives both — white type wants a dark
+orange, a dark ground wants a light one:
+
+| | |
+|---|---|
+| `--orange` `#AE3A10` | The ticket fill. Holds white at **6.15:1**. |
+| `--orange-hi` `#CE4B19` | The fill, hovered. The lightest orange that still holds white at AA (**4.52:1**) — this is a ceiling, not a preference. |
+| `--orange-lit` `#FF7F32` | Accents drawn *on* the plum, where the requirement inverts: the "Get tickets" link, the countdown, the release chip. **6.13:1**. |
+
+> **The gap between the first two is opened from below, and it has to be.**
+> `--orange-hi` is at a hard ceiling — any lighter and the white type on
+> it fails AA — so the only way to make the hover read as a bigger change
+> is to start deeper. The base was `#C24417` and the hover was a 16% lift,
+> which was barely a change; at `#AE3A10` it is **51%** and the ticket
+> visibly lights up. The cost is the fill's own contrast against the plum
+> panel (2.51:1, under the 3:1 for a component boundary) — accepted,
+> because this ticket is identified by a notched silhouette, a poster and
+> 6:1 white type inside it, not by the edge between two colours.
+
+Every text element on the panel was measured against its real rendered
+background after the change; all clear AA. The one thing that moved to
+get there was the release chip's count, which was already failing at
+`opacity:.6` before the panel changed colour (2.92:1 on butter) and is now
+`.85` (**4.80:1**).
 
 **Two things sit outside the budget on purpose:**
 
 | | |
 |---|---|
 | **White** | The lightning over the Upcoming panel. Light, not pigment — it exists for about a third of a second at a time and leaves nothing behind. |
-| **The event marks** | The three stickers on the calendar's marked days, which are the cursor art reused at ~20px. An accent on a monochrome grid, not a palette. If they ever start reading as colour on the page, they are the first thing to cut. |
+| **The marked days** | The three squares in the calendar and the stickers pinned to them. Each square now wears its own event's palette (below), so the calendar carries three colours — a real spend, and a deliberate one: they are the only saturated things in an otherwise monochrome grid, which is exactly what makes them read as marked. |
 
 Before adding anything else — or a red that isn't brand or transaction —
 check whether an existing colour already carries the idea.
@@ -111,7 +153,7 @@ three heads have nothing to put on the right and stay full-width.
 > have dragged the section divider in with it.
 
 **Calendar rows** lead with an eyebrow pairing the date and the status —
-`12 DEC 2026 · COMING SOON` — over the outlined name, which is the same
+`12 DEC 2026 · COMING SOON` — over the event name, which is the same
 small-label-then-headline order every other section uses. They were a
 four-column row (index / name / date / status) before, which made them the
 only piece of content on the site reading left-to-right instead of
@@ -125,7 +167,7 @@ uppercase labels (`+.1em`) are the counterweight that lets them.
 |---|---|
 | Age gate | 21+ self-declaration, shown once per session |
 | Hero | Full-bleed photograph, headline set in the bottom-left corner |
-| Upcoming | Haunted Bar Hop — butter panel, facts, poster, ticket |
+| Upcoming | Haunted Bar Hop — plum panel, facts, poster, ticket |
 | Calendar | The two announced crawls, one hairline row each |
 | History | Figures, and the amount returned to the city |
 | Contact | Addresses and a ticket-drop signup |
@@ -186,7 +228,7 @@ square generated at runtime — is the whole integration.
 
 **The ring and dot are drawn in ink with a light halo on both sides of the
 stroke** (`border` + outer and inset `box-shadow`). That sandwich is what
-lets one drawing read on paper, butter, ink and photography without a
+lets one drawing read on paper, plum, ink and photography without a
 single per-section override. The event marks are images and sit on top.
 
 > **This replaced `mix-blend-mode: difference`, which was doing nothing.**
@@ -206,18 +248,25 @@ single per-section override. The event marks are images and sit on top.
 > they're announced-only, and a cursor promising a click on something inert
 > is worse than no cue. Their own fill-wipe already says the row is alive.
 
-Position is lerped, so the mark trails the pointer slightly — that lag is
-what makes it feel like an object being carried rather than a graphic
-pinned to the mouse. The loop parks itself when the pointer settles.
+**The ring is written straight to the pointer, with no smoothing.** It
+used to ease toward it by a fraction of the remaining distance each frame,
+which read as an object being carried rather than a graphic pinned to the
+mouse — but it also read as *lag*: at the old factor it took about 217ms
+to look like it had caught up, and 434ms to close a wide sweep.
 
-> Browsers stop servicing `requestAnimationFrame` in a backgrounded tab,
-> which leaves the loop parked with its "running" flag set and a frame that
-> will never arrive — so the cursor stays frozen even after you return. A
-> `visibilitychange` handler clears the flag on re-show so the next pointer
-> move can re-arm it.
+> Removing the trail removed a whole mechanism with it: the rAF loop, its
+> "running" flag, and a `visibilitychange` handler that existed only to
+> unstick that loop when a backgrounded tab stopped delivering frames and
+> parked it waiting for one that would never arrive.
+>
+> Writing the position directly is also a frame faster — there is no rAF
+> hop between the pointer moving and the ring moving — and it means the
+> cursor no longer depends on rAF at all, so it cannot be stranded by a
+> throttled or backgrounded tab. `pointermove` is already coalesced to one
+> event per frame, so this is at most one style write per frame.
 
 Suppressed entirely on `(pointer: coarse)`; under `prefers-reduced-motion`
-the cursor stays but the lerp and the lean are dropped.
+the lean is dropped.
 
 ---
 
@@ -232,9 +281,9 @@ single layer floating above the page rather than two kinds of chrome.
 **The dock** (`.dock`) — a floating capsule, bottom-centre.
 
 > The backdrop filter includes `saturate(0)`, which desaturates what's
-> *behind* the bar before the grey tint lands on it. Without it the butter
+> *behind* the bar before the grey tint lands on it. Without it a strongly
 > panel bleeds through and the whole capsule turns olive. This keeps it
-> neutral over paper, butter and photography alike while staying genuinely
+> neutral over paper, panel and photography alike while staying genuinely
 > see-through.
 
 It carries Section links
@@ -267,7 +316,8 @@ body narrower than it was, and on a small ticket the old string broke as
 separator. Now the break lands between the two facts and the gap does the
 separating, so there is nothing left to dangle. The perforation is drawn as actual round holes rather than a
 dashed rule, and the notches are cut as real holes via `mask-composite` so
-the butter panel shows through them. Hover fills it red.
+the plum shows through them. The fill is orange and everything printed on
+it is white.
 
 > It is **filled, not outlined**, and that isn't a style choice. A masked
 > notch cuts the fill *and* the border, and a border can't trace the curve
@@ -310,26 +360,34 @@ and the ticket gets shorter with it.
 > Without container query support the stacked state stands alone, which is
 > the safe way round to fail.
 
-A butter-coloured raking highlight sweeps the sheet as the fill turns red,
+A white raking highlight sweeps the sheet as the fill steps up a shade,
 and keeps sweeping while the pointer stays. It leaves the mark immediately,
 overshoots the far edge and rocks back once; the bounce is the pull-back
 keyframe at 62%, not an easing curve, which is what reads as spring rather
-than lag. The red is front-loaded too — most of the way in within about a
-tenth of a second, so the ticket answers the pointer instead of easing
-toward it. The notch mask clips the light, so it never spills past the trim.
+than lag. The colour change is front-loaded too — most of the way in within
+about a tenth of a second, so the ticket answers the pointer instead of
+easing toward it. The notch mask clips the light, so it never spills past
+the trim.
+
+> **The hover barely changes colour, and that is a ceiling rather than a
+> preference.** White type is what makes an orange ticket legible, and
+> `--orange-hi` is the lightest orange that still holds white at AA. So the
+> fill steps one shade and the shimmer carries the rest of the gesture —
+> which is the right division of labour anyway, since the sweep was always
+> the part that reads as live.
 
 **Arriving at the ticket.** Both ticket links target `#tickets`, and that
 anchor scrolls differently from every other: it parks the **foot of the
-butter panel on the foot of the viewport**, so the whole offer — ticket,
+plum panel on the foot of the viewport**, so the whole offer — ticket,
 prices, terms — arrives in one frame instead of at the top of a section you
 then have to scroll through.
 
-On arrival the ticket takes a single **butter** pass and stays black. The
-red fill belongs to hover, where it answers a pointer; firing it on arrival
-made the ticket look pressed by something the visitor never did. A light
-passing over it reads as "look here" without claiming an interaction
-happened — and butter rather than white makes it read as the panel's own
-light, the same gesture as the hover sweep at a different intensity.
+On arrival the ticket takes a single **white** pass and the fill does not
+change. The hover colour belongs to hover, where it answers a pointer;
+firing it on arrival made the ticket look pressed by something the visitor
+never did. A light passing over it reads as "look here" without claiming an
+interaction happened — and it is the same white as the hover sweep, just
+brighter: one gesture at two intensities rather than two different ideas.
 
 > Smooth scrolling has no completion callback, so arrival is detected by
 > watching the page go still. That check has to distinguish "hasn't started
@@ -373,10 +431,211 @@ can only ever mean "a crawl is here". Months lay out by track width
 happen on their own with no breakpoint to maintain.
 
 The list underneath is headed **All events** and carries all three crawls in
-order. Those rows are deliberately inert — announcements, not links; the
+order. Those rows stay inert as navigation — announcements, not links; the
 only crawl with something to sell has a whole section of its own above, and
-the state chip (`On sale` in red, `Coming soon` in ink) is the only thing
-that separates them.
+the state chip (`On sale`, `Coming soon`) is the only thing that separates
+them.
+
+#### Event weather
+
+Each row previews its event's page. Hovering it fills the row with that
+event's ground and runs that event's weather — a first look at three
+identities that don't exist yet as pages.
+
+The same three palettes dress the **marked days in the calendar** above —
+declared on `[data-fx]` rather than on the row, so one source colours both,
+and adding a fourth crawl means adding one block. The squares hover by
+*inverting* — the square takes the numeral's colour and the numeral takes
+the square's — which stays inside the event's own measured pair rather than
+hunting for a third value that works on all three.
+
+| | Ground | Name | Weather | Motion language |
+|---|---|---|---|---|
+| Haunted Bar Hop | plum `#2F1A47` | orange `#FF7F32` | lightning | **flash** — instant, vertical |
+| 12 Bars of Christmas | crimson `#A31621` | white | snowfall | **fall** — continuous, downward |
+| Shamrock Shuffle | pistachio `#CFE6BE` | clover `#3F6B12` | refracted light | **sweep** — crosses, bounces, leaves |
+
+**The resting state carries the information.** Haunted Bar Hop is set in
+ink and carries an actual **ticket**; the other two are set in `--mute`
+`#7E7871` and carry a **padlock** on the name's baseline. One glance tells
+you which crawl you can buy.
+
+> The names used to rest as *outlines*, which was one idea doing two jobs
+> — saying "not yet", and being the vessel the hover fill poured into —
+> and it said the first badly: three hollow headlines read as a rendering
+> fault before they read as a state. Solid says it in one move.
+>
+> **The hover is a straight colour change now, not a wipe.** It used to be
+> a .65s `clip-path` wipe on the ground with a second clipped copy of the
+> headline riding along on the same clock — two elements drawing the same
+> word in the same place — and the seam between them showed: at the wipe
+> edge you could catch a sliver of the lightning through the gap where the
+> two glyph rasters disagreed by a subpixel. There is nothing to line up
+> now. One element draws the word, one draws the ground, both change
+> colour in .16s, and the artefact is gone by construction rather than by
+> patching. The weather's delays came down with it.
+>
+> `--mute` is warm rather than neutral so it sits in the paper's own
+> family instead of reading as a grey pasted onto it, and dark enough to
+> clear 3:1 on paper (**3.70:1**). A disabled state still has to be
+> readable, or it is a broken state. The padlock is set in the same value,
+> so the icon and the word it belongs to are one statement.
+>
+> Dropping the outline also freed the weather. Against a *transparent*
+> name a bolt drawn behind showed straight through the letters, which is
+> why both were originally pushed to the far right. Against an opaque
+> headline a bolt is cleanly occluded — so they moved back to the middle,
+> and bolt B now passes behind the words on purpose.
+
+The ticket is the same component as the Upcoming panel's, at a smaller
+`--tk-h`, **visible at rest as well as on hover** — it is the row's reason
+to exist rather than a flourish over it, and unlike the announcement rows
+around it, it goes somewhere (`#tickets`). The lede is wrapped so the row
+can put the ticket beside it; the other two rows have nothing to sit next
+to and keep the simpler markup.
+
+> The lede takes its own content width and the ticket is pushed to the far
+> edge by an auto margin, so the space between them is whatever is left —
+> which is also where the lightning strikes. When the two no longer fit,
+> the ticket wraps underneath rather than squeezing the headline, and
+> below 900px it sits left-aligned under the name rather than pushed to
+> the far edge with a gap where the headline was.
+>
+> It takes the row's full width up to the **same 480px ceiling the panel's
+> ticket has**, so the object is one size wherever it appears. On a phone
+> the row is narrower than that and the ticket simply fills it. The
+> ceiling is not decoration: past about 480 the ticket stops scaling and
+> starts *stretching*, because the poster rail is cut from `--tk-h` and
+> stays put while everything else grows, and the stub is a percentage — a
+> 715px ticket is a sliver of artwork and a slab of barcode.
+>
+> Verified: fills the row exactly at 375px, capped at 480 and right-
+> aligned at 1280 with bolt A landing in the 262px gap between headline
+> and ticket, no overflow at either.
+
+**Three motion languages, on purpose.** Recolouring one effect three times
+would have made the rows read as one thing in three costumes, which is the
+opposite of what a season of distinct events should feel like. The Shamrock
+row is where that rule cost something: falling shamrocks were the obvious
+answer and the wrong one, because it would have been the snow again in
+green.
+
+> **The rainbow band has a bounce, and the bounce is a keyframe.** It
+> crosses left to right, runs a little past centre, rocks back, then
+> carries on out. The pull-back is the 57% stop, *not* an easing curve —
+> the same construction as the ticket's shimmer, and for the same reason:
+> an easing curve can only slow a thing down, and to overshoot and come
+> back the position itself has to reverse.
+>
+> Each leg carries its own timing function, which is where the feel lives:
+> in decelerating into the turn, eased at both ends through the recoil,
+> and out on a curve that *gathers* pace rather than taking off. The exit
+> leg used to end on a curve that left at speed and the band shot out of
+> the bounce instead of resuming from it.
+>
+> **Two more elaborate versions were built and both were worse.** A giant
+> ring cropped to an arc: the arc was right, but a box that size has its
+> own edge inside the row, and that edge cut a hard horizontal line across
+> the crown — there was no way to keep the shape and lose the box. Then a
+> drawn curve travelled with `stroke-dashoffset`, which fixed the clipping
+> and lost the plot: at any instant it was a short coloured dash sliding
+> through a green field, and it read as something *swimming* rather than
+> as light. The band was right the first time. It got a bounce instead of
+> a rewrite.
+>
+> A white glint used to run ahead of it and is now gone. It was competing
+> for the same moment and winning, because a bright neutral band always
+> beats a coloured one.
+
+The band works *because* its ground is light — a low-alpha spectrum over
+pale green adds saturation rather than lightness, so it reads as light
+rather than as paint. That is also why it needs no blur, and blur is the
+one filter here that would have cost real frames.
+
+**The ground runs full bleed**, past the page margin to the viewport edge,
+exactly like `.sec--feature`. A fill that stopped at the margin would be a
+card, and this design does not have cards. It wipes in left to right on the
+same duration and curve as the name that has always filled that way, so the
+colour and the word arrive as **one gesture** rather than two things
+happening at once.
+
+**The row inverts the same way the Upcoming panel does** — by re-pointing
+the tokens every component already draws from, not by restyling each one.
+Five lines, and the eyebrow, date, status chip, its pulsing dot and the
+name's outline all follow. `--red` is re-pointed too, because the `On sale`
+chip is red and red is unreadable on plum.
+
+> `80% / 62% / 26%` is one shared set of opacities that had to clear AA in
+> **both directions**, since two grounds are dark and one is light. The
+> date at 80% measures 4.57:1 on the pistachio — the tightest of the three
+> — and 10.29:1 on the plum. All nine text/ground pairs were measured
+> against their real rendered backgrounds; all pass.
+
+> **Nothing runs until a row is hovered**, but there are two different
+> relationships with time here.
+>
+> **Ambient weather** — the snow — is attached to the element and held
+> `paused`, then resumed on hover. A paused animation keeps its position,
+> so leaving a row and coming back picks the snow up mid-fall instead of
+> dropping every flake back to the top. Running the three rows quickly
+> used to snap each one to frame zero, which is the one thing that gives
+> away that it is a loop. Because the animation is declared on the element
+> rather than created by the hover rule, it is never destroyed and
+> recreated — so `currentTime` *cannot* reset. It is also still free: a
+> paused animation produces no frames.
+>
+> **Choreographed weather** — the lightning and the rainbow — is the
+> opposite and restarts from the top on every hover. Both are a sequence
+> with a beginning: a strike you catch the tail of is not a strike, and a
+> band you join halfway has already spent its bounce. Resuming these
+> mid-cycle would land you in the quiet part and show nothing at all, so
+> they are declared inside the hover rule, which is what makes them
+> restart.
+>
+> Either way an unhovered row runs zero frames and holds no compositor
+> layers: `will-change` goes on only with the hover, and reads back as
+> `auto` the moment the pointer leaves. Everything animates `transform` or
+> `opacity` only.
+
+> **`animation-fill-mode: backwards` is load-bearing on the lightning.**
+> Without it, an animation with a delay shows the element's *own* style
+> during the wait — so both bolts and both washes stood fully lit for the
+> whole delay and only then began to flash. The row was never flat, the
+> ground carried a permanent gradient, and the strike had nothing left to
+> reveal. With `backwards`, the delay is spent on the first keyframe,
+> which is dark. The washes also rest at `opacity: 0` explicitly, so the
+> ground is flat plum until a strike actually happens.
+
+> **The snowfall has no particles.** Each of the three layers is *one*
+> element carrying a tiled dot field, so the whole storm is three
+> composited transforms — no per-flake DOM, no JS. The loop is seamless
+> because each layer travels exactly one tile height (`168px`, which is
+> also the `background-size`) and lands back on itself. All three share
+> that tile and one wind angle, which is both physically right (wind is
+> wind) and the reason a single keyframe serves all three; depth comes
+> from flake size, opacity and speed instead. Two flakes per tile on a
+> tile half again as large put the density at a little over a third of
+> where it started — it was reading as static rather than as weather.
+
+> The row-scale lightning is the panel's storm: same two bolts, same
+> stroke weights at a non-scaling width, same two-stop white bounce light,
+> same wash-anchored-on-its-own-bolt's-head, same 400ms gap between
+> strikes. The one departure is placement — in the panel bolt B runs down
+> the far left, which at row scale drives a white stroke straight through
+> the headline, so both bolts live in the right half here. B's offset is a
+> plain percentage rather than a clamp, because what it has to clear is
+> the headline and the headline is sized in `vw` too, so the two track
+> each other instead of drifting apart at the ends of the range.
+>
+> It uses its own keyframes rather than the panel's, because the strike
+> has to last the same number of **milliseconds** in a 3.2s loop as it
+> does in a 5.5s one. Reusing the panel's percentages would have cut the
+> first hit to 13ms — one frame — and `steps(1, end)` would then drop it
+> on any frame the browser was late for.
+
+On touch, where the hover block does not apply, the rows stay exactly as
+they were. That is the right thing to fall back to: the weather is a
+flourish, not information.
 
 ### The weather
 
@@ -391,15 +650,25 @@ hairline language bent into a bolt rather than a filled cartoon. A leans
 right and short; B leans left, runs long, and reaches roughly to the top of
 the poster.
 
-> **The bolt leads and the sky follows, and that order is load-bearing.**
-> White is the ceiling on butter — only the blue channel moves — so a white
-> bolt is legible only while the ground under it is still yellow. Firing
-> the wash *with* the bolt makes the wash win: the second strike was
-> rendering at full opacity, in the right place, and was completely
-> invisible. So the wash is held at zero through the bolt's first hit,
-> blooms once the bolt has dimmed, clears out of the way of the second hit,
-> then blooms again as the bolt leaves. It is also the more truthful
-> sequence — you see the strike, then the sky catches up.
+> **The bolt leads and the sky follows.** On the old butter panel that
+> order was survival: white was the ceiling on yellow — only the blue
+> channel moves — so firing the wash *with* the bolt made the wash win, and
+> the second strike rendered at full opacity, in the right place, and was
+> completely invisible. On the plum it is no longer load-bearing, but it
+> still keeps the bolt's edge readable and it is still the more truthful
+> sequence — you see the strike, then the sky catches up. So the wash is
+> held at zero through the bolt's first hit, blooms once the bolt has
+> dimmed, clears out of the way of the second hit, then blooms again as the
+> bolt leaves.
+
+> **The wash peaks were halved when the panel went dark, and tinted.** The
+> butter values (`.62` / `.5`) on a dark panel do not read as a brighter
+> storm — they read as the section strobing white, which is exactly the
+> thing to be careful with. They now peak at `.34` / `.26` in a faintly
+> violet white, so the flash reads as *this* sky catching the light rather
+> than a white sheet dropped over the panel. The bolt's glow came down with
+> them; on butter it was compensating for a bolt with almost no contrast to
+> work with.
 
 The bolt steps between values (`steps(1, end)` — a flash has no in-between);
 the wash eases. Only opacity animates, and nothing runs at all until the
@@ -514,14 +783,18 @@ only things that move beyond that are the sliding nav indicator, the hover
 states, and the weather over the Upcoming panel.
 
 There is no scroll hijack. The nav is a rAF-throttled scroll listener
-reading a handful of rects; the cursor runs a short lerp loop that parks
-itself when the pointer settles; everything else is IntersectionObserver.
+reading a handful of rects; the cursor is a single style write per
+pointer event and runs no loop at all; everything else is
+IntersectionObserver.
 Restraint in the motion is part of the same argument as restraint in the
 colour.
 
-**Under `prefers-reduced-motion` the weather is removed outright** —
-`.storm { display: none }` — and every animation is capped at one
-iteration.
+**Under `prefers-reduced-motion` all the weather is removed outright** —
+`.storm { display: none }` and `.cal__fx > * { display: none }` — and every
+animation is capped at one iteration. The event rows still take their
+colour on hover: that is a colour change, not motion, and losing it would
+strip the rows of the thing the hover is actually *for*. Only the weather
+goes.
 
 > The usual blanket `animation-duration: .001ms !important` *stops* a
 > one-shot but makes an **infinite** animation run thousands of cycles per
@@ -547,8 +820,11 @@ the bar asking to be clicked.
 > 100% translate still steps exactly one slot.
 
 `data-flip="barcode"` (the dock's ticket CTA) swaps the middle slot for a
-barcode cut to the word's own footprint, so **Tickets** morphs into a strip
-of code and back without the capsule changing width. The stack is
+barcode cut to the label's own footprint, so **Get tickets** morphs into a
+strip of code and back without the capsule changing width. Because the
+barcode is sized from the rendered label rather than a fixed width, the
+label is free to change — it went from "Tickets" to "Get tickets" with no
+other edit. The stack is
 `aria-hidden` with the real text on the link's `aria-label`, so the word
 never reaches the accessibility tree three times.
 

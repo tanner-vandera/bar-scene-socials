@@ -94,7 +94,7 @@
     <a href="#history" data-nav data-flip>History</a>
     <a href="#contact" data-nav data-flip>Contact</a>
   </div>
-  <a class="dock__cta" href="#tickets" data-flip="barcode">Tickets</a>
+  <a class="dock__cta" href="#tickets" data-flip="barcode">Get tickets</a>
 </nav>
 
 <main id="top">
@@ -127,9 +127,9 @@
 
   <!-- Weather. Two strikes, each a pair: a wash anchored on that bolt's
        head, and the bolt itself, drawn as a stroke in the same language as
-       every rule on the page rather than as a filled cartoon. White on
-       butter only moves one channel, so a bolt without its wash reads as a
-       glitch — the wash is what gives the light a source.
+       every rule on the page rather than as a filled cartoon. The bolt
+       alone is a graphic; the wash is what gives the light a source and
+       makes the pair read as weather.
 
        A leans right and short, B leans left and long, so the pair never
        reads as one drawing mirrored. B fires 180ms after A: close enough
@@ -294,27 +294,94 @@
        inert rather than pretending to be links. The state chip is the only
        thing that separates them. -->
   <h3 class="subhead cal__over">All events</h3>
+  <!-- Each row carries its event's ground and its weather, revealed on
+       hover. The three effects deliberately use three different motion
+       languages — a FLASH, a FALL and a SWEEP — so the set reads as three
+       events rather than one effect in three colours.
+
+       Everything inside .cal__fx is decoration: aria-hidden, pointer-inert,
+       and animating nothing until the row is actually hovered. -->
   <ol class="cal">
-    <li id="e-haunted" data-cursor="bats">
-      <span class="cal__eyebrow">
-        <span class="cal__date label">31 Oct 2026</span>
-        <span class="cal__state cal__state--live"><i aria-hidden="true"></i>On sale</span>
+    <li id="e-haunted" data-cursor="bats" data-fx="storm">
+      <!-- Weather: the Upcoming panel's storm, same drawing and same
+           two-strike rhythm, at row scale. Both bolts sit in the right
+           half — in the panel B runs down the far left, which here would
+           put a white stroke straight through the headline. -->
+      <span class="cal__fx" aria-hidden="true">
+        <span class="fx__wash fx__wash--a"></span>
+        <svg class="fx__bolt fx__bolt--a" viewBox="0 0 150 330" fill="none" stroke="#fff"
+             stroke-linejoin="miter" stroke-linecap="square">
+          <path d="M112 -6 L34 128 L86 128 L26 336" stroke-width="7"   vector-effect="non-scaling-stroke" />
+          <path d="M70 208 L126 264"                stroke-width="3.2" vector-effect="non-scaling-stroke" />
+        </svg>
+
+        <span class="fx__wash fx__wash--b"></span>
+        <svg class="fx__bolt fx__bolt--b" viewBox="0 0 130 520" fill="none" stroke="#fff"
+             stroke-linejoin="miter" stroke-linecap="square">
+          <path d="M16 -10 L74 176 L34 176 L96 400 L58 400 L106 530" stroke-width="8"   vector-effect="non-scaling-stroke" />
+          <path d="M52 300 L10 358"                                  stroke-width="3.4" vector-effect="non-scaling-stroke" />
+        </svg>
       </span>
-      <span class="cal__name" data-text="Haunted Bar Hop">Haunted Bar Hop</span>
+      <!-- This row is the only one with something to sell, so it is the
+           only one carrying the object that sells it. The lede is wrapped
+           so the row can put the ticket beside it; the other two rows have
+           nothing to sit next to and keep the simpler markup. -->
+      <span class="cal__lede">
+        <span class="cal__eyebrow">
+          <span class="cal__date label">31 Oct 2026</span>
+          <span class="cal__state cal__state--live"><i aria-hidden="true"></i>On sale</span>
+        </span>
+        <span class="cal__name">Haunted Bar Hop</span>
+      </span>
+
+      <!-- The same ticket as the Upcoming panel, at a smaller --tk-h. It
+           is on at rest as well as on hover, because it is the row's
+           reason to exist rather than a flourish over it — and unlike the
+           announcement rows around it, it goes somewhere. -->
+      <a class="ticket cal__ticket" href="#tickets" aria-label="Get tickets for Haunted Bar Hop">
+        <span class="ticket__rail" aria-hidden="true"></span>
+        <span class="ticket__main">
+          <span class="ticket__label">Haunted Bar Hop</span>
+          <span class="ticket__meta">
+            <span>31 Oct 2026</span>
+            <span>Brady Street</span>
+          </span>
+        </span>
+        <span class="ticket__stub" aria-hidden="true">
+          <span class="ticket__code"></span>
+        </span>
+      </a>
     </li>
-    <li id="e-christmas" data-cursor="candy-cane">
+    <li id="e-christmas" data-cursor="candy-cane" data-fx="snow">
+      <!-- Weather: three parallax layers of falling snow. No particles —
+           each layer is ONE element carrying a tiled dot field, so the
+           whole storm is three composited layers translating. -->
+      <span class="cal__fx" aria-hidden="true">
+        <span class="fx__snow fx__snow--far"></span>
+        <span class="fx__snow fx__snow--mid"></span>
+        <span class="fx__snow fx__snow--near"></span>
+      </span>
       <span class="cal__eyebrow">
         <span class="cal__date label">12 Dec 2026</span>
         <span class="cal__state"><i aria-hidden="true"></i>Coming soon</span>
       </span>
-      <span class="cal__name" data-text="12 Bars of Christmas">12 Bars of Christmas</span>
+      <!-- The padlock rides the name's baseline and is sized in em, so it
+           tracks the headline at every viewport. It marks the two crawls
+           that are not on sale yet; Haunted Bar Hop has none because its
+           tickets are live. -->
+      <span class="cal__name">12 Bars of Christmas<i class="cal__lock" aria-hidden="true"></i></span>
     </li>
-    <li id="e-shamrock" data-cursor="clover">
+    <li id="e-shamrock" data-cursor="clover" data-fx="prism">
+      <!-- Weather: one broad band of refracted light crossing the row,
+           left to right, with a small pull-back as it passes the middle. -->
+      <span class="cal__fx" aria-hidden="true">
+        <span class="fx__prism"></span>
+      </span>
       <span class="cal__eyebrow">
         <span class="cal__date label">17 Mar 2027</span>
         <span class="cal__state"><i aria-hidden="true"></i>Coming soon</span>
       </span>
-      <span class="cal__name" data-text="Shamrock Shuffle">Shamrock Shuffle</span>
+      <span class="cal__name">Shamrock Shuffle<i class="cal__lock" aria-hidden="true"></i></span>
     </li>
   </ol>
 </section>

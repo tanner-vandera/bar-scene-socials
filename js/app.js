@@ -161,10 +161,13 @@ function initGate() {
 
    Only the months named here are printed. Three crawls across eighteen
    months would otherwise be about five hundred empty squares. */
+/* `fx` names the event's palette. It is emitted onto the marked day as
+   data-fx, where the same [data-fx] blocks in the stylesheet that colour
+   the All-events rows colour the square — one source for both. */
 const SEASON = [
-  { date: '2026-10-31', name: 'Haunted Bar Hop',      mark: 'bats',       href: '#next'         },
-  { date: '2026-12-12', name: '12 Bars of Christmas', mark: 'candy-cane', href: '#e-christmas'  },
-  { date: '2027-03-17', name: 'Shamrock Shuffle',     mark: 'clover',     href: '#e-shamrock'   }
+  { date: '2026-10-31', name: 'Haunted Bar Hop',      mark: 'bats',       fx: 'storm', href: '#next'         },
+  { date: '2026-12-12', name: '12 Bars of Christmas', mark: 'candy-cane', fx: 'snow',  href: '#e-christmas'  },
+  { date: '2027-03-17', name: 'Shamrock Shuffle',     mark: 'clover',     fx: 'prism', href: '#e-shamrock'   }
 ];
 
 const MONTH_NAMES = ['January','February','March','April','May','June',
@@ -225,7 +228,7 @@ function initCalendar() {
          becomes that crawl's mark. */
       cells.push(
         `<td class="is-ev"><a class="${cls.join(' ')}" href="${esc(ev.href)}"` +
-        ` data-cursor="${esc(ev.mark)}"` +
+        ` data-cursor="${esc(ev.mark)}" data-fx="${esc(ev.fx)}"` +
         ` aria-label="${esc(`${dow} ${d} ${MONTH_NAMES[m]} ${y} — ${ev.name}`)}">` +
         `<span aria-hidden="true">${d}</span>` +
         `<i class="d__mark" style="background-image:url(assets/cur-${esc(ev.mark)}.png)" aria-hidden="true"></i>` +
@@ -412,22 +415,28 @@ function initCursor() {
 
   document.documentElement.classList.add('has-cur');
 
-  let tx = innerWidth / 2, ty = innerHeight / 2, cx = tx, cy = ty;
-  let running = false, zone = null, hot = null;
+  let zone = null, hot = null;
 
-  const paint = () => {
-    cx += (tx - cx) * (REDUCED ? 1 : .22);
-    cy += (ty - cy) * (REDUCED ? 1 : .22);
-    cur.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
-    if (!REDUCED && (Math.abs(tx - cx) > .3 || Math.abs(ty - cy) > .3)) {
-      requestAnimationFrame(paint);
-    } else {
-      running = false;
-    }
-  };
+  /* The ring is written straight to the pointer's position, with no
+     smoothing between them.
 
+     It used to ease toward the pointer by a fraction of the remaining
+     distance each frame, which needed a rAF loop, a running flag, and a
+     visibilitychange handler to unstick that loop when a backgrounded tab
+     stopped delivering frames. All of that existed to serve a trail, and
+     the trail was the thing that made the cursor feel slow — at the old
+     .22 it took ~217ms to look like it had caught up.
+
+     Writing the position directly is not just simpler, it is a frame
+     faster: there is no longer a rAF hop between the pointer moving and
+     the ring moving. It also means the cursor no longer depends on rAF at
+     all, so it cannot be stranded by a throttled or backgrounded tab —
+     which is what the deleted handler was there to recover from.
+
+     pointermove is already coalesced to one event per frame, so this is
+     one style write per frame at most. */
   addEventListener('pointermove', e => {
-    tx = e.clientX; ty = e.clientY;
+    cur.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
     cur.classList.add('is-live');
 
     /* Which crawl's ground are we on, and is this thing clickable? */
@@ -443,18 +452,7 @@ function initCursor() {
       hot = nextHot;
       cur.classList.toggle('is-hot', hot);
     }
-
-    if (!running) { running = true; requestAnimationFrame(paint); }
   }, { passive: true });
-
-  /* Browsers stop servicing rAF in a backgrounded tab. The loop parks
-     itself with running=true and a frame that never arrives, so without
-     this the cursor stays frozen even after you come back — the flag can
-     only be cleared by a frame that will never run. Clearing it on
-     re-show lets the next pointer move re-arm the loop. */
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') running = false;
-  });
 
   /* Leaving the window, or a tab switch, should not strand the cursor. */
   addEventListener('pointerleave', () => cur.classList.remove('is-live'));
