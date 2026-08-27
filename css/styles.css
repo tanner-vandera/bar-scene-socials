@@ -1483,8 +1483,31 @@ main > .sec:first-child{
   display:block;
   padding:clamp(22px,2.6vw,34px) 0;
   border-bottom:1px solid var(--rule);
-  transition:padding-left .5s var(--ease);
 }
+/* The hover indent moves the row's CONTENT, not the row, and it moves it
+   with a transform rather than by animating padding-left.
+
+   This was the padlocks' shimmer. Animating padding relaid out the row on
+   every frame for half a second, and because the content is not on a
+   compositor layer of its own, each of those frames also repainted it —
+   over three snow layers or a prism sweep that are themselves animating
+   underneath. Glyphs survive that; a mask-drawn icon at a fractional size
+   does not, because every repaint resamples it at a different subpixel
+   phase. The padlock was the only thing on the row drawn that way, which
+   is why it was the only thing that appeared to vibrate.
+
+   A transform is composited: the content rasterises once and is then just
+   moved, so the icon is never resampled and the weather beneath it
+   composites independently. It also brings these rows in line with the
+   rule stated a few lines above — nothing here touches layout.
+
+   The transform is on the CONTENT rather than the <li> because the row
+   carries the full-bleed weather, which is pulled out to the viewport
+   edge by negative offsets; translating the row would drag that with it
+   and open a gap at the trim. */
+.cal__eyebrow,
+.cal__name,
+.cal__lede{ transition:transform .5s var(--ease); }
 
 .cal__eyebrow{
   display:flex; align-items:center; flex-wrap:wrap;
@@ -1573,7 +1596,20 @@ main > .sec:first-child{
    the right thing to fall back to: the weather is a flourish, not
    information. */
 @media (hover: hover) and (pointer: fine){
-  .cal li:hover{ padding-left:clamp(10px,1.4vw,22px); }
+  /* Direct children only. On the Haunted row the eyebrow and the name are
+     wrapped in .cal__lede, which takes the shift for both — and the
+     ticket beside it deliberately does NOT move: it is pinned to the far
+     trim by an auto margin, and shifting it right would push it past the
+     edge. The other two rows have no wrapper and are matched directly. */
+  .cal li:hover > .cal__eyebrow,
+  .cal li:hover > .cal__name,
+  .cal li:hover > .cal__lede{
+    transform:translateX(clamp(10px,1.4vw,22px));
+    /* Held for the whole hover, not just the slide: the weather underneath
+       keeps animating after the content has arrived, and the layer is
+       what stops those frames repainting the padlock. */
+    will-change:transform;
+  }
   .cal li:hover .cal__fx{ opacity:1; }
   .cal li:hover .cal__fx > *{ will-change:transform, opacity; }
 
@@ -1609,7 +1645,14 @@ main > .sec:first-child{
    whatever colour the row is currently wearing. */
 .cal__lock{
   display:inline-block;
+  /* Snapped to whole pixels. .46em of a fluid headline lands on fractions
+     — 24.42px at this viewport — and a mask drawn into a fractional box is
+     resampled rather than blitted. round() keeps the em derivation, so the
+     padlock still tracks the headline from 30px to 88px with no second
+     number to maintain; the unrounded pair above it is the fallback where
+     round() is not understood. */
   width:.46em; height:.46em;
+  width:round(.46em, 1px); height:round(.46em, 1px);
   margin-left:.24em;
   /* Bottom edge on the baseline — the icon sits on the line the letters
      stand on rather than floating against their centres. */
@@ -1621,7 +1664,11 @@ main > .sec:first-child{
   color:var(--mute);
   -webkit-mask:url(../assets/lock.svg) center/contain no-repeat;
           mask:url(../assets/lock.svg) center/contain no-repeat;
-  transition:color .65s var(--ease);
+  /* The same .16s as .cal__name. These are one statement — the padlock and
+     the word it belongs to — and at .65s the icon was still changing
+     colour four times longer than the word, which read as the icon
+     lagging rather than as the pair arriving together. */
+  transition:color .16s var(--ease);
 }
 
 /* ══════════════ THE THREE EVENT PALETTES ══════════════
