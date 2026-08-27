@@ -31,6 +31,7 @@ function initReveals() {
     ...$$('.next__side > *'),
     ...$$('.mo__block'),
     ...$$('.cal li'),
+    ...$$('.bars > li'),
     ...$$('.figs > div'),
     ...$$('.give > *'),
     ...$$('.sub > *'),
@@ -278,6 +279,64 @@ function initStorm() {
   new IntersectionObserver(entries => {
     entries.forEach(e => storm.classList.toggle('is-live', e.isIntersecting));
   }, { threshold: 0 }).observe(panel);
+}
+
+/* ══════════════════ BAR CARD TILT ══════════════════
+   The cards lean toward the pointer. The element tilted is .bar__card,
+   NOT the <li> around it — the <li> is the reveal's, and the reveal ends
+   on `transform:none` at a specificity the tilt cannot beat.
+
+   One listener on the GRID rather than one per card — twenty-four cards is twenty-four listeners and twenty-four
+   closures for an effect that can only ever apply to the one card under
+   the cursor.
+
+   Reads are batched into a frame: pointermove can fire several times
+   between paints, and each handler measures the card, so without this the
+   layout is read more often than it can possibly be drawn.
+
+   Gated the same way every other pointer flourish on the site is — off
+   for reduced motion, and off for coarse pointers, where there is no
+   hover to track and a tap would leave a card stuck at an angle. */
+function initBarTilt() {
+  const grid = $('.bars');
+  if (!grid || REDUCED) return;
+  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+  /* Shallow on purpose. Past about 10deg the card stops reading as a flat
+     object catching the light and starts reading as a page turning. */
+  const MAX = 7;
+  let queued = null, frame = 0;
+
+  const flush = () => {
+    frame = 0;
+    const q = queued;
+    queued = null;
+    if (!q) return;
+    const r = q.card.getBoundingClientRect();
+    const px = (q.x - r.left) / r.width  - .5;
+    const py = (q.y - r.top)  / r.height - .5;
+    /* Y follows the pointer, X opposes it — that pairing is what makes the
+       card feel pushed at rather than swung around. */
+    q.card.style.setProperty('--ry', ( px * 2 * MAX).toFixed(2) + 'deg');
+    q.card.style.setProperty('--rx', (-py * 2 * MAX).toFixed(2) + 'deg');
+  };
+
+  grid.addEventListener('pointermove', e => {
+    const card = e.target.closest('.bar__card');
+    if (!card) return;
+    queued = { card, x: e.clientX, y: e.clientY };
+    if (!frame) frame = requestAnimationFrame(flush);
+  });
+
+  /* Clear on the way OUT of the card itself, not out of its children —
+     relatedTarget is where the pointer went, so a move onto the card's own
+     image is not a leave. */
+  grid.addEventListener('pointerout', e => {
+    const card = e.target.closest('.bar__card');
+    if (!card || card.contains(e.relatedTarget)) return;
+    card.style.removeProperty('--rx');
+    card.style.removeProperty('--ry');
+  });
 }
 
 /* ══════════════════ TICKET RELEASE STAGE ══════════════════
@@ -550,6 +609,7 @@ function init() {
   initReveals();
   initFlip();
   initTicketStage();
+  initBarTilt();
   initCountdown();
   initFigures();
   initNav();

@@ -90,7 +90,8 @@
     <span class="dock__ind" aria-hidden="true"></span>
     <a href="#next" data-nav data-flip>Upcoming</a>
     <a href="#calendar" data-nav data-flip>Calendar</a>
-    <a href="#history" data-nav data-flip>History</a>
+    <a href="#bars" data-nav data-flip>Bars</a>
+    <a href="#about" data-nav data-flip>About us</a>
     <a href="#contact" data-nav data-flip>Contact</a>
   </div>
   <a class="dock__cta" href="#tickets" data-flip="barcode">Get tickets</a>
@@ -170,7 +171,7 @@
     </figure>
 
     <div class="next__side">
-      <p class="label">Doors in</p>
+      <p class="label">Starts in</p>
       <div class="clock" data-countdown="2026-10-31T15:00:00">
         <div><b class="cd__d">00</b><span>Days</span></div>
         <div><b class="cd__h">00</b><span>Hrs</span></div>
@@ -264,7 +265,7 @@
        whole section of its own above, and these rows stay deliberately
        inert rather than pretending to be links. The state chip is the only
        thing that separates them. -->
-  <h3 class="subhead cal__over">All events</h3>
+  <h3 class="subhead subhead--over">All events</h3>
   <!-- Each row carries its event's ground and its weather, revealed on
        hover. The three effects deliberately use three different motion
        languages — a FLASH, a FALL and a SWEEP — so the set reads as three
@@ -357,8 +358,112 @@
   </ol>
 </section>
 
-<!-- ══════════════════════════ RECORD ══════════════════════════ -->
-<section class="sec" id="history" data-label="History">
+<!-- ══════════════════════════ BARS ══════════════════════════
+     The route, as a wall of venues. Every card is a placeholder: the
+     photograph is the same checker the poster slots use, and the name is
+     literal placeholder copy. Written out flat rather than generated,
+     because this is the one block on the page whose content is a real
+     list somebody will sit down and type — a dozen names is an hour in
+     this file and nothing to learn first.
+
+     No count in the headline, deliberately: the grid is auto-filled, so
+     bars can be added or cut by adding or deleting an <li> and nothing
+     else on the page has to agree with the new number.                 -->
+<section class="sec" id="bars" data-label="Bars">
+  <!-- Set as a subhead on the page margin, the same treatment as the
+       calendar's "All events" — not the kicker-rule-and-display-title a
+       section head normally gets. This block is a wall of like things
+       under a name, which is exactly what that heading introduces too. -->
+  <h2 class="subhead subhead--over">Featured bars</h2>
+
+  <!-- Inert on purpose, like the two announcement rows in the calendar.
+       These do not go anywhere yet, and a card that looks clickable and
+       is not is worse than one that never offered.
+
+       The <li> and the .bar__card inside it are TWO elements on purpose.
+       The reveal animates the <li>'s transform and finishes on
+       `transform:none`; the tilt animates a transform too. One element
+       could only have one of them, and the reveal's rule is the more
+       specific of the two, so it silently won and the tilt did nothing.
+       Do not flatten these back into one element. -->
+  <ul class="bars">
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+      <li class="bar">
+        <span class="bar__card">
+          <span class="bar__shot" aria-hidden="true"></span>
+          <span class="bar__name">Featured bar name</span>
+        </span>
+      </li>
+  </ul>
+</section>
+
+<!-- ══════════════════════════ ABOUT US ══════════════════════════ -->
+<section class="sec" id="about" data-label="About us">
   <!-- The crowd photograph, which used to open the page, now belongs to
        the section it actually evidences: eight years of these nights. It
        runs full-bleed with the section's own head laid over it, white on
@@ -366,7 +471,7 @@
   <div class="record">
     <div class="record__media" aria-hidden="true"></div>
     <header class="sec__head grid record__head">
-      <p class="label sec__kicker">History</p>
+      <p class="label sec__kicker">About us</p>
       <span class="sec__rule" aria-hidden="true"></span>
       <h2 class="sec__title">Eight years<br />on the route</h2>
     </header>

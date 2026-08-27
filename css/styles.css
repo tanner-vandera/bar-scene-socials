@@ -498,12 +498,17 @@ body.is-gated{ overflow:hidden; }
 }
 
 /* The checker is TWO 45° gradients offset by half a tile — the standard
-   transparency grid. --chk is the tile, set per placement, so the same
-   rule serves a 24×36 sheet and a 72px ticket rail without the pattern
-   scaling with the box. */
-.plate{
+   transparency grid. --chk is the tile, set per placement, so one recipe
+   serves a 24×36 sheet, a 72px ticket rail and a bar card without the
+   pattern scaling with the box.
+
+   Written once here for all three. It was inlined twice before the bar
+   grid existed, which was tolerable; a third copy is where a repeated
+   recipe becomes a thing that drifts. */
+.plate,
+.ticket__rail,
+.bar__shot{
   --chk:34px;
-  position:absolute; inset:0;
   background-color:#D9D9D9;
   background-image:
     linear-gradient(45deg, #B0B0B0 25%, transparent 25%, transparent 75%, #B0B0B0 75%),
@@ -511,6 +516,7 @@ body.is-gated{ overflow:hidden; }
   background-size:var(--chk) var(--chk);
   background-position:0 0, calc(var(--chk) / 2) calc(var(--chk) / 2);
 }
+.plate{ position:absolute; inset:0; }
 
 /* ═══════════════ TOP BAR ═══════════════ */
 .top{
@@ -1260,14 +1266,9 @@ main > .sec:first-child{
   flex:0 0 calc(var(--tk-h) * 2 / 3);
   align-self:stretch;
   /* Same placeholder as the poster it is a miniature of, at a tile small
-     enough to still read as a checker in 72px. */
+     enough to still read as a checker in 72px. The recipe is shared —
+     only the tile size is this element's own. */
   --chk:11px;
-  background-color:#D9D9D9;
-  background-image:
-    linear-gradient(45deg, #B0B0B0 25%, transparent 25%, transparent 75%, #B0B0B0 75%),
-    linear-gradient(45deg, #B0B0B0 25%, transparent 25%, transparent 75%, #B0B0B0 75%);
-  background-size:var(--chk) var(--chk);
-  background-position:0 0, calc(var(--chk) / 2) calc(var(--chk) / 2);
   border-right:1px solid color-mix(in srgb, currentColor 30%, transparent);
 }
 
@@ -1471,7 +1472,11 @@ main > .sec:first-child{
 
 /* The event list under the grid heads itself, on the same spacing the
    ticket heading uses above its ticket — heading, a short gap, the thing. */
-.cal__over{ padding-inline:var(--m); margin-bottom:clamp(18px,2.1vw,28px); }
+/* A subhead sitting on the page margin with the air a section head would
+   have given it. Two blocks use it — the calendar's "All events" and the
+   bars grid — so it is named for what it does rather than for the first
+   place it appeared. */
+.subhead--over{ padding-inline:var(--m); margin-bottom:clamp(18px,2.1vw,28px); }
 
 .cal{
   list-style:none; margin:0; padding:0 var(--m);
@@ -2074,6 +2079,98 @@ main > .sec:first-child{
   .sub__field button:hover svg{ transform:translateX(4px); }
 }
 
+/* ═══════════════ BARS ═══════════════
+   The one place on the site that uses CARDS, which is a deliberate break
+   from the rule everywhere else — hairlines organise, boxes do not. It is
+   made for this block only, and the reason is that this is the only
+   content on the page that is a SET of like things with no order and no
+   hierarchy. The rule-label-value pattern is for facts that differ; two
+   dozen venues that differ in nothing but name need a repeating unit, and
+   a card is what a repeating unit looks like. If a second block ever
+   wants cards, that is the moment to re-argue this.
+
+   White rather than paper, so the cards lift off the ground by a shade
+   without a border doing it — the lightest possible separation, which is
+   as much as this section needs.                                       */
+.bars{
+  display:grid;
+  /* Auto-fill from a minimum, so the column count is decided by the real
+     width rather than by breakpoints — 2 up on a phone, 6 on a desktop,
+     and every step between without a media query. min() stops the track
+     from exceeding the container on very narrow screens, which would
+     otherwise overflow rather than drop to one column. */
+  /* 150 rather than a rounder 172: the number is chosen so a 375px phone
+     still solves to TWO columns. At 172 it fell to one, and one column of
+     twenty-four cards is not a grid, it is a very long list. */
+  grid-template-columns:repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap:clamp(10px,1.2vw,18px);
+  padding-inline:var(--m);
+  /* No top margin of its own — the subhead above carries the gap, exactly
+     as .cal does under "All events". Two sources of the same space is how
+     two blocks that should match drift apart. */
+  margin:0;
+  list-style:none;
+}
+/* The grid CELL. It owns the reveal — initReveals tags these, and the
+   reveal both starts and ends on `transform`. That is the whole reason the
+   card below is a separate element: the reveal's finished state is
+   `transform:none` at a higher specificity than any rule the tilt could
+   write here, so the two cannot share an element. The tilt lost that
+   fight silently, which is the worst way to lose one.
+
+   Perspective lives here rather than on .bars because perspective only
+   applies to an element's DIRECT children, and the transformed element is
+   now a level deeper. Per-card rather than per-grid means each card turns
+   about its own centre instead of sharing one vanishing point off in the
+   middle of the section — at this size that reads as twelve objects on a
+   table, which is what they are. */
+.bar{
+  perspective:800px;
+}
+.bar__card{
+  --rx:0deg; --ry:0deg;
+  display:block;
+  padding:9px 9px 13px;
+  background:#FFFFFF;
+  border-radius:4px;
+  transform:rotateX(var(--rx)) rotateY(var(--ry));
+  /* The RETURN. Slow and eased, so a card settles back rather than
+     snapping flat the moment the pointer leaves. Hover overrides this
+     with something much faster — see below. */
+  transition:transform .55s var(--ease), box-shadow .4s var(--ease);
+  box-shadow:0 1px 2px rgba(17,17,17,.04);
+}
+.bar__shot{
+  display:block;
+  aspect-ratio:4/3;
+  border-radius:2px;
+  /* Small tile. At the poster's 34px a card this size would hold about
+     four squares and read as a graphic; at 9px it reads as the texture
+     that means "no image yet" and stays quiet across two dozen of them. */
+  --chk:9px;
+}
+.bar__name{
+  display:block;
+  margin-top:11px;
+  font-family:var(--f-display);
+  font-size:clamp(12.5px,1vw,15px);
+  line-height:1.15; letter-spacing:-.022em;
+  color:var(--ink);
+}
+@media (hover: hover) and (pointer: fine){
+  .bar__card:hover{
+    /* Nearly instant and linear while the pointer is on the card: the
+       tilt is TRACKING a position, not animating to one, and any easing
+       here reads as the card lagging the cursor. */
+    transition:transform .1s linear, box-shadow .4s var(--ease);
+    /* Light. The tilt is what says the card is lifted; the shadow only has
+       to keep it from floating with nothing underneath it, and at .34 it
+       was doing the announcing instead. */
+    box-shadow:0 16px 28px -20px rgba(17,17,17,.18);
+    will-change:transform;
+  }
+}
+
 /* ═══════════════ RECORD PLATE ═══════════════
    The crowd photograph, moved here from the hero. It is better evidence
    than opening art: under a headline that claims eight years, a full room
@@ -2171,10 +2268,91 @@ main > .sec:first-child{
 
 @media (max-width:620px){
   .dock{ left:var(--m); right:var(--m); transform:none; justify-content:space-between; padding:5px; gap:2px; }
+  /* Five sections plus a CTA stopped fitting a phone's width when Bars was
+     added. The flex line's own answer to that was to crush the CTA — at
+     375px it solved to 28px, which is a button with no word left in it —
+     so the CTA is pinned at its intrinsic size and the LINKS give way
+     instead, by scrolling.
+
+     Scrolling rather than shrinking, and rather than dropping one: a label
+     squeezed to an ellipsis has stopped being a label, and a hidden link
+     hides a whole section of the site. The sliding indicator is absolutely
+     positioned inside this box and JS measures it with offsetLeft, which
+     is in the same coordinate space — so it travels with the content
+     instead of detaching from it. min-width:0 is what lets a flex item
+     become smaller than its contents and actually scroll. */
+  .dock__group{
+    min-width:0;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+    /* The last link is always partly past the edge at this width, so the
+       edge is faded rather than cut. A hard crop reads as a clipping bug;
+       a label fading out reads as "there is more this way", which is the
+       true statement. Both ends are treated, so the fade follows whichever
+       side still has content once you have scrolled. */
+    mask-image:linear-gradient(to right, transparent 0, #000 14px,
+                               #000 calc(100% - 20px), transparent 100%);
+    -webkit-mask-image:linear-gradient(to right, transparent 0, #000 14px,
+                               #000 calc(100% - 20px), transparent 100%);
+  }
+  .dock__group::-webkit-scrollbar{ display:none; }
   .dock__group a{ padding:6px 8px; font-size:11px; }
-  .dock__cta{ padding:6px 13px; font-size:11px; }
+  .dock__cta{ flex:none; padding:6px 13px; font-size:11px; }
   .clock b{ font-size:23px; }
   .foot{ padding-bottom:calc(clamp(14px,2vw,26px) + 74px); }
+}
+
+/* ── Phone: the dock stacks ────────────────────────────────────────
+   Measured, not guessed. Five sections plus the CTA need about 380px of
+   run; below roughly 440 the capsule cannot hold them, and the shortfall
+   is 54px at 375 and 109px at 320 — two whole labels at the small end.
+   Tightening cannot close that: dropping the padding and a half-point of
+   type recovers about 60px at best.
+
+   So below 440 the dock stops being one line. The links take a full-width
+   row and spread across it; the CTA takes the row beneath, full width,
+   which is where a primary action on a phone wants to be anyway. Nothing
+   scrolls, nothing is clipped, and every section is one tap away.
+
+   Must stay AFTER the 620 block: both are max-width queries of equal
+   specificity, so the later one wins, and this one exists to undo that
+   one's scroll-and-fade. */
+@media (max-width:440px){
+  .dock{
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:5px;
+    padding:6px;
+    /* A pill is a shape for one line of text. Two rows in a 999px radius
+       reads as a lozenge, so the corners come in to a radius that belongs
+       to a box. */
+    border-radius:20px;
+  }
+  .dock__group{
+    order:1;
+    width:100%;
+    justify-content:space-between;
+    /* Everything fits on its own row now, so the overflow machinery from
+       the 620 block is switched back off — a fade over a nav that is not
+       scrolling is just a dimmed first and last item. */
+    overflow-x:visible;
+    mask-image:none;
+    -webkit-mask-image:none;
+  }
+  .dock__group a{ padding:6px 5px; font-size:10.5px; }
+  .dock__cta{
+    order:2;
+    width:100%;
+    padding:10px 13px;
+    text-align:center;
+    border-radius:999px;
+  }
+  /* The dock is about 78px tall stacked, against ~34 in one line. The
+     footer has to clear the taller object or the last line of small print
+     sits underneath it. */
+  .foot{ padding-bottom:calc(clamp(14px,2vw,26px) + 104px); }
 }
 
 @media (prefers-reduced-motion:reduce){
