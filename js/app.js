@@ -24,7 +24,6 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
    clean document, and what animates is a presentation decision. */
 function initReveals() {
   const targets = [
-    ...$$('.hero__h1 .line'),
     ...$$('.strip > div'),
     ...$$('.poster'),
     ...$$('.sec__kicker, .sec__title'),
@@ -294,7 +293,7 @@ function initTicketStage() {
   const stage =
     left <= 0   ? { key: 'out',  label: 'Sold out'    } :
     left <= 300 ? { key: 'last', label: 'Last chance' } :
-    left <= 800 ? { key: 'hot',  label: 'Going fast'  } :
+    left <= 800 ? { key: 'hot',  label: 'On sale'     } :
                   { key: 'open', label: 'Register'    };
 
   el.dataset.stage = stage.key;

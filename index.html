@@ -38,10 +38,10 @@
 
 <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle" hidden>
   <div class="gate__panel" id="gatePanel" tabindex="-1">
-    <!-- The full stacked lockup rather than the cherry alone. This is the
-         first thing anyone sees, and the mark on its own asks the visitor
-         to already know whose site they are being stopped at. -->
-    <img class="gate__lockup" src="assets/lockup-stacked.svg" alt="Bar Scene Socials" width="1158" height="633" />
+    <!-- Mark withheld for this presentation — see the note on .logo-ph in
+         the stylesheet. The slot keeps the lockup's footprint so the
+         composition below it is unchanged. -->
+    <div class="logo-ph gate__lockup" role="img" aria-label="Bar Scene Socials logo placeholder">Bar Scene Socials logo</div>
 
     <div class="gate__ask" id="gateAsk">
       <h2 class="gate__title" id="gateTitle">Are you 21 or older?</h2>
@@ -69,8 +69,7 @@
      ══════════════════════════════════════════════════════════════════ -->
 <header class="top">
   <a class="lockup" href="#top" aria-label="Bar Scene Socials — top">
-    <span class="lockup__cherry" aria-hidden="true"></span>
-    <span class="lockup__word" role="img" aria-label="Bar Scene Socials"></span>
+    <span class="logo-ph lockup__ph">Bar Scene Socials logo</span>
   </a>
   <p class="readout" aria-live="polite">
     <span class="readout__rule" aria-hidden="true"></span>
@@ -98,29 +97,6 @@
 </nav>
 
 <main id="top">
-
-<!-- ══════════════════════════ HERO ══════════════════════════
-     The media runs full-bleed, but the page's own furniture is laid over
-     it — hairline rules, tracked caption labels, the same page margin as
-     every other section. That's what stops it reading as a stock photo
-     hero and makes it part of the same system: a plate with the grid
-     printed on top of it.
-
-     Built for video. .hero__media is the only thing that changes when a
-     reel replaces the still; nothing above it cares. -->
-<section class="hero" id="hero">
-  <div class="hero__media" aria-hidden="true"></div>
-
-  <div class="hero__frame">
-    <div class="hero__body">
-      <h1 class="hero__h1">
-        <span class="line"><b>Milwaukee&rsquo;s</b></span>
-        <span class="line">bars are better</span>
-        <span class="line">with a crowd.</span>
-      </h1>
-    </div>
-  </div>
-</section>
 
 <!-- ══════════════════════════ UPCOMING ══════════════════════════ -->
 <section class="sec sec--feature" id="next" data-label="Upcoming" data-cursor="bats">
@@ -185,13 +161,8 @@
          series reads as a set when they're up around the city. -->
     <figure class="poster">
       <div class="poster__sheet">
-        <div class="poster__img"></div>
-        <span class="poster__cherry" aria-hidden="true"></span>
-        <div class="poster__type">
-          <span class="poster__eyebrow">Bar Scene Socials presents</span>
-          <span class="poster__title">Haunted<br />Bar Hop</span>
-          <span class="poster__meta">31 Oct 2026 · Brady Street · 16 bars</span>
-        </div>
+        <div class="plate" aria-hidden="true"></div>
+        <span class="poster__ph">Event poster</span>
       </div>
       <figcaption class="poster__cap">
         <span>Series poster</span><span>24 × 36 in</span>
@@ -388,11 +359,18 @@
 
 <!-- ══════════════════════════ RECORD ══════════════════════════ -->
 <section class="sec" id="history" data-label="History">
-  <header class="sec__head grid">
-    <p class="label sec__kicker">History</p>
-    <span class="sec__rule" aria-hidden="true"></span>
-    <h2 class="sec__title">Eight years<br />on the route</h2>
-  </header>
+  <!-- The crowd photograph, which used to open the page, now belongs to
+       the section it actually evidences: eight years of these nights. It
+       runs full-bleed with the section's own head laid over it, white on
+       the plate. -->
+  <div class="record">
+    <div class="record__media" aria-hidden="true"></div>
+    <header class="sec__head grid record__head">
+      <p class="label sec__kicker">History</p>
+      <span class="sec__rule" aria-hidden="true"></span>
+      <h2 class="sec__title">Eight years<br />on the route</h2>
+    </header>
+  </div>
 
   <dl class="figs">
     <div><dt data-count-to="50000" data-count-suffix="+">0</dt><dd>Crawlers</dd></div>
@@ -441,7 +419,7 @@
 
 <!-- ══════════════════════════ FOOTER ══════════════════════════ -->
 <footer class="foot">
-  <img class="foot__mark" src="assets/lockup-stacked.svg" alt="Bar Scene Socials" width="1158" height="633" />
+  <div class="logo-ph foot__mark" role="img" aria-label="Bar Scene Socials logo placeholder">Bar Scene Socials logo</div>
   <div class="foot__meta">
     <span class="label">Bar Scene Socials · Milwaukee, WI</span>
     <span class="label">Prototype — not a real business listing</span>

@@ -1,17 +1,30 @@
 /* ═══════════════════════════════════════════════════════════════════
    BAR SCENE SOCIALS
    ───────────────────────────────────────────────────────────────────
-   Paper, ink, and one red. Everything else is grid, hairline and space.
+   Paper, ink, and one orange. Everything else is grid, hairline and space.
 
    COLOUR BUDGET — three colours, each with one job. Nothing else on the
    page is coloured at all.
 
-     RED    the brand speaking, and the transaction.
-            Brand: the cherry, wherever the mark appears.
-            Transaction: the countdown, the release chip, the ticket on
-            hover, the "Get tickets" link, the dock CTA.
-     BUTTER the Upcoming panel. One section, edge to edge, nowhere else.
+     ORANGE the transaction, and the crawl it belongs to. The countdown,
+            the release chip, the ticket, the "Get tickets" link, the dock
+            CTA, the calendar's on-sale row.
+            It is ONE HUE AT THREE STOPS, not three oranges — see the
+            --orange block below. The stop is chosen by the ground it
+            lands on, never by taste.
+     PLUM   the Upcoming panel. One section, edge to edge, nowhere else.
      VOLT   the amount returned to the city. One figure, forever.
+
+   Plus the three EVENT colours, which are the crawls' own and are spent
+   only where a specific crawl is being named — the calendar's marked
+   days and its hovered rows. One of them has escaped that rule on
+   purpose: the Shamrock Shuffle's green carries the age gate's primary
+   action, which is the only filled button on the site that is not a
+   transaction. See --shamrock.
+
+   The brand red that used to hold the first slot is retired with the
+   mark it belonged to; --red survives as a name pointing at the orange
+   so the components that spend it still read as "the transaction".
 
    Two things sit outside that budget on purpose, and both are declared
    here rather than discovered later:
@@ -27,9 +40,11 @@
    Before adding anything else — or a red that isn't brand or transaction
    — check whether an existing colour already carries the idea.
 
-   BRAND FACE — Shrikhand is set on two words of the hero headline and
-   nowhere else as live text. The lockup SVGs carry the same face, so the
-   brand is present throughout without the typeface being spent.
+   BRAND FACE — Shrikhand is set on the calendar's marked-day numerals
+   and nowhere else as live text. It used to carry two words of the hero
+   headline as well; the hero is gone and the lockups are placeholders in
+   this build, so those three numerals are now the only place the brand's
+   own face appears. Spend it there and nowhere else.
    ═══════════════════════════════════════════════════════════════════ */
 
 :root{
@@ -46,42 +61,78 @@
      be readable, or it is a broken state. Carried by the two headlines
      that are not on sale and by the padlock that says so. */
   --mute:     #7E7871;
-  --red:      #CE1919;
+  /* The brand red is retired. It had two jobs — the cherry, and the
+     transaction — and the cherry is gone from this build, so the only
+     thing left for it to carry is the transaction, which now belongs to
+     the crawl's own orange. Kept as a named token rather than find-and-
+     replaced, because every component that spends it is still spending
+     "the transaction colour" and should keep saying so.
 
-  /* ── The Upcoming panel's own palette ────────────────────────────
-     A deep violet ground with a burnt-orange accent. It is the one place
-     on the site that leaves paper, and what it leaves paper for is night.
+     It points at the DEEP stop, not the bright one: --red is spent on
+     paper (the calendar's On-sale chip) where 10.5px of #FF7F32 measures
+     2.14:1. #AE3A10 measures 5.22:1. The plum panel and the hovered
+     calendar rows re-point it to the bright stop below, where the ground
+     is dark and the requirement inverts. */
+  --red:      var(--orange);
 
-     The two orange stops are MEASURED, not two shades picked by eye,
-     because the accent has to do two opposite jobs:
+  /* ── The crawl's orange ──────────────────────────────────────────
+     ONE HUE AT THREE STOPS, and which stop a thing takes is decided by
+     the ground it lands on and the job it does — never by taste.
 
-       --orange      fill. White type sits ON it, so it has to be dark
-                     enough to hold white — 6.15:1.
-       --orange-hi   the same fill, hovered. The lightest orange that
-                     still holds white at AA (4.52:1).
+       --orange-lit  #FF7F32. The true orange, and the one the whole
+                     palette is named from. Two jobs: accents drawn on a
+                     dark ground (6.13:1 on the plum), and THE HOVER
+                     STATE OF EVERY ORANGE BUTTON.
+       --orange-fill #E2661B. The same hue, one shade down. This is what
+                     every orange button and the ticket wear AT REST.
+       --orange      #AE3A10. The deep stop, for orange that has to be
+                     legible as small type ON PAPER — the calendar's
+                     on-sale chip, and the border under a button whose
+                     fill is too light to define its own edge.
 
-     THE GAP BETWEEN THOSE TWO IS OPENED FROM BELOW, and it has to be.
-     --orange-hi is at a hard ceiling — any lighter and the white type on
-     it fails AA — so the only way to make the hover read as a bigger
-     change is to start deeper. The base was #C24417 and the hover was a
-     16% lift, which was barely a change; dropping the base to #AE3A10
-     makes it 51% and the ticket visibly lights up. The cost is the fill's
-     own contrast against the plum panel (2.51:1, under the 3:1 for a
-     component boundary) — accepted, because this ticket is identified by
-     a notched silhouette, a poster and 6:1 white type inside it, not by
-     the edge between two colours.
-       --orange-lit  accents drawn ON the plum, where the requirement
-                     inverts: here the orange has to be LIGHT to clear a
-                     dark ground (6.13:1).
+     WHY REST IS DARKER THAN HOVER, rather than the other way round.
+     The old scheme lifted a dark fill to a slightly lighter one, and it
+     had to: white type sat on these buttons, and white sets a ceiling on
+     how light the orange can get before it fails. The type is black now,
+     which removes the ceiling entirely and inverts the whole problem —
+     a lighter orange is MORE legible, not less. So the interaction can
+     do the obvious thing and light up toward the real colour instead of
+     nudging around underneath it.
 
-     One orange cannot do both — white wants a dark orange and a dark
-     ground wants a light one — so the accent is one hue at two stops
-     rather than one value that fails at one end. Same reasoning as
-     --volt below: the colour is chosen by measurement, then named.       */
-  --plum:       #2F1A47;
-  --orange:     #AE3A10;
-  --orange-hi:  #CE4B19;
-  --orange-lit: #FF7F32;
+     Both stops are measured against the black they carry, and both
+     improve on hover rather than trading legibility for emphasis:
+       #E2661B  5.58:1  at rest
+       #FF7F32  7.55:1  hovered      — a 42% lift in luminance, which is
+     a change you feel across a 24px dock pill, not just on a 480px
+     ticket.
+
+     The plum is the one ground on the site that leaves paper, and what
+     it leaves paper for is night.                                       */
+  --plum:        #2F1A47;
+
+  /* ── The Shamrock Shuffle's green ────────────────────────────────
+     Declared here rather than only inside the event palettes because the
+     age gate's primary action now wears it, which puts it on the page
+     before any event does. `[data-fx="prism"]` draws its --ev-fg from
+     this same token, so the crawl and the button can never drift apart.
+
+     --shamrock      #3F6B12. The true green, and the HOVER state — the
+                     same "hover lights up to the real colour" move the
+                     orange buttons make.
+     --shamrock-fill #33570E. One stop down, worn AT REST.
+
+     THE TYPE ON THIS ONE IS WHITE, not black, and that is forced rather
+     than chosen: black measures 3.01:1 on #3F6B12 and fails. White
+     measures 8.36:1 at rest and 6.32:1 hovered. So unlike the orange
+     buttons — where hover gets brighter AND more legible — this one
+     trades a little contrast for the lift. Both ends clear AA
+     comfortably, which is what makes the trade affordable. */
+  --shamrock:      #3F6B12;
+  --shamrock-fill: #33570E;
+
+  --orange:      #AE3A10;
+  --orange-fill: #E2661B;
+  --orange-lit:  #FF7F32;
   /* One figure only — the amount returned. Electric, but pulled back
      from #00C24E, which measured 2.02:1 on paper. This is 3.10:1, which
      clears the large-text minimum while still reading as voltage. */
@@ -291,7 +342,9 @@ html.has-cur, html.has-cur *{ cursor:none !important; }
 .dock :focus-visible{ outline-color:#fff; }
 .dock__cta:focus-visible{ outline-color:#fff; outline-offset:4px; }
 /* Ink rings, because the element is a dark object on a pale ground and
-   the ring has to be read against that ground, not against the object: */
+   the ring has to be read against that ground, not against the object.
+   The gate's buttons still qualify now that the card is paper — the ring
+   sits at 3px offset, which lands it on the card, not on the fill: */
 .gate__btn:focus-visible,
 .ticket:focus-visible,
 .d--hit:focus-visible{ outline-color:var(--ink); }
@@ -299,28 +352,71 @@ html.has-cur, html.has-cur *{ cursor:none !important; }
    dialog; it is not tab-reachable, so it should not draw a ring. */
 .gate__panel:focus-visible{ outline:none; }
 
-/* ═══════════════ AGE GATE ═══════════════ */
+/* ═══════════════ AGE GATE ═══════════════
+   A modal over the site, not a page in front of it. The distinction is
+   the whole point of the change: a full-bleed paper cover made the check
+   look like the destination, and the visitor had no idea what they were
+   being stopped at. Blurred, the crawl is legible as a place while
+   staying unreadable as content — which is the honest state of things,
+   since they have not answered yet.
+
+   The scrim does two jobs at once and both are needed. The blur says
+   "there is a site here"; the dark wash is what actually holds the card,
+   because blur alone leaves the plum panel bright enough behind the
+   paper to fight it.                                                    */
 .gate{
   position:fixed; inset:0; z-index:200;
   display:grid; place-items:center;
   padding:var(--m);
-  background:var(--paper);
+  background:rgba(17,17,17,.55);
+  backdrop-filter:blur(20px) saturate(.85);
+  -webkit-backdrop-filter:blur(20px) saturate(.85);
+}
+/* Without backdrop-filter the scrim is the ONLY thing between the card
+   and the page, so it has to carry the whole job alone. Nothing is lost
+   but the blur. */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .gate{ background:rgba(17,17,17,.88); }
 }
 .gate[hidden]{ display:none; }
 body.is-gated{ overflow:hidden; }
-.gate__panel{ max-width:44ch; text-align:left; outline:none; }
-/* The full lockup, shipped as an <img> rather than a mask, so it keeps
-   the brand's own two colours — ink wordmark, red cherry — instead of
-   being flattened into one. Same treatment as the footer mark. */
-.gate__lockup{
-  display:block;
-  width:clamp(122px,15vw,188px);
-  height:auto;
-  margin-bottom:clamp(28px,3.6vw,46px);
+
+/* The card. Paper, because the site's own ground is what it should feel
+   cut from — the dialog is part of this site, not a browser chrome
+   artefact laid over it.
+
+   It scrolls INSIDE itself rather than growing past the viewport: this
+   is the one screen on the site the visitor cannot scroll the page
+   behind, so a card taller than the window would put the buttons
+   somewhere unreachable. dvh, not vh, because mobile browser chrome
+   moves and vh does not know it. */
+.gate__panel{
+  width:100%;
+  max-width:min(100%, 47ch);
+  max-height:calc(100dvh - var(--m) * 2);
+  overflow-y:auto;
+  padding:clamp(26px,3.6vw,46px);
+  background:var(--paper);
+  border-radius:6px;
+  /* Long, soft and offset downward — the card reads as lifted off the
+     page rather than pasted onto it, which is what separates a modal
+     from a panel. */
+  box-shadow:0 34px 80px -26px rgba(17,17,17,.62), 0 2px 10px rgba(17,17,17,.16);
+  text-align:left;
+  outline:none;
 }
+/* The lockup slot, at the footprint the stacked mark occupied. */
+.gate__lockup{
+  width:clamp(112px,13vw,166px);
+  aspect-ratio:1158/633;
+  margin-bottom:clamp(22px,2.8vw,34px);
+}
+/* Capped harder than the old full-page setting. At the page's 4.4vw this
+   headline ran to 62px, which was right across a whole screen and is a
+   shout inside a 47ch card. */
 .gate__title{
   font-family:var(--f-display); font-weight:400;
-  font-size:clamp(30px,4.4vw,62px);
+  font-size:clamp(28px,3.4vw,46px);
   line-height:.96; letter-spacing:-.042em;
   margin:0 0 clamp(14px,1.6vw,20px);
 }
@@ -341,8 +437,31 @@ body.is-gated{ overflow:hidden; }
   transition:background-color .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease);
 }
 .gate__btn:hover{ background:var(--ink); color:var(--paper); }
-.gate__btn--yes{ background:var(--ink); color:var(--paper); }
-.gate__btn--yes:hover{ background:var(--red); border-color:var(--red); color:#fff; }
+/* The primary action, in the Shamrock Shuffle's green. It takes the same
+   two-stop behaviour as every other filled button — a stop down at rest,
+   lighting up to the true colour on hover — but not the same hue and not
+   the same ink: this green needs WHITE type, because black on it is
+   3.01:1. See the --shamrock block for the measurements.
+
+   The border is TRANSPARENT rather than removed. `border:0` would shrink
+   this button by 2px against the outlined "No" beside it, and two
+   primary-and-secondary buttons that do not share a baseline read as a
+   bug. It keeps the box, it just stops drawing.
+
+   Being green rather than orange, this is now the one filled button on
+   the site that is not the transaction colour. That is deliberate: it is
+   also the only one that is not a transaction. */
+.gate__btn--yes{
+  background:var(--shamrock-fill);
+  border-color:transparent;
+  color:#FFFFFF;
+}
+/* NOT wrapped in a hover media query, unlike the ticket and the dock
+   pill. `.gate__btn:hover` above is more specific than `.gate__btn--yes`,
+   so on a touch device — where the hover query never matches — the
+   generic rule would win the moment the button is tapped and flash it
+   black on the way through. This has to be able to out-specify it. */
+.gate__btn--yes:hover{ background:var(--shamrock); border-color:transparent; color:#FFFFFF; }
 .gate__fine{
   margin:clamp(24px,3vw,34px) 0 0;
   padding-top:16px;
@@ -350,6 +469,47 @@ body.is-gated{ overflow:hidden; }
   font-size:11.5px; line-height:1.5;
   color:var(--ink-58);
   max-width:44ch;
+}
+
+/* ═══════════════ PLACEHOLDERS ═══════════════
+   Two things on this build are deliberately NOT drawn, and both say so in
+   the same voice — a dashed rule around an empty box with the name of
+   what belongs there. A placeholder that looks like a design decision is
+   worse than no placeholder: it gets reviewed as artwork.
+
+   .logo-ph  the lockup, withheld at the owners' request. Every slot keeps
+             the real mark's footprint so nothing around it reflows.
+   .plate    the event poster, which is commissioned per crawl. Drawn as
+             the transparency checker, because that is already the one
+             pattern everyone reads as "nothing is here yet" — a grey box
+             would read as a grey poster.                                */
+.logo-ph{
+  display:grid; place-items:center;
+  box-sizing:border-box;
+  border:1.5px dashed currentColor;
+  border-radius:3px;
+  padding:.9em 1em;
+  font-family:var(--f-ui);
+  font-size:10.5px; font-weight:500;
+  letter-spacing:.1em; text-transform:uppercase;
+  line-height:1.3; text-align:center;
+  text-wrap:balance;
+  opacity:.6;
+}
+
+/* The checker is TWO 45° gradients offset by half a tile — the standard
+   transparency grid. --chk is the tile, set per placement, so the same
+   rule serves a 24×36 sheet and a 72px ticket rail without the pattern
+   scaling with the box. */
+.plate{
+  --chk:34px;
+  position:absolute; inset:0;
+  background-color:#D9D9D9;
+  background-image:
+    linear-gradient(45deg, #B0B0B0 25%, transparent 25%, transparent 75%, #B0B0B0 75%),
+    linear-gradient(45deg, #B0B0B0 25%, transparent 25%, transparent 75%, #B0B0B0 75%);
+  background-size:var(--chk) var(--chk);
+  background-position:0 0, calc(var(--chk) / 2) calc(var(--chk) / 2);
 }
 
 /* ═══════════════ TOP BAR ═══════════════ */
@@ -369,17 +529,14 @@ body.is-gated{ overflow:hidden; }
   border-bottom:1px solid rgba(255,255,255,.13);
 }
 .lockup{ display:flex; align-items:center; gap:11px; }
-.lockup__cherry{
-  width:19px; height:22px;
-  background:var(--red);                       /* ← red 1 of 4 */
-  -webkit-mask:url(../assets/cherry.svg) center/contain no-repeat;
-          mask:url(../assets/cherry.svg) center/contain no-repeat;
-}
-.lockup__word{
-  width:clamp(118px,11vw,158px); aspect-ratio:1322/132;
-  background:#fff;
-  -webkit-mask:url(../assets/wordmark.svg) center/100% 100% no-repeat;
-          mask:url(../assets/wordmark.svg) center/100% 100% no-repeat;
+/* Holds the cherry-plus-wordmark footprint the real lockup occupied, so
+   the bar's balance against the readout on the right is unchanged. */
+.lockup__ph{
+  width:clamp(150px,15vw,196px);
+  height:34px;
+  padding:0 8px;
+  font-size:8px; letter-spacing:.09em;
+  color:#fff; opacity:.72;
 }
 
 /* Live section readout. Reports position; doesn't navigate. */
@@ -448,20 +605,23 @@ body.is-gated{ overflow:hidden; }
   position:relative; overflow:hidden;
   padding:clamp(6px,.75vw,10px) clamp(15px,1.7vw,24px);
   border-radius:999px;
-  background:var(--red);
-  color:#fff;
+  /* The one solid on a dark capsule, and it prints black — 5.58:1 at
+     rest — so it separates from the 66%-white nav links beside it by hue
+     and by weight at once. */
+  background:var(--orange-fill);
+  color:#111111;
   font-size:clamp(12px,1vw,14px); font-weight:500;
   white-space:nowrap;
+  /* Same curve and duration as the ticket's, so the pill and the object
+     it points at light up as one gesture. */
+  transition:background-color .22s cubic-bezier(.2,0,0,1);
 }
-/* Hover darkens rather than recolours — the red is the point, and
-   swapping it out on hover threw the whole capsule's weight around. */
-.dock__cta::after{
-  content:''; position:absolute; inset:0;
-  background:#000; opacity:0;
-  transition:opacity .3s var(--ease);
-}
+/* Hover lights the pill up to the true orange. It used to lay a black
+   veil over the fill instead — that was the right move when the fill was
+   already the brightest orange the white type could survive, and it is
+   the wrong one now that the fill sits a stop below on purpose. */
 @media (hover: hover) and (pointer: fine){
-  .dock__cta:hover::after{ opacity:.18; }
+  .dock__cta:hover{ background:var(--orange-lit); }
 }
 
 /* ── Flip-up label ──
@@ -505,100 +665,6 @@ body.is-gated{ overflow:hidden; }
     repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 7px);
 }
 
-/* ═══════════════ HERO ═══════════════
-   Full-bleed media with the site's own grid furniture laid over it:
-   hairlines on the page margin, tracked caption labels at the foot. The
-   type is set large and left, vertically centred in the frame rather
-   than dropped in a corner, so the composition is the whole plate.
-
-   Everything except .hero__media is media-agnostic — swapping the still
-   for a <video> touches one rule. */
-.hero{
-  position:relative;
-  min-height:clamp(540px, 88vh, 940px);
-  display:flex;
-  overflow:hidden;
-  background:var(--ink);
-  color:var(--paper);
-}
-.hero__media{
-  position:absolute; inset:0;
-  background:url(../assets/crowd.jpg) center 40%/cover no-repeat;
-  filter:grayscale(1) contrast(1.14) brightness(.58);
-}
-/* Two gradients, not one flat scrim: a light overall wash to hold the
-   type, and a deeper foot so the caption rule always has something to
-   sit on. A single heavy scrim just made the photograph muddy. */
-.hero__media::after{
-  content:''; position:absolute; inset:0;
-  background:
-    linear-gradient(to top, rgba(17,17,17,.72) 0%, rgba(17,17,17,0) 42%),
-    linear-gradient(to right, rgba(17,17,17,.52) 0%, rgba(17,17,17,.08) 68%);
-}
-
-/* The frame is the page margin, drawn. */
-.hero__frame{
-  position:relative; z-index:1;
-  flex:1;
-  display:flex; flex-direction:column;
-  /* Bottom padding carries the type off the edge now that the caption
-     row is gone — at the old 18–26px the headline sat on the trim. */
-  padding:calc(var(--top-h) + clamp(26px,4vh,54px)) var(--m) clamp(44px,7vh,96px);
-}
-/* Bottom-left at every size. Stacked, the type is the composition; on a
-   wide screen it drops to a single line along the foot so the footage
-   gets the frame and the words become a caption on it. */
-.hero__body{
-  flex:1;
-  display:flex; align-items:flex-end;
-  padding-block:clamp(30px,6vh,72px) 0;
-}
-.hero__h1{
-  font-size:clamp(44px,11vw,132px);
-  line-height:.88;
-  letter-spacing:-.05em;
-}
-.hero__h1 .line{ display:block; }
-
-@media (min-width:1100px){
-  /* inline, not block — the newlines between the spans in the markup
-     collapse to the word spaces the sentence needs. */
-  .hero__h1 .line{ display:inline; }
-  .hero__h1{
-    /* The h1 is a flex item, so without this it shrinks to its own
-       content — which makes the width it wraps against narrower than the
-       frame, and every size calibrated from it comes out a line too big. */
-    width:100%;
-    /* Measured, not guessed: the sentence runs 17.37px wide per 1px of
-       font-size against a frame ~93% of the viewport, making 5.37vw the
-       exact fitting size. 5.1vw leaves ~60px of air at 1280 so a rounding
-       difference can't tip it onto a second line. */
-    font-size:min(5.1vw, 100px);
-    line-height:1;
-    max-width:none;
-  }
-}
-
-/* ── The brand face in the headline ──
-   Measured, not guessed: at the same font-size Inter Tight caps stand at
-   .73em and Shrikhand's at .67em, so Shrikhand runs 1.09× LARGER for the
-   two faces to read as one line.
-
-   Tracking is set tighter than the grotesque on purpose — the wordmark
-   sets its letters hard against each other, and this carries that into
-   live type. */
-.hero__h1 b{
-  font-family:var(--f-brand);
-  font-weight:400;
-  font-size:1.09em;
-  letter-spacing:-.086em;
-  color:inherit;
-  display:inline-block;
-  /* letter-spacing also subtracts after the final letter; give it back so
-     following punctuation isn't dragged into the word. */
-  padding-right:.086em;
-}
-
 /* ── Hairline spec strip ──────────────────────────────────────────
    The page's core information pattern: a rule, a label, a value. Used
    at three scales (.strip, .spec, .figs) so every fact on the site is
@@ -640,47 +706,22 @@ body.is-gated{ overflow:hidden; }
   position:relative;
   aspect-ratio:2/3;
   overflow:hidden;
-  background:var(--ink);
+  display:grid; place-items:center;
   border-radius:2px;             /* trimmed sheet, not a rounded card */
-  color:var(--paper);
 }
-.poster__img{
-  position:absolute; inset:0;
-  /* Deliberately a different crop from the hero, which uses the same
-     photograph — same night, different frame, rather than one image
-     printed twice on the same screen. */
-  /* Artwork is already 2:3, so it drops straight into the trim with no
-     crop. Left in colour on purpose — it's flat orange-and-black art, and
-     the greyscale treatment the photography gets would flatten it. */
-  background:url(../assets/poster-halloween.jpg) center/cover no-repeat;
-}
-.poster__sheet::after{
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(to top, rgba(17,17,17,.92) 0%, rgba(17,17,17,.35) 42%, rgba(17,17,17,.12) 100%);
-}
-.poster__cherry{
-  position:absolute; z-index:2;
-  top:clamp(16px,2.4vw,26px); left:clamp(16px,2.4vw,26px);
-  width:clamp(22px,2.6vw,34px); aspect-ratio:549/633;
-  background:var(--red);
-  -webkit-mask:url(../assets/cherry.svg) center/contain no-repeat;
-          mask:url(../assets/cherry.svg) center/contain no-repeat;
-}
-.poster__type{
-  position:absolute; z-index:2; inset:auto 0 0 0;
-  display:flex; flex-direction:column; gap:clamp(10px,1.4vw,16px);
-  padding:clamp(18px,2.6vw,30px);
-}
-.poster__eyebrow,
-.poster__meta{
-  font-size:clamp(8.5px,.72vw,10.5px); font-weight:500;
-  letter-spacing:.16em; text-transform:uppercase;
-  color:rgba(239,236,231,.72);
-}
-.poster__title{
-  font-family:var(--f-display);
-  font-size:clamp(30px,3.9vw,58px);
-  line-height:.92; letter-spacing:-.04em;
+/* The sheet is empty on purpose — the crawl's poster is commissioned art
+   and the mock that used to sit here was being read as the real thing.
+   One label, centred, in the same voice as the logo slots. */
+.poster__ph{
+  position:relative; z-index:1;
+  padding:.85em 1.2em;
+  border:1.5px dashed rgba(17,17,17,.55);
+  border-radius:3px;
+  background:rgba(217,217,217,.86);
+  font-family:var(--f-ui);
+  font-size:clamp(9px,.85vw,11.5px); font-weight:500;
+  letter-spacing:.12em; text-transform:uppercase;
+  color:rgba(17,17,17,.72);
 }
 .poster__cap{
   display:flex; justify-content:space-between; gap:12px;
@@ -692,6 +733,15 @@ body.is-gated{ overflow:hidden; }
 
 /* ═══════════════ SECTIONS ═══════════════ */
 .sec{ padding:clamp(74px,12vh,168px) 0 0; }
+
+/* The page used to open on a full-bleed hero, which sat UNDER the fixed
+   top bar by design. It opens on a section now, so the first one has to
+   clear that bar itself — at the old 74px floor the Upcoming kicker was
+   6px below a 68px bar. Written against :first-child rather than the
+   panel, so whichever section leads the page gets the clearance. */
+main > .sec:first-child{
+  padding-top:calc(var(--top-h) + clamp(40px,7vh,116px));
+}
 
 /* The one coloured panel on the site. Full-bleed deep violet, so the next
    crawl is unmistakably the thing being sold — and so the storm above it
@@ -737,10 +787,9 @@ body.is-gated{ overflow:hidden; }
 /* The poster is a printed sheet, not part of the panel's colour system —
    it is the same object whether it is hung on paper or on the plum. So it
    takes the page's own values back rather than inheriting the inversion,
-   and the cherry on it stays the brand's red. */
+   which is what keeps the placeholder's label dark on its light checker. */
 .sec--feature .poster__sheet{
   --ink: #111111;
-  --red: #CE1919;
 }
 /* The panel's real content sits above the weather. Stated once here
    rather than on each block, so anything added to the panel later lands
@@ -1119,11 +1168,21 @@ body.is-gated{ overflow:hidden; }
   min-height:var(--tk-h);
   /* The ticket is the one object on the panel that is neither the ground
      nor drawn on it — it is the transaction, so it gets the accent as a
-     solid, and everything printed on it is white. It sets both explicitly
-     rather than taking the panel's inverted --ink, which would have made
-     the ticket itself white. */
-  color:#fff;
-  background:var(--orange);
+     solid. It sets its own fill and its own ink explicitly rather than
+     taking the panel's inverted --ink, which would have made the ticket
+     itself white.
+
+     THE FILL IS THE BRIGHT STOP AND THE PRINT IS BLACK. That pairing is
+     forced, not preferred: #FF7F32 holds white at 2.52:1 and black at
+     7.55:1, so the moment the fill moved up to the bright orange the
+     print had to invert with it. Everything inside draws from
+     currentColor — the barcode, the perforation, the rail's edge — so
+     this one line carried all of them across.
+
+     The white shimmer stays white. It is light passing over the object,
+     not something printed on it, and the two are allowed to disagree. */
+  color:#111111;
+  background:var(--orange-fill);
   border-radius:5px;
   overflow:hidden;
   cursor:pointer;
@@ -1140,13 +1199,11 @@ body.is-gated{ overflow:hidden; }
      easing toward it. */
   transition:background-color .22s cubic-bezier(.2,0,0,1);
 }
-/* Hover lifts the fill by one step rather than recolouring it. That is a
-   ceiling, not a preference: white type is what makes this ticket legible
-   and --orange-hi is the lightest orange that still holds white at AA. So
-   the colour moves a little and the shimmer does the rest — which is the
-   right division anyway, since the sweep is the part that reads as live. */
+/* Hover lifts the fill to the true orange rather than recolouring it —
+   the same move every orange button on the site makes, so the ticket and
+   the dock pill that points at it answer the pointer identically. */
 @media (hover: hover) and (pointer: fine){
-  .ticket:hover{ background:var(--orange-hi); }
+  .ticket:hover{ background:var(--orange-lit); }
   .ticket:hover::after{ animation:shimmer 1.15s infinite; }
 }
 
@@ -1202,8 +1259,16 @@ body.is-gated{ overflow:hidden; }
   position:relative; z-index:1;
   flex:0 0 calc(var(--tk-h) * 2 / 3);
   align-self:stretch;
-  background:url(../assets/poster-halloween.jpg) center/cover no-repeat;
-  border-right:1px solid color-mix(in srgb, currentColor 22%, transparent);
+  /* Same placeholder as the poster it is a miniature of, at a tile small
+     enough to still read as a checker in 72px. */
+  --chk:11px;
+  background-color:#D9D9D9;
+  background-image:
+    linear-gradient(45deg, #B0B0B0 25%, transparent 25%, transparent 75%, #B0B0B0 75%),
+    linear-gradient(45deg, #B0B0B0 25%, transparent 25%, transparent 75%, #B0B0B0 75%);
+  background-size:var(--chk) var(--chk);
+  background-position:0 0, calc(var(--chk) / 2) calc(var(--chk) / 2);
+  border-right:1px solid color-mix(in srgb, currentColor 30%, transparent);
 }
 
 /* Body. Eyebrow, booking, particulars — small, large, small. */
@@ -1577,7 +1642,7 @@ body.is-gated{ overflow:hidden; }
    two greens read as one family rather than as two decisions. */
 [data-fx="storm"]{ --ev-bg:#2F1A47; --ev-fg:#FF7F32; --ev-txt:#FFFFFF; }
 [data-fx="snow"] { --ev-bg:#A31621; --ev-fg:#FFFFFF; --ev-txt:#FFFFFF; }
-[data-fx="prism"]{ --ev-bg:#CFE6BE; --ev-fg:#3F6B12; --ev-txt:#2C4A12; }
+[data-fx="prism"]{ --ev-bg:#CFE6BE; --ev-fg:var(--shamrock); --ev-txt:#2C4A12; }
 
 /* Where the row sits when nothing is happening — and it carries real
    information: ink means this crawl is selling, --mute means it is not.
@@ -1962,18 +2027,61 @@ body.is-gated{ overflow:hidden; }
   .sub__field button:hover svg{ transform:translateX(4px); }
 }
 
+/* ═══════════════ RECORD PLATE ═══════════════
+   The crowd photograph, moved here from the hero. It is better evidence
+   than opening art: under a headline that claims eight years, a full room
+   is the proof of the claim rather than a mood.
+
+   Same construction as the hero it replaces — full-bleed media, the
+   page's own grid furniture laid over it — so the section's head is the
+   composition rather than a caption dropped on a picture. */
+.record{
+  position:relative;
+  overflow:hidden;
+  margin-bottom:clamp(44px,7vh,96px);
+  padding-block:clamp(70px,13vh,152px);
+  background:var(--ink);
+  /* The plate inverts, the same way the Upcoming panel does: re-point the
+     tokens and every rule inside lands light-on-dark with no per-element
+     override. The kicker and the hairline follow the headline across. */
+  --ink:      #FFFFFF;
+  --ink-58:   rgba(255,255,255,.66);
+  --rule:     rgba(255,255,255,.30);
+  color:#FFFFFF;
+}
+.record__media{
+  position:absolute; inset:0;
+  background:url(../assets/crowd.jpg) center 42%/cover no-repeat;
+  filter:grayscale(1) contrast(1.14) brightness(.5);
+}
+/* Two gradients, not one flat scrim: a wash from the left to hold the
+   type, and a foot deep enough that the headline's descenders never land
+   on a bright patch of the crowd. A single heavy scrim just made the
+   photograph muddy. */
+.record__media::after{
+  content:''; position:absolute; inset:0;
+  background:
+    linear-gradient(to right, rgba(17,17,17,.74) 0%, rgba(17,17,17,.18) 72%),
+    linear-gradient(to top, rgba(17,17,17,.52) 0%, rgba(17,17,17,0) 46%);
+}
+.record__head{ position:relative; z-index:1; }
+@media (min-width:900px){
+  .record__head .sec__title{ grid-column:1 / span 8; }
+}
+
 /* ═══════════════ FOOTER ═══════════════ */
 .foot{
   margin-top:clamp(90px,14vh,190px);
   padding:clamp(46px,6vw,80px) var(--m) calc(clamp(14px,2vw,26px) + 78px);
   border-top:1px solid var(--rule);
 }
-/* Stacked lockup — the cherry at full size with the wordmark stepped
-   beside it. Shipped as a two-colour SVG, so it's an <img> rather than a
-   mask. */
+/* The lockup slot at the footer's size. The type inside scales with the
+   box rather than staying at 10.5px, or a 460px-wide dashed rectangle
+   ends up with a caption too small to be the point of it. */
 .foot__mark{
-  display:block; height:auto;
   width:clamp(200px,34vw,460px);
+  aspect-ratio:1158/633;
+  font-size:clamp(10.5px,1.5vw,19px);
 }
 .foot__meta{
   display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px;
